@@ -7,6 +7,7 @@ import {
   getGetDashboardMetricsQueryKey,
   getGetChannelComparisonQueryKey,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -21,18 +22,29 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
 } from "recharts";
-import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "wouter";
 
 export default function Dashboard() {
-  const { activeWorkspaceId } = useAuth();
+  const { activeWorkspaceId, user } = useAuth();
+  const isViewer = user?.role === "viewer";
+
   const { data: metrics, isLoading: isMetricsLoading } = useGetDashboardMetrics(
     { workspaceId: activeWorkspaceId },
-    { query: { enabled: !!activeWorkspaceId, queryKey: getGetDashboardMetricsQueryKey({ workspaceId: activeWorkspaceId }) } }
+    {
+      query: {
+        enabled: !!activeWorkspaceId,
+        queryKey: getGetDashboardMetricsQueryKey({ workspaceId: activeWorkspaceId }),
+      },
+    },
   );
   const { data: channelData, isLoading: isChannelLoading } = useGetChannelComparison(
     { workspaceId: activeWorkspaceId },
-    { query: { enabled: !!activeWorkspaceId, queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }) } }
+    {
+      query: {
+        enabled: !!activeWorkspaceId,
+        queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }),
+      },
+    },
   );
   const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({
     workspaceId: activeWorkspaceId,
@@ -41,8 +53,9 @@ export default function Dashboard() {
     workspaceId: activeWorkspaceId,
   });
 
-  const topRec = recommendations?.find(r => r.priority === "high") ?? recommendations?.[0];
+  const topRec = recommendations?.find((r) => r.priority === "high") ?? recommendations?.[0];
   const topCampaigns = campaigns?.slice(0, 3) ?? [];
+  const hasCampaigns = (campaigns?.length ?? 0) > 0;
 
   return (
     <SidebarLayout>
@@ -51,16 +64,18 @@ export default function Dashboard() {
         <p className="text-muted-foreground mt-2 text-base">Here's what needs your attention today.</p>
       </div>
 
-      {/* Section 1 — Today's Action */}
-      {topRec && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="pt-6 pb-5">
+      {/* Section 1 — Today's Action: always renders */}
+      <Card className={topRec ? "border-primary/30 bg-primary/5" : "border-dashed"}>
+        <CardContent className="pt-6 pb-5">
+          {topRec ? (
             <div className="flex items-start gap-4">
               <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                 <Zap className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Today's Action</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">
+                  Today's Action
+                </p>
                 <p className="text-lg font-semibold leading-snug">{topRec.title}</p>
                 <p className="text-sm text-muted-foreground mt-1">{topRec.description}</p>
               </div>
@@ -70,9 +85,38 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <Zap className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                  Today's Action
+                </p>
+                <p className="text-lg font-semibold leading-snug text-foreground">
+                  {hasCampaigns
+                    ? "Connect a campaign to get AI-powered recommendations."
+                    : "Create your first campaign to get recommendations."}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {hasCampaigns
+                    ? "Once campaigns have performance data, recommendations will appear here."
+                    : "Recommendations are generated automatically once you have campaigns and performance data."}
+                </p>
+              </div>
+              {!isViewer && (
+                <Link href="/campaigns/new">
+                  <Button size="sm" className="shrink-0">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    {hasCampaigns ? "New Campaign" : "Create Campaign"}
+                  </Button>
+                </Link>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Section 2 — 3 KPIs */}
       {isMetricsLoading ? (
@@ -104,7 +148,9 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="px-5 pb-5">
               <p className="text-3xl font-bold">{metrics.totalClicks.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground mt-1">Avg CTR {metrics.avgCtr.toFixed(2)}%</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Avg CTR {metrics.avgCtr.toFixed(2)}%
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -175,12 +221,14 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Your Campaigns</h2>
           <div className="flex items-center gap-2">
-            <Link href="/campaigns/new">
-              <Button size="sm">
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                New Campaign
-              </Button>
-            </Link>
+            {!isViewer && (
+              <Link href="/campaigns/new">
+                <Button size="sm">
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  New Campaign
+                </Button>
+              </Link>
+            )}
             <Link href="/campaigns">
               <Button size="sm" variant="ghost" className="text-muted-foreground">
                 View all <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -200,13 +248,17 @@ export default function Dashboard() {
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <Megaphone className="h-10 w-10 text-muted-foreground/40 mb-3" />
               <p className="font-semibold text-lg mb-1">No campaigns yet</p>
-              <p className="text-muted-foreground text-sm mb-4">Create your first campaign to start generating ads.</p>
-              <Link href="/campaigns/new">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create your first campaign
-                </Button>
-              </Link>
+              <p className="text-muted-foreground text-sm mb-4">
+                Create your first campaign to start generating ads.
+              </p>
+              {!isViewer && (
+                <Link href="/campaigns/new">
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create your first campaign
+                  </Button>
+                </Link>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -221,7 +273,9 @@ export default function Dashboard() {
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold truncate">{campaign.name}</p>
-                        <p className="text-sm text-muted-foreground capitalize">{campaign.objective}</p>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {campaign.objective}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">

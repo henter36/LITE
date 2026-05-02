@@ -1,13 +1,13 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import { useListCampaigns } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Target, Calendar, ArrowRight, Megaphone } from "lucide-react";
+import { Plus, Target, Calendar, ArrowRight, Megaphone, EyeOff } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { useAuth } from "@/contexts/AuthContext";
 
 const STATUS_COLOR: Record<string, string> = {
   active: "default",
@@ -18,7 +18,8 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function Campaigns() {
-  const { activeWorkspaceId } = useAuth();
+  const { activeWorkspaceId, user } = useAuth();
+  const isViewer = user?.role === "viewer";
   const { data: campaigns, isLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
 
   return (
@@ -26,15 +27,30 @@ export default function Campaigns() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Campaigns</h1>
-          <p className="text-muted-foreground mt-2 text-base">Plan and manage your marketing campaigns.</p>
+          <p className="text-muted-foreground mt-2 text-base">
+            Plan and manage your marketing campaigns.
+          </p>
         </div>
-        <Link href="/campaigns/new">
-          <Button size="lg">
-            <Plus className="mr-2 h-4 w-4" />
-            New Campaign
-          </Button>
-        </Link>
+        {!isViewer && (
+          <Link href="/campaigns/new">
+            <Button size="lg">
+              <Plus className="mr-2 h-4 w-4" />
+              New Campaign
+            </Button>
+          </Link>
+        )}
       </div>
+
+      {/* Viewer read-only indicator */}
+      {isViewer && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-4 py-2.5 bg-muted/20">
+          <EyeOff className="h-4 w-4 shrink-0" />
+          <span>
+            <span className="font-medium text-foreground">Read-only access.</span>{" "}
+            You can view campaigns but cannot create or edit them. Ask an Admin to make changes.
+          </span>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">
@@ -48,14 +64,17 @@ export default function Campaigns() {
             <Megaphone className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <p className="text-xl font-semibold mb-2">No campaigns yet</p>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              A campaign is where everything starts — brief, content, approval, and tracking in one place.
+              A campaign is where everything starts — brief, content, approval, and tracking in one
+              place.
             </p>
-            <Link href="/campaigns/new">
-              <Button size="lg">
-                <Plus className="mr-2 h-4 w-4" />
-                Create your first campaign
-              </Button>
-            </Link>
+            {!isViewer && (
+              <Link href="/campaigns/new">
+                <Button size="lg">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create your first campaign
+                </Button>
+              </Link>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -72,7 +91,7 @@ export default function Campaigns() {
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-semibold text-lg leading-tight">{campaign.name}</h3>
                         <Badge
-                          variant={(STATUS_COLOR[campaign.status] ?? "secondary") as any}
+                          variant={(STATUS_COLOR[campaign.status] ?? "secondary") as "default" | "secondary" | "outline" | "destructive"}
                           className="capitalize"
                         >
                           {campaign.status}
@@ -92,7 +111,11 @@ export default function Campaigns() {
                       {campaign.channels.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 pt-0.5">
                           {campaign.channels.map((ch) => (
-                            <Badge key={ch} variant="outline" className="capitalize text-xs font-normal">
+                            <Badge
+                              key={ch}
+                              variant="outline"
+                              className="capitalize text-xs font-normal"
+                            >
                               {ch}
                             </Badge>
                           ))}

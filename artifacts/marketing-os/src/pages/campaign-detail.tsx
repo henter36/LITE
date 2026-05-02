@@ -5,17 +5,38 @@ import {
   useApproveCampaign,
   useListTrackingLinks,
   useListMetrics,
+  useCreateTrackingLink,
   getGetCampaignQueryKey,
   getListAssetsQueryKey,
   getListMetricsQueryKey,
+  getListTrackingLinksQueryKey,
 } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
 import { useRoute, Link } from "wouter";
 import { differenceInDays, parseISO, min as dateMin, format } from "date-fns";
 import {
@@ -38,6 +59,7 @@ import {
   Info,
   ArrowRight,
   Sparkles,
+  EyeOff,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -76,11 +98,25 @@ function computeBudgetPacing(budgetSuggestion: number, startDate: string, endDat
   };
 }
 
+const LINK_CHANNELS = ["instagram", "snapchat", "youtube", "x", "tiktok", "email", "other"];
+
 export default function CampaignDetail() {
   const [, params] = useRoute("/campaigns/:id");
   const campaignId = parseInt(params?.id || "0", 10);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const isViewer = user?.role === "viewer";
+
+  // Tracking link dialog state
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkChannel, setLinkChannel] = useState("instagram");
+  const [linkSource, setLinkSource] = useState("instagram");
+  const [linkMedium, setLinkMedium] = useState("paid");
+  const [linkCampaignName, setLinkCampaignName] = useState("");
+  const [linkContent, setLinkContent] = useState("");
+  const [linkFinalUrl, setLinkFinalUrl] = useState("");
 
   const { data: campaign, isLoading: isCampaignLoading } = useGetCampaign(campaignId, {
     query: { enabled: !!campaignId, queryKey: getGetCampaignQueryKey(campaignId) },
@@ -88,13 +124,13 @@ export default function CampaignDetail() {
 
   const { data: assets, isLoading: isAssetsLoading } = useListAssets(
     { campaignId },
-    { query: { enabled: !!campaignId, queryKey: getListAssetsQueryKey({ campaignId }) } }
+    { query: { enabled: !!campaignId, queryKey: getListAssetsQueryKey({ campaignId }) } },
   );
 
   const { data: trackingLinks } = useListTrackingLinks({ campaignId });
   const approveCampaign = useApproveCampaign();
+  const createTrackingLink = useCreateTrackingLink();
 
-  // Fix 5: fetch metrics to drive step 4 completion
   const { data: metrics } = useListMetrics(
     { campaignId },
     {
@@ -102,7 +138,7 @@ export default function CampaignDetail() {
         enabled: !!campaignId,
         queryKey: getListMetricsQueryKey({ campaignId }),
       },
-    }
+    },
   );
   const hasMetrics = (metrics?.length ?? 0) > 0;
 
@@ -114,7 +150,53 @@ export default function CampaignDetail() {
           queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(campaignId) });
           toast({ title: "Campaign marked as ready" });
         },
-      }
+      },
+    );
+  };
+
+  const openLinkDialog = () => {
+    setLinkChannel("instagram");
+    setLinkSource("instagram");
+    setLinkMedium("paid");
+    setLinkCampaignName(campaign?.name ?? "");
+    setLinkContent("");
+    setLinkFinalUrl(campaign?.landingUrl ?? "");
+    setLinkDialogOpen(true);
+  };
+
+  const handleCreateLink = () => {
+    if (!linkChannel || !linkSource || !linkMedium || !linkCampaignName || !linkFinalUrl) {
+      toast({ title: "Please fill in all required fields.", variant: "destructive" });
+      return;
+    }
+    createTrackingLink.mutate(
+      {
+        data: {
+          campaignId,
+          channel: linkChannel,
+          source: linkSource,
+          medium: linkMedium,
+          campaign: linkCampaignName,
+          content: linkContent,
+          finalUrl: linkFinalUrl,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: getListTrackingLinksQueryKey({ campaignId }),
+          });
+          setLinkDialogOpen(false);
+          toast({ title: "Tracking link created", description: "Ready to copy and use." });
+        },
+        onError: (err: unknown) => {
+          const msg =
+            err && typeof err === "object" && "message" in err
+              ? String((err as { message: string }).message)
+              : "Please check the URL and try again.";
+          toast({ title: "Failed to create link", description: msg, variant: "destructive" });
+        },
+      },
     );
   };
 
@@ -149,39 +231,32 @@ export default function CampaignDetail() {
   const pacing = computeBudgetPacing(
     campaign.budgetSuggestion,
     campaign.startDate,
-    campaign.endDate
+    campaign.endDate,
   );
 
   const verdictColor =
     pacing.verdict === "On Pace"
       ? "bg-green-500/10 text-green-700 border-green-500/20 dark:text-green-400"
       : pacing.verdict === "Overspending"
-      ? "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400"
-      : "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400";
+        ? "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400"
+        : "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400";
 
   const VerdictIcon =
     pacing.verdict === "On Pace"
       ? Minus
       : pacing.verdict === "Overspending"
-      ? TrendingUp
-      : TrendingDown;
+        ? TrendingUp
+        : TrendingDown;
 
   const hasAssets = !isAssetsLoading && (assets?.length ?? 0) > 0;
   const isApproved = campaign.status === "approved" || campaign.status === "active";
 
-  // Fix 5: step 4 completes when metrics exist (demo data is present)
   const completedSteps = [true, hasAssets, isApproved, hasMetrics];
   const currentStep = completedSteps.findIndex((done) => !done);
   const effectiveStep = currentStep === -1 ? 4 : currentStep;
 
-  // Fix 5: each step has an optional href for navigation
   const FLOW_STEPS = [
-    {
-      label: "Create Campaign",
-      icon: Megaphone,
-      href: null,
-      nextAction: null,
-    },
+    { label: "Create Campaign", icon: Megaphone, href: null, nextAction: null },
     {
       label: "Generate Ads",
       icon: PenTool,
@@ -206,6 +281,17 @@ export default function CampaignDetail() {
 
   return (
     <SidebarLayout>
+      {/* Viewer read-only banner */}
+      {isViewer && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-4 py-2.5 bg-muted/20">
+          <EyeOff className="h-4 w-4 shrink-0" />
+          <span>
+            <span className="font-medium text-foreground">Read-only access.</span>{" "}
+            You can view campaign details but cannot make changes. Ask an Admin to take action.
+          </span>
+        </div>
+      )}
+
       <div>
         <Link href="/campaigns">
           <Button variant="ghost" size="sm" className="text-muted-foreground mb-4 -ml-2">
@@ -233,8 +319,7 @@ export default function CampaignDetail() {
             </p>
           </div>
 
-          {/* Fix 4: renamed from "Approve Campaign" → "Mark Campaign Ready" with tooltip */}
-          {!isApproved && (
+          {!isViewer && !isApproved && (
             <div className="flex flex-col items-end gap-1 shrink-0">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -265,7 +350,7 @@ export default function CampaignDetail() {
         </div>
       </div>
 
-      {/* Fix 5: Clickable flow indicator with next-action callout */}
+      {/* Clickable flow indicator */}
       <div className="space-y-3">
         <div className="flex items-center gap-0 overflow-x-auto pb-1">
           {FLOW_STEPS.map((step, i) => {
@@ -289,11 +374,7 @@ export default function CampaignDetail() {
 
             return (
               <div key={step.label} className="flex items-center">
-                {active && step.href ? (
-                  <Link href={step.href}>{pill}</Link>
-                ) : (
-                  pill
-                )}
+                {active && step.href ? <Link href={step.href}>{pill}</Link> : pill}
                 {i < FLOW_STEPS.length - 1 && (
                   <div className="w-6 h-px bg-border mx-1 shrink-0" />
                 )}
@@ -302,7 +383,6 @@ export default function CampaignDetail() {
           })}
         </div>
 
-        {/* Next-action hint for current step */}
         {effectiveStep < 4 && activeStep?.nextAction && (
           <div className="flex items-center gap-2 text-sm">
             {activeStep.href ? (
@@ -394,7 +474,9 @@ export default function CampaignDetail() {
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Day {pacing.daysElapsed} of {pacing.totalDays}</span>
+                  <span>
+                    Day {pacing.daysElapsed} of {pacing.totalDays}
+                  </span>
                   <span>{pacing.daysRemaining}d left</span>
                 </div>
                 <Progress value={pacing.progressPct * 100} className="h-2" />
@@ -434,8 +516,7 @@ export default function CampaignDetail() {
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <CardTitle>Ad Content</CardTitle>
-                {/* Fix 1: Link passes campaignId so Content Studio pre-selects */}
-                {(!assets || assets.length === 0) && (
+                {!isViewer && (!assets || assets.length === 0) && (
                   <Link href={`/content-studio?campaignId=${campaignId}`}>
                     <Button size="sm">
                       <Sparkles className="mr-2 h-3.5 w-3.5" />
@@ -447,7 +528,7 @@ export default function CampaignDetail() {
                   <Link href={`/content-studio?campaignId=${campaignId}`}>
                     <Button size="sm" variant="outline">
                       <PenTool className="mr-2 h-3.5 w-3.5" />
-                      Review in Content Page
+                      {isViewer ? "View in Content Page" : "Review in Content Page"}
                     </Button>
                   </Link>
                 )}
@@ -464,8 +545,9 @@ export default function CampaignDetail() {
                   <PenTool className="h-8 w-8 text-muted-foreground/40 mb-3" />
                   <p className="font-medium mb-1">No ads generated yet</p>
                   <p className="text-muted-foreground text-sm mb-4">
-                    Click "Generate Ads" above — you'll land directly on the content page for this
-                    campaign.
+                    {isViewer
+                      ? "No ad content has been generated for this campaign."
+                      : `Click "Generate Ads" above — you'll land directly on the content page for this campaign.`}
                   </p>
                 </div>
               ) : (
@@ -481,8 +563,8 @@ export default function CampaignDetail() {
                             asset.status === "approved"
                               ? "default"
                               : asset.status === "rejected"
-                              ? "destructive"
-                              : "secondary"
+                                ? "destructive"
+                                : "secondary"
                           }
                           className="capitalize shrink-0"
                         >
@@ -527,7 +609,15 @@ export default function CampaignDetail() {
         <TabsContent value="links" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tracking Links</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Tracking Links</CardTitle>
+                {!isViewer && (
+                  <Button size="sm" onClick={openLinkDialog}>
+                    <Plus className="mr-2 h-3.5 w-3.5" />
+                    Generate Link
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {!trackingLinks || trackingLinks.length === 0 ? (
@@ -537,12 +627,12 @@ export default function CampaignDetail() {
                   <p className="text-muted-foreground text-sm mb-4">
                     Tracking links help you measure where clicks come from.
                   </p>
-                  <Link href="/settings">
-                    <Button variant="outline">
+                  {!isViewer && (
+                    <Button variant="outline" onClick={openLinkDialog}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Manage Tracking Links
+                      Generate Your First Link
                     </Button>
-                  </Link>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -584,6 +674,122 @@ export default function CampaignDetail() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Generate Tracking Link Dialog */}
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Generate Tracking Link</DialogTitle>
+            <DialogDescription>
+              Create a UTM tracking link for this campaign. The campaign is pre-selected.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Campaign — locked */}
+            <div className="space-y-1.5">
+              <Label>Campaign</Label>
+              <Input value={campaign.name} disabled className="bg-muted/50" />
+              <p className="text-xs text-muted-foreground">
+                This link will be tracked to the current campaign.
+              </p>
+            </div>
+
+            {/* Channel */}
+            <div className="space-y-1.5">
+              <Label htmlFor="link-channel">
+                Channel <span className="text-destructive">*</span>
+              </Label>
+              <Select value={linkChannel} onValueChange={(v) => { setLinkChannel(v); setLinkSource(v); }}>
+                <SelectTrigger id="link-channel">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LINK_CHANNELS.map((ch) => (
+                    <SelectItem key={ch} value={ch} className="capitalize">
+                      {ch.charAt(0).toUpperCase() + ch.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Source */}
+              <div className="space-y-1.5">
+                <Label htmlFor="link-source">
+                  Source <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="link-source"
+                  value={linkSource}
+                  onChange={(e) => setLinkSource(e.target.value)}
+                  placeholder="instagram"
+                />
+              </div>
+
+              {/* Medium */}
+              <div className="space-y-1.5">
+                <Label htmlFor="link-medium">
+                  Medium <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="link-medium"
+                  value={linkMedium}
+                  onChange={(e) => setLinkMedium(e.target.value)}
+                  placeholder="paid"
+                />
+              </div>
+            </div>
+
+            {/* UTM Campaign name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="link-campaign">
+                UTM Campaign Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="link-campaign"
+                value={linkCampaignName}
+                onChange={(e) => setLinkCampaignName(e.target.value)}
+                placeholder="summer-launch"
+              />
+            </div>
+
+            {/* Content (optional) */}
+            <div className="space-y-1.5">
+              <Label htmlFor="link-content">UTM Content (optional)</Label>
+              <Input
+                id="link-content"
+                value={linkContent}
+                onChange={(e) => setLinkContent(e.target.value)}
+                placeholder="variant-a"
+              />
+            </div>
+
+            {/* Final URL */}
+            <div className="space-y-1.5">
+              <Label htmlFor="link-url">
+                Destination URL <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="link-url"
+                value={linkFinalUrl}
+                onChange={(e) => setLinkFinalUrl(e.target.value)}
+                placeholder="https://example.com/landing"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateLink} disabled={createTrackingLink.isPending}>
+              {createTrackingLink.isPending ? "Creating…" : "Create Link"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarLayout>
   );
 }
