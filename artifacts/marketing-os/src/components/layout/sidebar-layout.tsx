@@ -4,25 +4,21 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
 } from "@/components/ui/sidebar";
-import { 
-  LayoutDashboard, 
-  Briefcase, 
-  Palette, 
-  Megaphone, 
-  PenTool, 
-  Link as LinkIcon, 
-  Plug, 
-  BarChart3, 
-  Activity,
+import {
+  LayoutDashboard,
+  Megaphone,
+  PenTool,
+  BarChart3,
+  Settings,
   LogOut,
   User,
+  FlaskConical,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,15 +26,11 @@ import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
 const navItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Workspaces", url: "/workspaces", icon: Briefcase },
-  { title: "Brand Profile", url: "/brand-profile", icon: Palette },
-  { title: "Campaigns", url: "/campaigns", icon: Megaphone },
-  { title: "Content Studio", url: "/content-studio", icon: PenTool },
-  { title: "Tracking Links", url: "/tracking-links", icon: LinkIcon },
-  { title: "Connections", url: "/connections", icon: Plug },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
-  { title: "Audit Log", url: "/audit-log", icon: Activity },
+  { title: "Dashboard",   url: "/",              icon: LayoutDashboard },
+  { title: "Campaigns",   url: "/campaigns",     icon: Megaphone },
+  { title: "Content",     url: "/content-studio",icon: PenTool },
+  { title: "Performance", url: "/reports",       icon: BarChart3 },
+  { title: "Settings",    url: "/settings",      icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -54,22 +46,29 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="h-16 flex items-center px-4 border-b">
-        <div className="flex items-center gap-2 font-bold text-lg tracking-tight text-primary">
-          <Megaphone className="h-6 w-6" />
+      <SidebarHeader className="h-16 flex items-center px-5 border-b">
+        <div className="flex items-center gap-2.5 font-bold text-lg tracking-tight text-primary">
+          <Megaphone className="h-5 w-5" />
           <span>Marketing OS</span>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+
+      <SidebarContent className="pt-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location === item.url || (item.url !== "/" && location.startsWith(item.url))}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      location === item.url ||
+                      (item.url !== "/" && location.startsWith(item.url))
+                    }
+                    className="h-10 text-base"
+                  >
                     <Link href={item.url}>
-                      <item.icon />
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -79,19 +78,25 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter className="border-t p-3 space-y-2">
         {user && (
           <div className="flex items-center gap-2 px-2 py-1 rounded-md">
-            <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <User className="h-4 w-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-xs text-muted-foreground truncate capitalize">{user.role ?? "member"}</p>
             </div>
           </div>
         )}
-        <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-destructive" onClick={handleLogout}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-muted-foreground hover:text-destructive"
+          onClick={handleLogout}
+        >
           <LogOut className="h-4 w-4 mr-2" />
           Sign Out
         </Button>
@@ -105,12 +110,12 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <main className="flex-1 flex flex-col min-w-0 bg-muted/20">
-        <div className="bg-destructive/10 text-destructive text-sm font-medium px-4 py-2 text-center border-b border-destructive/20 flex items-center justify-center gap-2">
-          <Activity className="h-4 w-4" />
-          MOCK MODE: This MVP does NOT spend real ad budget or publish ads automatically.
+        <div className="bg-muted/60 text-muted-foreground text-xs px-4 py-1.5 text-center border-b flex items-center justify-center gap-1.5">
+          <FlaskConical className="h-3 w-3" />
+          Demo mode · No real ads are running
         </div>
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="mx-auto w-full max-w-6xl space-y-6">
+        <div className="flex-1 p-8 overflow-y-auto">
+          <div className="mx-auto w-full max-w-5xl space-y-8">
             {children}
           </div>
         </div>

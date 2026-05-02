@@ -1,13 +1,21 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
-import { useListCampaigns, getListCampaignsQueryKey } from "@workspace/api-client-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useListCampaigns } from "@workspace/api-client-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Target, Users, MapPin, Calendar, ArrowRight } from "lucide-react";
+import { Plus, Target, Calendar, ArrowRight, Megaphone } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+
+const STATUS_COLOR: Record<string, string> = {
+  active: "default",
+  approved: "default",
+  draft: "secondary",
+  completed: "secondary",
+  archived: "outline",
+};
 
 export default function Campaigns() {
   const { activeWorkspaceId } = useAuth();
@@ -17,11 +25,11 @@ export default function Campaigns() {
     <SidebarLayout>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
-          <p className="text-muted-foreground mt-1">Manage and track your marketing campaigns.</p>
+          <h1 className="text-4xl font-bold tracking-tight">Campaigns</h1>
+          <p className="text-muted-foreground mt-2 text-base">Plan and manage your marketing campaigns.</p>
         </div>
         <Link href="/campaigns/new">
-          <Button>
+          <Button size="lg">
             <Plus className="mr-2 h-4 w-4" />
             New Campaign
           </Button>
@@ -29,70 +37,75 @@ export default function Campaigns() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4 mt-6">
+        <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-[120px] w-full rounded-xl" />
+            <Skeleton key={i} className="h-24 w-full rounded-xl" />
           ))}
         </div>
       ) : campaigns?.length === 0 ? (
-        <Card className="mt-6 flex flex-col items-center justify-center py-12">
-          <CardHeader>
-            <CardTitle className="text-xl">No campaigns found</CardTitle>
-            <CardDescription>Create your first campaign to start generating content.</CardDescription>
-          </CardHeader>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <Megaphone className="h-12 w-12 text-muted-foreground/40 mb-4" />
+            <p className="text-xl font-semibold mb-2">No campaigns yet</p>
+            <p className="text-muted-foreground mb-6 max-w-sm">
+              A campaign is where everything starts — brief, content, approval, and tracking in one place.
+            </p>
+            <Link href="/campaigns/new">
+              <Button size="lg">
+                <Plus className="mr-2 h-4 w-4" />
+                Create your first campaign
+              </Button>
+            </Link>
+          </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4 mt-6">
+        <div className="space-y-3">
           {campaigns?.map((campaign) => (
             <Card key={campaign.id} className="hover:bg-muted/30 transition-colors">
               <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-3 flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-lg">{campaign.name}</h3>
-                      <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'} className="capitalize">
-                        {campaign.status}
-                      </Badge>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <Megaphone className="h-5 w-5 text-primary" />
                     </div>
-                    
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Target className="h-4 w-4" />
-                        <span className="capitalize">{campaign.objective}</span>
+                    <div className="min-w-0 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold text-lg leading-tight">{campaign.name}</h3>
+                        <Badge
+                          variant={(STATUS_COLOR[campaign.status] ?? "secondary") as any}
+                          className="capitalize"
+                        >
+                          {campaign.status}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users className="h-4 w-4" />
-                        <span className="max-w-[150px] truncate" title={campaign.audience}>{campaign.audience}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4" />
-                        <span className="max-w-[150px] truncate" title={campaign.geography}>{campaign.geography}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {format(new Date(campaign.startDate), 'MMM d, yyyy')} - {format(new Date(campaign.endDate), 'MMM d, yyyy')}
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Target className="h-3.5 w-3.5" />
+                          <span className="capitalize">{campaign.objective}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {format(new Date(campaign.startDate), "MMM d")} –{" "}
+                          {format(new Date(campaign.endDate), "MMM d, yyyy")}
                         </span>
                       </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {campaign.channels.map((channel, i) => (
-                        <Badge key={i} variant="outline" className="capitalize text-xs font-normal">
-                          {channel}
-                        </Badge>
-                      ))}
+                      {campaign.channels.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {campaign.channels.map((ch) => (
+                            <Badge key={ch} variant="outline" className="capitalize text-xs font-normal">
+                              {ch}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-end shrink-0">
-                    <Link href={`/campaigns/${campaign.id}`}>
-                      <Button variant="ghost">
-                        View Details
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
+                  <Link href={`/campaigns/${campaign.id}`}>
+                    <Button variant="outline" size="sm" className="shrink-0">
+                      Open
+                      <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

@@ -1,7 +1,7 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import { useCreateCampaign, getListCampaignsQueryKey } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,14 +14,15 @@ import * as z from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { AlertCircle, CalendarIcon } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft, Check } from "lucide-react";
+import { Link } from "wouter";
 
 const CHANNELS = [
   { id: "instagram", label: "Instagram" },
   { id: "snapchat", label: "Snapchat" },
   { id: "youtube", label: "YouTube" },
   { id: "x", label: "X (Twitter)" },
+  { id: "tiktok", label: "TikTok" },
 ] as const;
 
 const campaignSchema = z.object({
@@ -36,6 +37,8 @@ const campaignSchema = z.object({
   channels: z.array(z.string()).min(1, "Select at least one channel"),
   landingUrl: z.string().url("Must be a valid URL").min(1, "Landing URL required"),
 });
+
+const STEPS = ["Create Campaign", "Generate Ads", "Approve", "Performance"];
 
 export default function NewCampaign() {
   const { activeWorkspaceId } = useAuth();
@@ -54,75 +57,96 @@ export default function NewCampaign() {
       audience: "",
       geography: "",
       budgetSuggestion: 1000,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +30 days
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       channels: ["instagram"],
       landingUrl: "https://",
     },
   });
 
   const onSubmit = (data: z.infer<typeof campaignSchema>) => {
-    createCampaign.mutate({ data: { ...data, workspaceId: activeWorkspaceId } }, {
-      onSuccess: (campaign) => {
-        queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey({ workspaceId: activeWorkspaceId }) });
-        toast({ title: "Campaign created successfully" });
-        setLocation(`/campaigns/${campaign.id}`);
+    createCampaign.mutate(
+      { data: { ...data, workspaceId: activeWorkspaceId } },
+      {
+        onSuccess: (campaign) => {
+          queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey({ workspaceId: activeWorkspaceId }) });
+          toast({ title: "Campaign created — next: generate your ads" });
+          setLocation(`/campaigns/${campaign.id}`);
+        },
       }
-    });
+    );
   };
 
   return (
     <SidebarLayout>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">New Campaign</h1>
-          <p className="text-muted-foreground mt-1">Plan your next marketing push.</p>
-        </div>
+      <div>
+        <Link href="/campaigns">
+          <Button variant="ghost" size="sm" className="text-muted-foreground mb-4 -ml-2">
+            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            Back to Campaigns
+          </Button>
+        </Link>
+        <h1 className="text-4xl font-bold tracking-tight">New Campaign</h1>
+        <p className="text-muted-foreground mt-2 text-base">Step 1 of 4 — Fill in your campaign brief.</p>
       </div>
 
-      <Alert className="mb-6 border-primary/50 bg-primary/10">
-        <AlertCircle className="h-4 w-4 text-primary" />
-        <AlertTitle className="text-primary">Advisory Only</AlertTitle>
-        <AlertDescription className="text-primary/80">
-          Budgets set here are for planning purposes only. This app does not connect to real payment methods or spend real money.
-        </AlertDescription>
-      </Alert>
+      {/* Flow indicator */}
+      <div className="flex items-center gap-0">
+        {STEPS.map((step, i) => (
+          <div key={step} className="flex items-center">
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
+              ${i === 0
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground"}`}
+            >
+              {i === 0 ? (
+                <span className="h-4 w-4 rounded-full bg-primary-foreground/20 flex items-center justify-center text-xs font-bold">1</span>
+              ) : (
+                <span className="h-4 w-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs">{i + 1}</span>
+              )}
+              {step}
+            </div>
+            {i < STEPS.length - 1 && (
+              <div className="w-6 h-px bg-border mx-1" />
+            )}
+          </div>
+        ))}
+      </div>
 
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-8">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Campaign Name</FormLabel>
+                      <FormLabel className="text-base font-semibold">Campaign Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Q3 Launch - Fall Collection" {...field} />
+                        <Input placeholder="Q3 Launch – Fall Collection" className="h-11" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="objective"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Objective</FormLabel>
+                      <FormLabel className="text-base font-semibold">Objective</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-11">
                             <SelectValue placeholder="Select objective" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="awareness">Brand Awareness</SelectItem>
-                          <SelectItem value="traffic">Traffic</SelectItem>
+                          <SelectItem value="traffic">Website Traffic</SelectItem>
                           <SelectItem value="leads">Lead Generation</SelectItem>
                           <SelectItem value="sales">Sales / Conversions</SelectItem>
                         </SelectContent>
@@ -139,23 +163,22 @@ export default function NewCampaign() {
                   name="productService"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Product/Service Focus</FormLabel>
+                      <FormLabel className="text-base font-semibold">What are you promoting?</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="What exactly are we promoting?" className="resize-none" rows={3} {...field} />
+                        <Textarea placeholder="Describe the product or service this campaign is for." className="resize-none" rows={3} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
                 <FormField
                   control={form.control}
                   name="audience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Specific Audience</FormLabel>
+                      <FormLabel className="text-base font-semibold">Who should see this?</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Who should see these ads?" className="resize-none" rows={3} {...field} />
+                        <Textarea placeholder="Describe your target audience." className="resize-none" rows={3} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -169,37 +192,35 @@ export default function NewCampaign() {
                   name="geography"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Geography / Locations</FormLabel>
+                      <FormLabel className="text-base font-semibold">Locations</FormLabel>
                       <FormControl>
-                        <Input placeholder="US, UK, Canada" {...field} />
+                        <Input placeholder="US, UK, Canada" className="h-11" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="budgetSuggestion"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Suggested Budget ($)</FormLabel>
+                      <FormLabel className="text-base font-semibold">Budget Plan ($)</FormLabel>
                       <FormControl>
-                        <Input type="number" min={1} {...field} />
+                        <Input type="number" min={1} className="h-11" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="landingUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Landing Page URL</FormLabel>
+                      <FormLabel className="text-base font-semibold">Landing Page URL</FormLabel>
                       <FormControl>
-                        <Input type="url" placeholder="https://example.com/landing" {...field} />
+                        <Input type="url" placeholder="https://example.com/landing" className="h-11" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -213,23 +234,22 @@ export default function NewCampaign() {
                   name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel className="text-base font-semibold">Start Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" className="h-11" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
                 <FormField
                   control={form.control}
                   name="endDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Date</FormLabel>
+                      <FormLabel className="text-base font-semibold">End Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" className="h-11" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -242,42 +262,31 @@ export default function NewCampaign() {
                 name="channels"
                 render={() => (
                   <FormItem>
-                    <div className="mb-4">
-                      <FormLabel className="text-base">Campaign Channels</FormLabel>
-                      <CardDescription>Select the platforms where this campaign will run.</CardDescription>
-                    </div>
-                    <div className="flex flex-wrap gap-4">
+                    <FormLabel className="text-base font-semibold">Channels</FormLabel>
+                    <div className="flex flex-wrap gap-3 pt-1">
                       {CHANNELS.map((channel) => (
                         <FormField
                           key={channel.id}
                           control={form.control}
                           name="channels"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={channel.id}
-                                className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 hover:bg-muted/50 cursor-pointer flex-1 min-w-[150px] max-w-[200px]"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(channel.id)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...(field.value || []), channel.id])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== channel.id
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  {channel.label}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
+                          render={({ field }) => (
+                            <FormItem
+                              key={channel.id}
+                              className="flex flex-row items-center space-x-2.5 space-y-0 rounded-lg border px-4 py-3 hover:bg-muted/50 cursor-pointer"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(channel.id)}
+                                  onCheckedChange={(checked) =>
+                                    checked
+                                      ? field.onChange([...(field.value || []), channel.id])
+                                      : field.onChange(field.value?.filter((v) => v !== channel.id))
+                                  }
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal cursor-pointer">{channel.label}</FormLabel>
+                            </FormItem>
+                          )}
                         />
                       ))}
                     </div>
@@ -286,10 +295,17 @@ export default function NewCampaign() {
                 )}
               />
 
-              <div className="flex justify-end gap-4 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={() => setLocation('/campaigns')}>Cancel</Button>
-                <Button type="submit" size="lg" disabled={createCampaign.isPending}>
-                  {createCampaign.isPending ? "Creating..." : "Create Campaign"}
+              <div className="flex justify-between pt-4 border-t">
+                <Button type="button" variant="outline" onClick={() => setLocation("/campaigns")}>
+                  Cancel
+                </Button>
+                <Button type="submit" size="lg" disabled={createCampaign.isPending} className="min-w-[180px]">
+                  {createCampaign.isPending ? "Creating..." : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Create Campaign
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

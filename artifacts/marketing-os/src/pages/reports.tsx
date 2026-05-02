@@ -1,47 +1,61 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
-import { 
-  useListMetrics, 
+import {
+  useListMetrics,
   useGetChannelComparison,
   useListCampaigns,
   getListMetricsQueryKey,
-  getGetChannelComparisonQueryKey
+  getGetChannelComparisonQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  Legend,
+} from "recharts";
 import { Download } from "lucide-react";
 import { useState } from "react";
 
 export default function Reports() {
   const { activeWorkspaceId } = useAuth();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("all");
-  
+
   const { data: campaigns } = useListCampaigns({ workspaceId: activeWorkspaceId });
-  
+
   const campaignFilter = selectedCampaignId !== "all" ? parseInt(selectedCampaignId, 10) : undefined;
-  
   const metricsParams = campaignFilter ? { campaignId: campaignFilter } : {};
-  const { data: metrics, isLoading: isMetricsLoading } = useListMetrics(
-    metricsParams,
-    { query: { enabled: !!activeWorkspaceId, queryKey: getListMetricsQueryKey(metricsParams) } }
-  );
+
+  const { data: metrics, isLoading: isMetricsLoading } = useListMetrics(metricsParams, {
+    query: {
+      enabled: !!activeWorkspaceId,
+      queryKey: getListMetricsQueryKey(metricsParams),
+    },
+  });
 
   const { data: comparison, isLoading: isComparisonLoading } = useGetChannelComparison(
     { workspaceId: activeWorkspaceId },
-    { query: { enabled: !!activeWorkspaceId, queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }) } }
+    {
+      query: {
+        enabled: !!activeWorkspaceId,
+        queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }),
+      },
+    }
   );
 
   const handleExportCSV = () => {
     if (!metrics || metrics.length === 0) return;
-    
-    // Basic client-side CSV generation
     const headers = ["Date", "Campaign ID", "Platform", "Spend", "Impressions", "Clicks", "CTR", "CPC", "Conversions"];
-    const rows = metrics.map(m => [
-      m.date.split('T')[0],
+    const rows = metrics.map((m) => [
+      m.date.split("T")[0],
       m.campaignId,
       m.platform,
       m.spend,
@@ -49,19 +63,14 @@ export default function Reports() {
       m.clicks,
       m.ctr,
       m.cpc,
-      m.conversions
+      m.conversions,
     ]);
-    
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(r => r.join(","))
-    ].join("\n");
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `marketing-metrics-export.csv`);
+    link.setAttribute("download", "demo-metrics-export.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -69,52 +78,83 @@ export default function Reports() {
 
   return (
     <SidebarLayout>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Performance Reports</h1>
-          <p className="text-muted-foreground mt-1">Analyze your multi-channel marketing performance.</p>
+          <h1 className="text-4xl font-bold tracking-tight">Performance</h1>
+          <p className="text-muted-foreground mt-2 text-base">Demo metrics across your campaigns and channels.</p>
         </div>
-        
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-3">
           <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by campaign" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Campaigns</SelectItem>
-              {campaigns?.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+              {campaigns?.map((c) => (
+                <SelectItem key={c.id} value={c.id.toString()}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          
-          <Button variant="outline" onClick={handleExportCSV} disabled={!metrics || metrics.length === 0} className="shrink-0">
+          <Button
+            variant="outline"
+            onClick={handleExportCSV}
+            disabled={!metrics || metrics.length === 0}
+            className="shrink-0"
+          >
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
         </div>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader>
+      <Card>
+        <CardHeader className="pb-4">
           <CardTitle>Channel Comparison</CardTitle>
-          <CardDescription>Aggregate performance by platform</CardDescription>
         </CardHeader>
-        <CardContent className="h-[400px]">
+        <CardContent className="h-[320px]">
           {isComparisonLoading ? (
             <Skeleton className="h-full w-full" />
           ) : !comparison || comparison.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-muted-foreground">No data available</div>
+            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+              No data available yet.
+            </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={comparison} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <BarChart data={comparison} margin={{ top: 10, right: 20, left: 0, bottom: 0 }} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="platform" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} className="capitalize" />
-                <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <RechartsTooltip 
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                  cursor={{ fill: 'hsl(var(--muted))' }}
+                <XAxis
+                  dataKey="platform"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)}
+                />
+                <YAxis
+                  yAxisId="left"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    borderColor: "hsl(var(--border))",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                  cursor={{ fill: "hsl(var(--muted))" }}
                 />
                 <Legend />
                 <Bar yAxisId="left" dataKey="impressions" name="Impressions" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -127,20 +167,18 @@ export default function Reports() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Detailed Metrics</CardTitle>
-          <CardDescription>Daily breakdown of advertising data</CardDescription>
+        <CardHeader className="pb-4">
+          <CardTitle>Daily Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
           {isMetricsLoading ? (
             <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
             </div>
-          ) : metrics?.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground border border-dashed rounded-lg bg-muted/20">
+          ) : !metrics || metrics.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground border border-dashed rounded-lg bg-muted/20 text-sm">
               No metrics available for the selected filters.
             </div>
           ) : (
@@ -159,9 +197,9 @@ export default function Reports() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {metrics?.slice(0, 50).map((row) => ( // limit to 50 for MVP UI
+                  {metrics.slice(0, 50).map((row) => (
                     <TableRow key={row.id}>
-                      <TableCell className="font-medium whitespace-nowrap">{row.date.split('T')[0]}</TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">{row.date.split("T")[0]}</TableCell>
                       <TableCell className="capitalize">{row.platform}</TableCell>
                       <TableCell className="text-right">${row.spend.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{row.impressions.toLocaleString()}</TableCell>

@@ -1,31 +1,30 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
-import { 
-  useListCampaigns, 
-  useGenerateAssets, 
-  useListAssets, 
+import {
+  useListCampaigns,
+  useGenerateAssets,
+  useListAssets,
   useCreateApproval,
   useListBrandProfiles,
-  getListAssetsQueryKey
+  getListAssetsQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Check, X, Edit3, MessageSquare, BookOpen, ShieldCheck, FlaskConical } from "lucide-react";
+import { Sparkles, Check, Edit3, RefreshCw, PenTool, ShieldCheck, Link } from "lucide-react";
+import { Link as WouterLink } from "wouter";
 
 function countGuardrails(forbiddenClaims: string): number {
   if (!forbiddenClaims.trim()) return 0;
   return forbiddenClaims
     .split(/[.!?]+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 5).length;
+    .map((s) => s.trim())
+    .filter((s) => s.length > 5).length;
 }
 
 export default function ContentStudio() {
@@ -37,232 +36,237 @@ export default function ContentStudio() {
   const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
   const { data: brandProfiles } = useListBrandProfiles({ workspaceId: activeWorkspaceId });
   const brandProfile = brandProfiles?.[0];
-  
+
   const campaignIdNum = selectedCampaignId ? parseInt(selectedCampaignId, 10) : undefined;
-  
+
   const { data: assets, isLoading: isAssetsLoading } = useListAssets(
-    { campaignId: campaignIdNum }, 
+    { campaignId: campaignIdNum },
     { query: { enabled: !!campaignIdNum, queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) } }
   );
 
   const generateAssets = useGenerateAssets();
   const createApproval = useCreateApproval();
 
-  const selectedCampaign = campaigns?.find(c => c.id === campaignIdNum);
+  const selectedCampaign = campaigns?.find((c) => c.id === campaignIdNum);
   const guardrailCount = brandProfile ? countGuardrails(brandProfile.forbiddenClaims) : 0;
-  const hasGenerated = !!campaignIdNum && !isAssetsLoading && (assets?.length ?? 0) > 0;
 
   const handleGenerate = () => {
     if (!campaignIdNum) return;
-    generateAssets.mutate({ data: { campaignId: campaignIdNum } }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
-        toast({ title: "Content generation started", description: "This will take a few moments." });
+    generateAssets.mutate(
+      { data: { campaignId: campaignIdNum } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
+          toast({ title: "Ads generated" });
+        },
       }
-    });
+    );
   };
 
   const handleDecision = (assetId: number, decision: "approved" | "rejected" | "changes_requested") => {
-    createApproval.mutate({ 
-      data: { 
-        assetId, 
-        decision, 
-        actor: "Demo User",
-        reason: decision === "changes_requested" ? "Please revise tone" : "" 
-      } 
-    }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
-        toast({ title: `Asset ${decision}` });
+    createApproval.mutate(
+      {
+        data: {
+          assetId,
+          decision,
+          actor: "Demo User",
+          reason: decision === "changes_requested" ? "Please revise tone" : "",
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
+          const label = decision === "approved" ? "Ad approved" : decision === "changes_requested" ? "Revisions requested" : "Ad rejected";
+          toast({ title: label });
+        },
       }
-    });
+    );
   };
+
+  const displayAssets = assets?.slice(0, 3) ?? [];
 
   return (
     <SidebarLayout>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Content Studio</h1>
-          <p className="text-muted-foreground mt-1">AI-powered marketing copy and asset generation.</p>
-        </div>
-        
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Select a campaign" />
-            </SelectTrigger>
-            <SelectContent>
-              {campaigns?.map(c => (
-                <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Button 
-            onClick={handleGenerate} 
-            disabled={!selectedCampaignId || generateAssets.isPending}
-            className="shrink-0"
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            {generateAssets.isPending ? "Generating..." : "Generate Content"}
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-4xl font-bold tracking-tight">Content</h1>
+        <p className="text-muted-foreground mt-2 text-base">Generate and approve ad copy for your campaigns.</p>
       </div>
 
-      {brandProfile && selectedCampaignId && (
-        <Alert className="mb-6 border-blue-500/30 bg-blue-500/5">
-          <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <AlertDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-            <span className="font-semibold text-foreground">
-              Using brand profile: {brandProfile.brandName}
-            </span>
-            <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">
-              Tone: <span className="text-foreground">{brandProfile.toneOfVoice}</span>
-            </span>
-            {guardrailCount > 0 && (
-              <>
-                <span className="text-muted-foreground">·</span>
-                <span className="inline-flex items-center gap-1 text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
-                  <span>
-                    <span className="font-medium text-green-700 dark:text-green-400">{guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""}</span>
-                    {" "}applied
-                  </span>
-                </span>
-              </>
-            )}
-            <span className="text-muted-foreground">·</span>
-            <span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
-              <FlaskConical className="h-3 w-3 shrink-0" />
-              Simulated generation
-            </span>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {!selectedCampaignId ? (
-        <Card className="flex flex-col items-center justify-center py-16">
-          <CardHeader className="text-center">
-            <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <CardTitle className="text-xl">Select a campaign to begin</CardTitle>
-            <CardDescription>Choose a campaign from the dropdown above to view or generate content.</CardDescription>
-          </CardHeader>
-        </Card>
-      ) : isAssetsLoading ? (
-        <div className="space-y-6">
-          <Skeleton className="h-[300px] w-full rounded-xl" />
-          <Skeleton className="h-[300px] w-full rounded-xl" />
-        </div>
-      ) : assets?.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center py-16">
-          <CardHeader className="text-center">
-            <Sparkles className="h-12 w-12 text-primary mx-auto mb-4 opacity-80" />
-            <CardTitle className="text-xl">Ready to generate content</CardTitle>
-            <CardDescription>
-              Click <strong>Generate Content</strong> to create AI assets for this campaign.
-              {brandProfile && (
-                <span className="block mt-1 text-xs">
-                  Your brand profile <strong>{brandProfile.brandName}</strong> will be used to guide tone and apply guardrails.
-                </span>
+      {/* Step 1: Pick a campaign */}
+      <Card>
+        <CardContent className="pt-6 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-5">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold mb-2">Which campaign are these ads for?</p>
+              {isCampaignsLoading ? (
+                <Skeleton className="h-11 w-full rounded-md" />
+              ) : (
+                <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
+                  <SelectTrigger className="h-11 w-full max-w-sm">
+                    <SelectValue placeholder="Select a campaign…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {campaigns?.map((c) => (
+                      <SelectItem key={c.id} value={c.id.toString()}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      ) : (
-        <div className="space-y-8">
-          {assets?.map(asset => (
-            <Card key={asset.id} className="overflow-hidden">
-              <div className="bg-muted/30 p-4 border-b flex justify-between items-center">
-                <Badge variant={
-                  asset.status === 'approved' ? 'default' : 
-                  asset.status === 'rejected' ? 'destructive' : 
-                  'secondary'
-                } className="capitalize">
-                  {asset.status}
-                </Badge>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-white" onClick={() => handleDecision(asset.id, "rejected")}>
-                    <X className="h-4 w-4 mr-1" /> Reject
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleDecision(asset.id, "changes_requested")}>
-                    <Edit3 className="h-4 w-4 mr-1" /> Revise
-                  </Button>
-                  <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700" onClick={() => handleDecision(asset.id, "approved")}>
-                    <Check className="h-4 w-4 mr-1" /> Approve
-                  </Button>
-                </div>
-              </div>
-              
-              <CardContent className="p-0">
-                <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x">
-                  <div className="p-6 md:col-span-2 space-y-6">
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Headline</h3>
-                      <p className="text-xl font-bold">{asset.headline}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Short Copy</h3>
-                      <p className="text-base">{asset.shortCaption}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Long Copy</h3>
-                      <p className="text-sm whitespace-pre-wrap text-muted-foreground leading-relaxed">{asset.longCaption}</p>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {asset.hashtags.map(tag => (
-                        <span key={tag} className="text-sm text-primary font-medium">#{tag}</span>
-                      ))}
-                    </div>
-                    
-                    <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
-                      <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Call to Action</h3>
-                      <p className="font-medium">{asset.cta}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6 bg-muted/10 space-y-6">
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Video Script</h3>
-                      <div className="text-sm whitespace-pre-wrap font-mono bg-muted/50 p-3 rounded text-muted-foreground">
-                        {asset.videoScript || "No script generated."}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Storyboard</h3>
-                      <div className="text-sm whitespace-pre-wrap text-muted-foreground">
-                        {asset.storyboardOutline || "No storyboard generated."}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
+              {!campaigns?.length && !isCampaignsLoading && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  No campaigns yet.{" "}
+                  <WouterLink href="/campaigns/new" className="text-primary hover:underline">
+                    Create one first.
+                  </WouterLink>
+                </p>
+              )}
+            </div>
 
-              {brandProfile && (
-                <CardFooter className="border-t bg-muted/10 px-6 py-3">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <BookOpen className="h-3.5 w-3.5 shrink-0" />
-                    Generated using brand profile
+            {selectedCampaignId && (
+              <div className="flex items-center gap-3 shrink-0">
+                {brandProfile && (
+                  <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-3 py-2 bg-muted/30">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
                     <span className="font-medium text-foreground">{brandProfile.brandName}</span>
                     {guardrailCount > 0 && (
-                      <>
-                        <span>·</span>
-                        <ShieldCheck className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
-                        <span>{guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""} active</span>
-                      </>
+                      <span className="text-xs">· {guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""}</span>
                     )}
-                    <span>·</span>
-                    <FlaskConical className="h-3 w-3 shrink-0" />
-                    <span>Simulated</span>
-                  </p>
-                </CardFooter>
-              )}
-            </Card>
+                  </div>
+                )}
+                <Button
+                  onClick={handleGenerate}
+                  disabled={generateAssets.isPending}
+                  size="lg"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {generateAssets.isPending ? "Generating…" : displayAssets.length > 0 ? "Regenerate" : "Generate Ads"}
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Step 2: Show ads */}
+      {!selectedCampaignId ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <PenTool className="h-10 w-10 text-muted-foreground/40 mb-3" />
+            <p className="font-semibold text-lg mb-1">Select a campaign above to begin</p>
+            <p className="text-muted-foreground text-sm">Then generate 3 ad variants in one click.</p>
+          </CardContent>
+        </Card>
+      ) : isAssetsLoading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-xl" />
           ))}
+        </div>
+      ) : displayAssets.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <Sparkles className="h-10 w-10 text-primary/40 mb-3" />
+            <p className="font-semibold text-lg mb-1">Ready to generate ads</p>
+            <p className="text-muted-foreground text-sm mb-4">
+              Click <strong>Generate Ads</strong> above to create 3 variants for{" "}
+              <span className="text-foreground font-medium">{selectedCampaign?.name}</span>.
+              {brandProfile && (
+                <span className="block mt-1">
+                  Brand voice from <strong>{brandProfile.brandName}</strong> will be applied.
+                </span>
+              )}
+            </p>
+            <Button onClick={handleGenerate} disabled={generateAssets.isPending}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              {generateAssets.isPending ? "Generating…" : "Generate Ads"}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground">
+              {displayAssets.length} ad variant{displayAssets.length !== 1 ? "s" : ""} for{" "}
+              <span className="text-foreground font-medium">{selectedCampaign?.name}</span>
+            </p>
+            <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={generateAssets.isPending}>
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+              Regenerate all
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {displayAssets.map((asset, idx) => (
+              <Card key={asset.id} className="overflow-hidden">
+                <div className="border-b bg-muted/20 px-5 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-muted-foreground">Variant {idx + 1}</span>
+                    <Badge
+                      variant={
+                        asset.status === "approved"
+                          ? "default"
+                          : asset.status === "rejected"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                      className="capitalize"
+                    >
+                      {asset.status}
+                    </Badge>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDecision(asset.id, "changes_requested")}
+                      disabled={createApproval.isPending}
+                    >
+                      <Edit3 className="h-3.5 w-3.5 mr-1.5" />
+                      Request Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => handleDecision(asset.id, "approved")}
+                      disabled={createApproval.isPending || asset.status === "approved"}
+                    >
+                      <Check className="h-3.5 w-3.5 mr-1.5" />
+                      Approve
+                    </Button>
+                  </div>
+                </div>
+
+                <CardContent className="p-6 space-y-5">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Headline</p>
+                    <p className="text-xl font-bold leading-snug">{asset.headline}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Caption</p>
+                    <p className="text-sm leading-relaxed">{asset.shortCaption}</p>
+                  </div>
+
+                  {asset.hashtags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {asset.hashtags.map((tag) => (
+                        <span key={tag} className="text-sm text-primary font-medium">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 flex items-center gap-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">CTA</span>
+                    <span className="font-medium text-sm">{asset.cta}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
     </SidebarLayout>

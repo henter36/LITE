@@ -1,181 +1,248 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
-import { useGetDashboardMetrics, useGetChannelComparison, useListCampaigns, useListRecommendations, getGetDashboardMetricsQueryKey } from "@workspace/api-client-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useGetDashboardMetrics,
+  useGetChannelComparison,
+  useListCampaigns,
+  useListRecommendations,
+  getGetDashboardMetricsQueryKey,
+  getGetChannelComparisonQueryKey,
+} from "@workspace/api-client-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Eye, MousePointerClick, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, BarChart, Bar } from "recharts";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, DollarSign, MousePointerClick, TrendingUp, Zap, Plus, Megaphone } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+} from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "wouter";
 
 export default function Dashboard() {
   const { activeWorkspaceId } = useAuth();
-  const { data: metrics, isLoading: isMetricsLoading } = useGetDashboardMetrics({ workspaceId: activeWorkspaceId }, { query: { enabled: !!activeWorkspaceId, queryKey: getGetDashboardMetricsQueryKey({ workspaceId: activeWorkspaceId }) } });
-  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
-  const { data: recommendations, isLoading: isRecsLoading } = useListRecommendations({ workspaceId: activeWorkspaceId });
+  const { data: metrics, isLoading: isMetricsLoading } = useGetDashboardMetrics(
+    { workspaceId: activeWorkspaceId },
+    { query: { enabled: !!activeWorkspaceId, queryKey: getGetDashboardMetricsQueryKey({ workspaceId: activeWorkspaceId }) } }
+  );
+  const { data: channelData, isLoading: isChannelLoading } = useGetChannelComparison(
+    { workspaceId: activeWorkspaceId },
+    { query: { enabled: !!activeWorkspaceId, queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }) } }
+  );
+  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({
+    workspaceId: activeWorkspaceId,
+  });
+  const { data: recommendations } = useListRecommendations({
+    workspaceId: activeWorkspaceId,
+  });
+
+  const topRec = recommendations?.find(r => r.priority === "high") ?? recommendations?.[0];
+  const topCampaigns = campaigns?.slice(0, 3) ?? [];
 
   return (
     <SidebarLayout>
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Overview of your marketing performance.</p>
+      <div>
+        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2 text-base">Here's what needs your attention today.</p>
+      </div>
+
+      {/* Section 1 — Today's Action */}
+      {topRec && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="pt-6 pb-5">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                <Zap className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Today's Action</p>
+                <p className="text-lg font-semibold leading-snug">{topRec.title}</p>
+                <p className="text-sm text-muted-foreground mt-1">{topRec.description}</p>
+              </div>
+              <Link href="/campaigns">
+                <Button size="sm" variant="outline" className="shrink-0">
+                  View Campaigns <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Section 2 — 3 KPIs */}
+      {isMetricsLoading ? (
+        <div className="grid gap-4 grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : metrics ? (
+        <div className="grid gap-4 grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2 pt-5 px-5">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-muted-foreground">Demo Spend</p>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <p className="text-3xl font-bold">${metrics.totalSpend.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">Simulated · no real spend</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-5 px-5">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-muted-foreground">Clicks</p>
+                <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <p className="text-3xl font-bold">{metrics.totalClicks.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">Avg CTR {metrics.avgCtr.toFixed(2)}%</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2 pt-5 px-5">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-muted-foreground">Conversions</p>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <p className="text-3xl font-bold">{metrics.totalConversions.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Best: <span className="text-foreground font-medium capitalize">{metrics.bestChannel}</span>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {/* Section 3 — Channel Comparison */}
+      <Card>
+        <CardHeader className="pb-2 pt-6 px-6">
+          <CardTitle className="text-lg">Channel Comparison</CardTitle>
+        </CardHeader>
+        <CardContent className="px-6 pb-6 h-[220px]">
+          {isChannelLoading ? (
+            <Skeleton className="h-full w-full" />
+          ) : !channelData || channelData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+              No channel data yet.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={channelData} barSize={32}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="platform"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)}
+                />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    borderColor: "hsl(var(--border))",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+                <Bar dataKey="clicks" name="Clicks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section 4 — Top 3 Campaigns */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Your Campaigns</h2>
+          <div className="flex items-center gap-2">
+            <Link href="/campaigns/new">
+              <Button size="sm">
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                New Campaign
+              </Button>
+            </Link>
+            <Link href="/campaigns">
+              <Button size="sm" variant="ghost" className="text-muted-foreground">
+                View all <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {isMetricsLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-[120px] w-full rounded-xl" />
+        {isCampaignsLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-xl" />
             ))}
           </div>
-        ) : metrics ? (
-          <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">${metrics.totalSpend.toLocaleString()}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Impressions</CardTitle>
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{metrics.totalImpressions.toLocaleString()}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Clicks</CardTitle>
-                  <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{metrics.totalClicks.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Avg CTR: {(metrics.avgCtr).toFixed(2)}%
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Conversions</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{metrics.totalConversions.toLocaleString()}</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="flex gap-4">
-              <Badge variant="secondary" className="px-3 py-1">
-                Best Channel: <span className="font-semibold ml-1 text-primary">{metrics.bestChannel}</span>
-              </Badge>
-              <Badge variant="outline" className="px-3 py-1 text-muted-foreground">
-                Worst Channel: <span className="font-semibold ml-1">{metrics.worstChannel}</span>
-              </Badge>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Daily Trend</CardTitle>
-                  <CardDescription>Impressions over time</CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={metrics.dailyTrend}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" tickFormatter={(val) => format(new Date(val), 'MMM d')} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val / 1000}k`} />
-                      <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} labelFormatter={(val) => format(new Date(val), 'MMM d, yyyy')} />
-                      <Line type="monotone" dataKey="impressions" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Channel Performance</CardTitle>
-                  <CardDescription>Clicks by day</CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={metrics.dailyTrend}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" tickFormatter={(val) => format(new Date(val), 'MMM d')} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                      <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} />
-                      <Bar dataKey="clicks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        ) : null}
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Campaigns</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isCampaignsLoading ? (
-                <div className="space-y-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div>
-              ) : campaigns?.filter(c => c.status === 'active').length === 0 ? (
-                <p className="text-muted-foreground text-sm">No active campaigns.</p>
-              ) : (
-                <div className="space-y-4">
-                  {campaigns?.filter(c => c.status === 'active').slice(0, 5).map(campaign => (
-                    <div key={campaign.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
-                      <div>
-                        <p className="font-medium text-sm">{campaign.name}</p>
-                        <p className="text-xs text-muted-foreground">{campaign.objective}</p>
-                      </div>
-                      <Badge variant="outline" className="capitalize">{campaign.status}</Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
+        ) : topCampaigns.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <Megaphone className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="font-semibold text-lg mb-1">No campaigns yet</p>
+              <p className="text-muted-foreground text-sm mb-4">Create your first campaign to start generating ads.</p>
+              <Link href="/campaigns/new">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create your first campaign
+                </Button>
+              </Link>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Recommendations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isRecsLoading ? (
-                <div className="space-y-4"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></div>
-              ) : recommendations?.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No recommendations at this time.</p>
-              ) : (
-                <div className="space-y-4">
-                  {recommendations?.slice(0, 3).map(rec => (
-                    <div key={rec.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                      {rec.priority === 'high' ? (
-                        <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                      ) : (
-                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      )}
-                      <div>
-                        <p className="font-medium text-sm">{rec.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
+        ) : (
+          <div className="space-y-3">
+            {topCampaigns.map((campaign) => (
+              <Card key={campaign.id} className="hover:bg-muted/30 transition-colors">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Megaphone className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{campaign.name}</p>
+                        <p className="text-sm text-muted-foreground capitalize">{campaign.objective}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <Badge
+                        variant={campaign.status === "active" ? "default" : "secondary"}
+                        className="capitalize"
+                      >
+                        {campaign.status}
+                      </Badge>
+                      <Link href={`/campaigns/${campaign.id}`}>
+                        <Button variant="ghost" size="sm">
+                          Open <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </SidebarLayout>
   );

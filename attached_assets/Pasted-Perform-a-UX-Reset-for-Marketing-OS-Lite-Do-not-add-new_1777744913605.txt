@@ -1,0 +1,141 @@
+Perform a UX Reset for Marketing OS Lite.
+
+Do not add new backend features.
+Do not connect real ad APIs.
+Do not implement publishing, payments, or AI changes.
+Focus ONLY on UI/UX simplification and clarity.
+
+Objective:
+Make the product understandable in under 30 seconds for a non-technical user.
+
+Core principle:
+Every screen must answer:
+"What should I do next?"
+
+Phase 1 — Navigation Simplification
+
+Reduce main navigation to 5 items only:
+1. Dashboard
+2. Campaigns
+3. Content
+4. Performance
+5. Settings
+
+Remove or merge:
+- Tracking Links (move inside campaign)
+- Connections (move inside Settings)
+- Audit Log (move inside Settings)
+
+Phase 2 — Dashboard Redesign
+
+Replace current dashboard with:
+
+Section 1: "Today’s Action"
+- 1 primary recommendation only
+Example:
+"Your Instagram CTR is low → Improve headline"
+
+Section 2: 3 KPIs only:
+- Spend (simulated)
+- Clicks
+- Conversions
+
+Section 3: Channel Comparison (simple bars)
+
+Section 4: Campaign List (top 3 only)
+
+Remove:
+- any dense tables
+- anything not actionable
+
+Phase 3 — Campaign Flow (CRITICAL)
+
+Transform campaign experience into a guided flow:
+
+Step 1: Create Campaign
+Step 2: Generate Content
+Step 3: Review & Approve
+Step 4: Track Performance
+
+Add a visible progress indicator at top:
+[ Create → Content → Approve → Performance ]
+
+User must always know current step.
+
+Phase 4 — Content Studio Fix
+
+Make this change:
+
+At the top show:
+"Content generated for: [Campaign Name]"
+"Using Brand: [Brand Name]"
+
+Then show:
+- 3 variants only (not many)
+- each with:
+  - headline
+  - caption
+  - CTA
+
+Add clear buttons:
+- Approve
+- Edit
+- Regenerate
+
+Remove:
+- clutter
+- too many variants
+- complex layouts
+
+Phase 5 — Visual Cleanup
+
+Apply:
+
+- Increase spacing (padding)
+- Use bigger fonts for headings
+- Reduce colors to:
+  - primary
+  - neutral
+  - warning
+- Remove unnecessary icons
+- Make buttons consistent
+
+Phase 6 — Empty States
+
+For every page:
+If no data:
+Show:
+- explanation
+- 1 button: "Create your first campaign"
+
+Phase 7 — Labels
+
+Replace technical wording:
+
+- "Workspace" → "Account"
+- "Assets" → "Ads"
+- "Generated Assets" → "Ad Content"
+- "Mock Data" → "Demo Data"
+
+But keep a small disclaimer:
+"Demo mode — no real ads are running"
+
+Verification:
+
+- A new user can:
+  1. Login
+  2. Create campaign
+  3. Generate content
+  4. Approve content
+  5. See results
+  in under 3 minutes
+
+- No page feels confusing
+- No page requires explanation
+
+Final output:
+- changed files
+- before vs after UX explanation
+- what was removed
+- what became clearer
+- remaining UX gaps
