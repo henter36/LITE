@@ -6,14 +6,15 @@ import { eq, and, gte, lte } from "drizzle-orm";
 const router = Router();
 
 router.get("/metrics", async (req, res) => {
+  if (!req.query.campaignId && !req.query.workspaceId) {
+    return res.status(400).json({ error: "campaignId or workspaceId is required" });
+  }
   const conditions = [];
   if (req.query.campaignId) conditions.push(eq(adMetricsDailyTable.campaignId, Number(req.query.campaignId)));
   if (req.query.platform) conditions.push(eq(adMetricsDailyTable.platform, String(req.query.platform)));
   if (req.query.fromDate) conditions.push(gte(adMetricsDailyTable.date, String(req.query.fromDate)));
   if (req.query.toDate) conditions.push(lte(adMetricsDailyTable.date, String(req.query.toDate)));
-  const metrics = conditions.length > 0
-    ? await db.select().from(adMetricsDailyTable).where(and(...conditions)).orderBy(adMetricsDailyTable.date)
-    : await db.select().from(adMetricsDailyTable).orderBy(adMetricsDailyTable.date);
+  const metrics = await db.select().from(adMetricsDailyTable).where(and(...conditions)).orderBy(adMetricsDailyTable.date);
   res.json(metrics);
 });
 

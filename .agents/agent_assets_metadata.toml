@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "W9EIBIpPctHQa1T_rg8-I"
+uri = "file://docs/implementation_review_marketing_os_lite.md"
+type = "text"
+title = "Implementation Review — Marketing OS Lite"

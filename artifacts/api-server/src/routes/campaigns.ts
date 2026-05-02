@@ -5,6 +5,9 @@ import { eq, and } from "drizzle-orm";
 
 const router = Router();
 
+const VALID_OBJECTIVES = ["awareness", "leads", "sales", "traffic", "engagement", "retention"];
+const VALID_STATUSES = ["draft", "active", "approved", "completed", "archived"];
+
 function serializeCampaign(c: typeof campaignsTable.$inferSelect) {
   return {
     id: c.id,
@@ -27,7 +30,11 @@ function serializeCampaign(c: typeof campaignsTable.$inferSelect) {
 router.get("/campaigns", async (req, res) => {
   const conditions = [];
   if (req.query.workspaceId) conditions.push(eq(campaignsTable.workspaceId, Number(req.query.workspaceId)));
-  if (req.query.status) conditions.push(eq(campaignsTable.status, String(req.query.status)));
+  if (req.query.status) {
+    const s = String(req.query.status);
+    if (!VALID_STATUSES.includes(s)) return res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` });
+    conditions.push(eq(campaignsTable.status, s));
+  }
   const campaigns = conditions.length > 0
     ? await db.select().from(campaignsTable).where(and(...conditions)).orderBy(campaignsTable.createdAt)
     : await db.select().from(campaignsTable).orderBy(campaignsTable.createdAt);
@@ -36,16 +43,26 @@ router.get("/campaigns", async (req, res) => {
 
 router.post("/campaigns", async (req, res) => {
   const { workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl } = req.body;
-  const [c] = await db.insert(campaignsTable).values({
-    workspaceId, name, objective, productService, audience, geography,
-    budgetSuggestion: budgetSuggestion || 0,
-    startDate, endDate,
-    channels: JSON.stringify(channels || []),
-    landingUrl: landingUrl || "",
-    status: "draft",
-  }).returning();
-  await db.insert(auditLogsTable).values({ workspaceId, action: "campaign_created", entityType: "campaign", entityId: c.id, actor: "user", details: `Campaign "${name}" created` });
-  res.status(201).json(serializeCampaign(c));
+  if (!workspaceId || !name || !objective || !productService || !audience || !geography || !startDate || !endDate) {
+    return res.status(400).json({ error: "Missing required fields: workspaceId, name, objective, productService, audience, geography, startDate, endDate" });
+  }
+  if (!VALID_OBJECTIVES.includes(objective)) {
+    return res.status(400).json({ error: `Invalid objective. Must be one of: ${VALID_OBJECTIVES.join(", ")}` });
+  }
+  try {
+    const [c] = await db.insert(campaignsTable).values({
+      workspaceId, name, objective, productService, audience, geography,
+      budgetSuggestion: budgetSuggestion || 0,
+      startDate, endDate,
+      channels: JSON.stringify(channels || []),
+      landingUrl: landingUrl || "",
+      status: "draft",
+    }).returning();
+    await db.insert(auditLogsTable).values({ workspaceId, action: "campaign_created", entityType: "campaign", entityId: c.id, actor: "user", details: `Campaign "${name}" created` });
+    res.status(201).json(serializeCampaign(c));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create campaign" });
+  }
 });
 
 router.get("/campaigns/summary", async (req, res) => {
@@ -71,15 +88,25 @@ router.get("/campaigns/:id", async (req, res) => {
 router.put("/campaigns/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   const { workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl } = req.body;
-  const [c] = await db.update(campaignsTable).set({
-    workspaceId, name, objective, productService, audience, geography,
-    budgetSuggestion: budgetSuggestion || 0,
-    startDate, endDate,
-    channels: JSON.stringify(channels || []),
-    landingUrl: landingUrl || "",
-  }).where(eq(campaignsTable.id, id)).returning();
-  if (!c) return res.status(404).json({ error: "Not found" });
-  res.json(serializeCampaign(c));
+  if (!name || !objective || !productService || !audience || !geography || !startDate || !endDate) {
+    return res.status(400).json({ error: "Missing required fields: name, objective, productService, audience, geography, startDate, endDate" });
+  }
+  if (!VALID_OBJECTIVES.includes(objective)) {
+    return res.status(400).json({ error: `Invalid objective. Must be one of: ${VALID_OBJECTIVES.join(", ")}` });
+  }
+  try {
+    const [c] = await db.update(campaignsTable).set({
+      workspaceId, name, objective, productService, audience, geography,
+      budgetSuggestion: budgetSuggestion || 0,
+      startDate, endDate,
+      channels: JSON.stringify(channels || []),
+      landingUrl: landingUrl || "",
+    }).where(eq(campaignsTable.id, id)).returning();
+    if (!c) return res.status(404).json({ error: "Not found" });
+    res.json(serializeCampaign(c));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update campaign" });
+  }
 });
 
 router.delete("/campaigns/:id", async (req, res) => {

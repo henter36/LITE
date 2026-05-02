@@ -1,0 +1,118 @@
+Perform a strict implementation review of the current Marketing OS Lite app.
+
+Do not add new features.
+Do not refactor broadly.
+Do not connect real external APIs.
+Do not implement live ad publishing.
+Do not implement payments.
+Do not change the product scope.
+
+Objective:
+Verify whether the current implementation is safe, coherent, and ready for a controlled demo.
+
+Review these areas:
+
+1. Architecture Reality Check
+- Document the actual stack used: React, Express/Node, PostgreSQL, generated API client, and any other major libraries.
+- Compare it against the original requested stack.
+- Identify deviations and whether each deviation is acceptable or risky.
+- Update documentation only if needed.
+
+2. End-to-End Flow Verification
+Test and report whether the following user journey works fully:
+- Create workspace
+- Create brand profile
+- Create campaign
+- Generate content assets
+- Approve/reject asset
+- Generate tracking link
+- View campaign metrics
+- View recommendations
+- View audit log
+
+For each step, report:
+- works / partially works / broken
+- API endpoint used
+- database table affected
+- UI screen affected
+- missing validation or UX issue
+
+3. Safety Guard Verification
+Actively test that the backend rejects:
+- live ad publishing
+- live campaign launch
+- live budget change
+- real payment method connection
+- auto optimization without approval
+- platform password storage
+
+Create a report showing:
+- endpoint tested
+- request payload
+- expected result
+- actual result
+- pass/fail
+
+4. Mock Mode Integrity
+Verify that all ad platform integrations are clearly mock-only.
+Check:
+- UI labels
+- backend connectors
+- database records
+- seed data
+- API responses
+- documentation
+
+There must be no misleading language suggesting real ad spend, real publishing, or real API connectivity.
+
+5. Data Model Review
+Review whether the current database schema supports:
+- multi-workspace separation
+- platform connections per workspace
+- campaigns per workspace
+- generated assets per campaign
+- approvals per asset/campaign
+- metrics per campaign/channel/date
+- audit logs per workspace/action
+
+Flag any tenant isolation risks.
+
+6. API Contract Review
+Verify that the frontend hooks match the backend endpoints.
+Identify:
+- unused endpoints
+- missing endpoints
+- broken generated hooks
+- inconsistent response schemas
+- endpoints without validation
+- endpoints without error handling
+
+7. Demo Readiness
+Assess whether the app is ready for a controlled demo with a potential customer.
+Classify:
+- Ready
+- Ready with warnings
+- Not ready
+
+Provide the reasons.
+
+8. Required Output
+Create a markdown file:
+docs/implementation_review_marketing_os_lite.md
+
+The report must include:
+- Executive summary
+- Pass/fail checklist
+- Critical issues
+- High priority fixes
+- Medium priority fixes
+- Low priority polish
+- Safety guard test results
+- Demo readiness decision
+- Recommended next implementation step
+
+Important:
+Do not implement real ad APIs.
+Do not add new modules.
+Do not change the business model.
+This is review and hardening only.

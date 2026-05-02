@@ -38,25 +38,35 @@ router.get("/tracking-links", async (req, res) => {
 
 router.post("/tracking-links", async (req, res) => {
   const { campaignId, channel, source, medium, campaign, content, finalUrl } = req.body;
+  if (!campaignId || !channel || !source || !medium || !campaign || !finalUrl) {
+    return res.status(400).json({ error: "Missing required fields: campaignId, channel, source, medium, campaign, finalUrl" });
+  }
   let generatedTrackingUrl: string;
   try {
     generatedTrackingUrl = buildUtmUrl(finalUrl, source, medium, campaign, content || "");
   } catch {
-    generatedTrackingUrl = `${finalUrl}?utm_source=${source}&utm_medium=${medium}&utm_campaign=${campaign}&utm_content=${content || ""}`;
+    return res.status(400).json({ error: "Invalid finalUrl — must be a valid URL" });
   }
-  const [link] = await db.insert(trackingLinksTable).values({
-    campaignId: Number(campaignId), channel, source, medium,
-    campaign, content: content || "", finalUrl, generatedTrackingUrl,
-  }).returning();
-  const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(campaignId)));
-  if (c) {
-    await db.insert(auditLogsTable).values({ workspaceId: c.workspaceId, action: "tracking_link_created", entityType: "tracking_link", entityId: link.id, actor: "user", details: `UTM link created for channel "${channel}"` });
+  try {
+    const [link] = await db.insert(trackingLinksTable).values({
+      campaignId: Number(campaignId), channel, source, medium,
+      campaign, content: content || "", finalUrl, generatedTrackingUrl,
+    }).returning();
+    const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(campaignId)));
+    if (c) {
+      await db.insert(auditLogsTable).values({ workspaceId: c.workspaceId, action: "tracking_link_created", entityType: "tracking_link", entityId: link.id, actor: "user", details: `UTM link created for channel "${channel}"` });
+    }
+    res.status(201).json(serialize(link));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create tracking link" });
   }
-  res.status(201).json(serialize(link));
 });
 
 router.delete("/tracking-links/:id", async (req, res) => {
-  await db.delete(trackingLinksTable).where(eq(trackingLinksTable.id, parseInt(req.params.id)));
+  const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(trackingLinksTable).where(eq(trackingLinksTable.id, id));
+  if (!existing) return res.status(404).json({ error: "Not found" });
+  await db.delete(trackingLinksTable).where(eq(trackingLinksTable.id, id));
   res.status(204).send();
 });
 

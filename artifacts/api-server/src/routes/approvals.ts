@@ -5,6 +5,8 @@ import { eq, and } from "drizzle-orm";
 
 const router = Router();
 
+const VALID_DECISIONS = ["approved", "rejected", "changes_requested"];
+
 function serialize(a: typeof approvalDecisionsTable.$inferSelect) {
   return {
     id: a.id,
@@ -33,6 +35,17 @@ router.post("/approvals", async (req, res) => {
   // Safety guard: reject if trying to publish live ads
   if (decision === "publish_live") {
     return res.status(403).json({ error: "Live ad publishing is disabled in Marketing OS Lite MVP." });
+  }
+
+  // Validate required fields
+  if (!actor) {
+    return res.status(400).json({ error: "Missing required field: actor" });
+  }
+  if (!assetId && !campaignId) {
+    return res.status(400).json({ error: "At least one of assetId or campaignId is required" });
+  }
+  if (!decision || !VALID_DECISIONS.includes(decision)) {
+    return res.status(400).json({ error: `Invalid decision. Must be one of: ${VALID_DECISIONS.join(", ")}` });
   }
 
   const [approval] = await db.insert(approvalDecisionsTable).values({
