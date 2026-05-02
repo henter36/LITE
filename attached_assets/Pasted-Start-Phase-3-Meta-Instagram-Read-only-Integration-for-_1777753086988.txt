@@ -1,0 +1,95 @@
+Start Phase 3 — Meta/Instagram Read-only Integration for Marketing OS Lite.
+
+Do not implement live publishing.
+Do not implement campaign creation on Meta.
+Do not implement budget changes.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not connect Snap, Google/YouTube, X, or TikTok real APIs.
+Do not weaken auth, workspace isolation, roles, audit logs, AI fallback, or safety guards.
+
+Objective:
+Add a read-only Meta/Instagram integration that can pull ad accounts, campaigns, and basic metrics when credentials are configured, while preserving demo/mock mode.
+
+Implement:
+
+1. Meta provider architecture
+- MetaAdsProvider interface
+- MockMetaAdsProvider fallback
+- MetaReadOnlyProvider using server-side env vars only
+- provider selected by env/config
+- no Meta tokens or secrets in frontend
+- graceful fallback to mock if credentials missing
+
+2. Read-only only
+Allowed:
+- list ad accounts
+- list campaigns
+- fetch basic metrics
+
+Forbidden:
+- create campaign
+- edit campaign
+- change budget
+- publish ad
+- pause campaign
+- connect payment method
+
+3. Data separation
+- Clearly label source as demo/mock or meta_readonly.
+- Do not mix real and demo metrics without explicit source labels.
+- Store external account references per workspace where feasible.
+- Preserve existing mock connectors.
+
+4. API routes
+Add or update safe read-only endpoints only:
+- get available Meta ad accounts
+- sync/read Meta campaigns
+- sync/read Meta metrics
+All endpoints must enforce auth and workspace access.
+
+5. UI
+In Settings > Ad Platforms:
+- Keep current mock connection mode.
+- Add Meta/Instagram read-only status area.
+- Show whether Meta read-only is configured or demo mode is active.
+- Never show buttons for publishing, budget changes, or payment setup.
+
+6. Audit logs
+Log:
+- meta_readonly_sync_started
+- meta_readonly_sync_completed
+- meta_readonly_sync_failed
+Include workspace id, actor, provider, account reference, and whether fallback was used.
+
+7. Documentation
+Create:
+docs/phase_3_meta_readonly_report.md
+docs/meta_readonly_guardrails.md
+
+Include:
+- environment variables required
+- provider architecture
+- read-only scope
+- forbidden operations
+- fallback behavior
+- data labeling rules
+- verification results
+
+Verification:
+- TypeScript passes with zero errors.
+- App works with Meta provider in mock/fallback mode.
+- If Meta credentials are missing, no crash occurs.
+- No frontend exposes tokens/secrets.
+- Auth and workspace isolation still work.
+- Viewer cannot trigger sync if not permitted.
+- Safety guards still block publishing, budget changes, payments, and autonomous optimization.
+- No endpoint can modify external Meta campaigns.
+- UI clearly labels demo vs read-only Meta data.
+
+Final output:
+- changed files
+- Meta read-only summary
+- verification results
+- remaining risks
+- decision: Phase 3 accepted / accepted with warnings / rejected

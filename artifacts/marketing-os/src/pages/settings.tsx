@@ -42,6 +42,10 @@ import {
   useUpdateWorkspaceMember,
   useRemoveWorkspaceMember,
   getListWorkspaceMembersQueryKey,
+  useGetMetaStatus,
+  getGetMetaStatusQueryKey,
+  usePostMetaSync,
+  type MetaSyncResult,
 } from "@workspace/api-client-react";
 
 // --- Brand Profile ---
@@ -438,7 +442,130 @@ function AdPlatformsTab() {
           })}
         </div>
       )}
+
+      <MetaReadonlyPanel />
     </div>
+  );
+}
+
+function MetaReadonlyPanel() {
+  const { user, activeWorkspaceId } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [syncResult, setSyncResult] = useState<MetaSyncResult | null>(null);
+
+  const canSync = ["owner", "admin", "editor"].includes(user?.role ?? "");
+
+  const { data: status, isLoading: statusLoading } = useGetMetaStatus(
+    { workspaceId: activeWorkspaceId },
+    { query: { enabled: !!activeWorkspaceId, queryKey: getGetMetaStatusQueryKey({ workspaceId: activeWorkspaceId }) } }
+  );
+
+  const syncMeta = usePostMetaSync({
+    mutation: {
+      onSuccess: (data) => {
+        setSyncResult(data);
+        queryClient.invalidateQueries({ queryKey: getGetMetaStatusQueryKey({ workspaceId: activeWorkspaceId }) });
+        toast({ title: "Meta sync complete", description: `${data.adAccounts.length} account(s) · ${data.campaigns.length} campaign(s) fetched.` });
+      },
+      onError: () => {
+        toast({ title: "Meta sync failed", description: "Check credentials or try again.", variant: "destructive" });
+      },
+    },
+  });
+
+  const isLive = status?.provider === "meta_readonly";
+
+  return (
+    <Card className="border-2 border-pink-500/20">
+      <div className="h-1.5 w-full bg-pink-500" />
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">Meta / Instagram — Read-only Data</CardTitle>
+          {statusLoading ? (
+            <Skeleton className="h-5 w-28" />
+          ) : isLive ? (
+            <Badge variant="outline" className="bg-blue-500/10 text-blue-700 border-blue-500/20 text-xs">
+              Meta Read-only
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20 text-xs">
+              Demo Mode
+            </Badge>
+          )}
+        </div>
+        <CardDescription>
+          {isLive
+            ? "Pulling live read-only ad data from Meta Ads API. No campaigns will be modified."
+            : "Using simulated data. Set META_ACCESS_TOKEN and META_PROVIDER=real to enable live read-only access."}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="pb-3">
+        {syncResult ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-muted-foreground font-medium">Source:</span>
+              <Badge variant="secondary" className="text-xs">
+                {syncResult.provider === "meta_readonly" ? "Meta Read-only" : "Demo Data"}
+              </Badge>
+              {syncResult.fallbackUsed && (
+                <Badge variant="outline" className="text-xs text-yellow-700 border-yellow-500/30 bg-yellow-500/10">
+                  Fallback active — credentials missing
+                </Badge>
+              )}
+            </div>
+            <div className="space-y-2">
+              {syncResult.adAccounts.map((account) => {
+                const metrics = syncResult.metrics.find((m) => m.accountId === account.id);
+                return (
+                  <div key={account.id} className="rounded-lg border bg-muted/20 px-3 py-2 text-sm">
+                    <div className="font-medium">{account.name}</div>
+                    {metrics && (
+                      <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                        {[
+                          { label: "Spend", value: `$${metrics.spend.toLocaleString()}` },
+                          { label: "Impr.", value: `${(metrics.impressions / 1000).toFixed(1)}k` },
+                          { label: "Clicks", value: metrics.clicks.toLocaleString() },
+                        ].map((s) => (
+                          <div key={s.label} className="bg-background rounded p-1">
+                            <p className="text-xs text-muted-foreground mb-0.5">{s.label}</p>
+                            <p className="text-xs font-bold">{s.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {syncResult.campaigns.length} campaign(s) · Synced {formatDistanceToNow(new Date(syncResult.syncedAt))} ago
+            </p>
+          </div>
+        ) : (
+          <div className="h-[72px] flex items-center justify-center border border-dashed rounded-lg bg-muted/20 text-sm text-muted-foreground">
+            {canSync ? "Run a sync to see data" : "No data synced yet"}
+          </div>
+        )}
+      </CardContent>
+
+      <CardFooter className="bg-muted/20 border-t px-4 py-3 flex justify-between items-center gap-2">
+        <span className="text-xs text-muted-foreground">
+          Read-only — no publishing, budget changes, or payments
+        </span>
+        {canSync && (
+          <Button
+            size="sm"
+            onClick={() => syncMeta.mutate({ data: { workspaceId: activeWorkspaceId } })}
+            disabled={syncMeta.isPending}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${syncMeta.isPending ? "animate-spin" : ""}`} />
+            {syncMeta.isPending ? "Syncing..." : "Sync Read-only"}
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
 

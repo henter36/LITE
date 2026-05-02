@@ -749,3 +749,79 @@ export const ListAuditLogsResponse = zod.object({
   limit: zod.number(),
   offset: zod.number(),
 });
+
+/**
+ * Returns whether Meta is in mock/demo mode or read-only live mode, and whether credentials are configured.
+ * @summary Get Meta provider status
+ */
+export const GetMetaStatusQueryParams = zod.object({
+  workspaceId: zod.coerce.number(),
+});
+
+export const GetMetaStatusResponse = zod.object({
+  provider: zod.enum(["mock", "meta_readonly"]),
+  credentialsConfigured: zod.boolean(),
+  fallbackUsed: zod.boolean(),
+});
+
+/**
+ * Returns ad accounts from Meta (or mock data if credentials are not configured).
+ * @summary List Meta ad accounts (read-only)
+ */
+export const GetMetaAccountsQueryParams = zod.object({
+  workspaceId: zod.coerce.number(),
+});
+
+export const GetMetaAccountsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  currency: zod.string(),
+  source: zod.enum(["mock", "meta_readonly"]),
+});
+export const GetMetaAccountsResponse = zod.array(GetMetaAccountsResponseItem);
+
+/**
+ * Fetches ad accounts, campaigns, and metrics from Meta (or mock). Logs the sync to the audit trail. Read-only — no Meta data is modified.
+ * @summary Trigger a read-only Meta sync
+ */
+export const PostMetaSyncBody = zod.object({
+  workspaceId: zod.number(),
+});
+
+export const PostMetaSyncResponse = zod.object({
+  adAccounts: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      currency: zod.string(),
+      source: zod.enum(["mock", "meta_readonly"]),
+    }),
+  ),
+  campaigns: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      status: zod.string(),
+      objective: zod.string(),
+      source: zod.enum(["mock", "meta_readonly"]),
+    }),
+  ),
+  metrics: zod.array(
+    zod.object({
+      accountId: zod.string(),
+      spend: zod.number(),
+      impressions: zod.number(),
+      clicks: zod.number(),
+      reach: zod.number(),
+      ctr: zod.number(),
+      dateRange: zod.object({
+        since: zod.string(),
+        until: zod.string(),
+      }),
+      source: zod.enum(["mock", "meta_readonly"]),
+    }),
+  ),
+  provider: zod.enum(["mock", "meta_readonly"]),
+  fallbackUsed: zod.boolean(),
+  syncedAt: zod.coerce.date(),
+});

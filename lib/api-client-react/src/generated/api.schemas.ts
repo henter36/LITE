@@ -402,6 +402,96 @@ export interface UpdateRecommendationBody {
   isRead: boolean;
 }
 
+export type MetaProviderStatusProvider =
+  (typeof MetaProviderStatusProvider)[keyof typeof MetaProviderStatusProvider];
+
+export const MetaProviderStatusProvider = {
+  mock: "mock",
+  meta_readonly: "meta_readonly",
+} as const;
+
+export interface MetaProviderStatus {
+  provider: MetaProviderStatusProvider;
+  credentialsConfigured: boolean;
+  fallbackUsed: boolean;
+}
+
+export type MetaAdAccountSource =
+  (typeof MetaAdAccountSource)[keyof typeof MetaAdAccountSource];
+
+export const MetaAdAccountSource = {
+  mock: "mock",
+  meta_readonly: "meta_readonly",
+} as const;
+
+export interface MetaAdAccount {
+  id: string;
+  name: string;
+  currency: string;
+  source: MetaAdAccountSource;
+}
+
+export type MetaCampaignSource =
+  (typeof MetaCampaignSource)[keyof typeof MetaCampaignSource];
+
+export const MetaCampaignSource = {
+  mock: "mock",
+  meta_readonly: "meta_readonly",
+} as const;
+
+export interface MetaCampaign {
+  id: string;
+  name: string;
+  status: string;
+  objective: string;
+  source: MetaCampaignSource;
+}
+
+export type MetaMetricsSummaryDateRange = {
+  since: string;
+  until: string;
+};
+
+export type MetaMetricsSummarySource =
+  (typeof MetaMetricsSummarySource)[keyof typeof MetaMetricsSummarySource];
+
+export const MetaMetricsSummarySource = {
+  mock: "mock",
+  meta_readonly: "meta_readonly",
+} as const;
+
+export interface MetaMetricsSummary {
+  accountId: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  reach: number;
+  ctr: number;
+  dateRange: MetaMetricsSummaryDateRange;
+  source: MetaMetricsSummarySource;
+}
+
+export interface MetaSyncRequest {
+  workspaceId: number;
+}
+
+export type MetaSyncResultProvider =
+  (typeof MetaSyncResultProvider)[keyof typeof MetaSyncResultProvider];
+
+export const MetaSyncResultProvider = {
+  mock: "mock",
+  meta_readonly: "meta_readonly",
+} as const;
+
+export interface MetaSyncResult {
+  adAccounts: MetaAdAccount[];
+  campaigns: MetaCampaign[];
+  metrics: MetaMetricsSummary[];
+  provider: MetaSyncResultProvider;
+  fallbackUsed: boolean;
+  syncedAt: string;
+}
+
 export interface AuditLogPage {
   items: AuditLog[];
   total: number;
@@ -470,4 +560,12 @@ export type ListAuditLogsParams = {
   search?: string;
   limit?: number;
   offset?: number;
+};
+
+export type GetMetaStatusParams = {
+  workspaceId: number;
+};
+
+export type GetMetaAccountsParams = {
+  workspaceId: number;
 };

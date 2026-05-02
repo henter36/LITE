@@ -54,3 +54,15 @@ id = "cg_qFxtZUGn4hIL4X18Kz"
 uri = "file://docs/phase_2_stabilization_review.md"
 type = "text"
 title = "Phase 2 Stabilization Review"
+
+[[outputs]]
+id = "kLRpmjJEUu4NJiKa-r4m5"
+uri = "file://docs/phase_3_meta_readonly_report.md"
+type = "text"
+title = "Phase 3 Report"
+
+[[outputs]]
+id = "-TVPxdpkkcKODIUtBq_b4"
+uri = "file://docs/meta_readonly_guardrails.md"
+type = "text"
+title = "Meta Read-only Guardrails"

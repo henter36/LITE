@@ -874,6 +874,77 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuditLogPage"
 
+  /meta/status:
+    get:
+      tags: [Meta]
+      summary: Get Meta provider status
+      description: Returns whether Meta is in mock/demo mode or read-only live mode, and whether credentials are configured.
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Meta provider status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetaProviderStatus"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /meta/accounts:
+    get:
+      tags: [Meta]
+      summary: List Meta ad accounts (read-only)
+      description: Returns ad accounts from Meta (or mock data if credentials are not configured).
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of Meta ad accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MetaAdAccount"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /meta/sync:
+    post:
+      tags: [Meta]
+      summary: Trigger a read-only Meta sync
+      description: Fetches ad accounts, campaigns, and metrics from Meta (or mock). Logs the sync to the audit trail. Read-only — no Meta data is modified.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MetaSyncRequest"
+      responses:
+        "200":
+          description: Sync result with source labels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetaSyncResult"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
 components:
   schemas:
     HealthStatus:
@@ -1414,6 +1485,108 @@ components:
         isRead:
           type: boolean
       required: [isRead]
+
+    MetaProviderStatus:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [mock, meta_readonly]
+        credentialsConfigured:
+          type: boolean
+        fallbackUsed:
+          type: boolean
+      required: [provider, credentialsConfigured, fallbackUsed]
+
+    MetaAdAccount:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        currency:
+          type: string
+        source:
+          type: string
+          enum: [mock, meta_readonly]
+      required: [id, name, currency, source]
+
+    MetaCampaign:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        objective:
+          type: string
+        source:
+          type: string
+          enum: [mock, meta_readonly]
+      required: [id, name, status, objective, source]
+
+    MetaMetricsSummary:
+      type: object
+      properties:
+        accountId:
+          type: string
+        spend:
+          type: number
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+        reach:
+          type: integer
+        ctr:
+          type: number
+        dateRange:
+          type: object
+          properties:
+            since:
+              type: string
+            until:
+              type: string
+          required: [since, until]
+        source:
+          type: string
+          enum: [mock, meta_readonly]
+      required: [accountId, spend, impressions, clicks, reach, ctr, dateRange, source]
+
+    MetaSyncRequest:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+      required: [workspaceId]
+
+    MetaSyncResult:
+      type: object
+      properties:
+        adAccounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetaAdAccount"
+        campaigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetaCampaign"
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetaMetricsSummary"
+        provider:
+          type: string
+          enum: [mock, meta_readonly]
+        fallbackUsed:
+          type: boolean
+        syncedAt:
+          type: string
+          format: date-time
+      required: [adAccounts, campaigns, metrics, provider, fallbackUsed, syncedAt]
 
     AuditLogPage:
       type: object

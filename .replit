@@ -58,3 +58,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 AI_PROVIDER = "mock"
+META_PROVIDER = "mock"

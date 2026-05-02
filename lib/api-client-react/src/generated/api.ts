@@ -39,6 +39,8 @@ import type {
   GetCampaignSummaryParams,
   GetChannelComparisonParams,
   GetDashboardMetricsParams,
+  GetMetaAccountsParams,
+  GetMetaStatusParams,
   HealthStatus,
   ListApprovalsParams,
   ListAssetsParams,
@@ -49,6 +51,10 @@ import type {
   ListMetricsParams,
   ListRecommendationsParams,
   ListTrackingLinksParams,
+  MetaAdAccount,
+  MetaProviderStatus,
+  MetaSyncRequest,
+  MetaSyncResult,
   PlatformConnection,
   Recommendation,
   SyncJob,
@@ -3701,3 +3707,280 @@ export function useListAuditLogs<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Returns whether Meta is in mock/demo mode or read-only live mode, and whether credentials are configured.
+ * @summary Get Meta provider status
+ */
+export const getGetMetaStatusUrl = (params: GetMetaStatusParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/meta/status?${stringifiedParams}`
+    : `/api/meta/status`;
+};
+
+export const getMetaStatus = async (
+  params: GetMetaStatusParams,
+  options?: RequestInit,
+): Promise<MetaProviderStatus> => {
+  return customFetch<MetaProviderStatus>(getGetMetaStatusUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMetaStatusQueryKey = (params?: GetMetaStatusParams) => {
+  return [`/api/meta/status`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetMetaStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMetaStatus>>,
+  TError = ErrorType<void>,
+>(
+  params: GetMetaStatusParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMetaStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMetaStatusQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMetaStatus>>> = ({
+    signal,
+  }) => getMetaStatus(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMetaStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMetaStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMetaStatus>>
+>;
+export type GetMetaStatusQueryError = ErrorType<void>;
+
+/**
+ * @summary Get Meta provider status
+ */
+
+export function useGetMetaStatus<
+  TData = Awaited<ReturnType<typeof getMetaStatus>>,
+  TError = ErrorType<void>,
+>(
+  params: GetMetaStatusParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMetaStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMetaStatusQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Returns ad accounts from Meta (or mock data if credentials are not configured).
+ * @summary List Meta ad accounts (read-only)
+ */
+export const getGetMetaAccountsUrl = (params: GetMetaAccountsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/meta/accounts?${stringifiedParams}`
+    : `/api/meta/accounts`;
+};
+
+export const getMetaAccounts = async (
+  params: GetMetaAccountsParams,
+  options?: RequestInit,
+): Promise<MetaAdAccount[]> => {
+  return customFetch<MetaAdAccount[]>(getGetMetaAccountsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMetaAccountsQueryKey = (params?: GetMetaAccountsParams) => {
+  return [`/api/meta/accounts`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetMetaAccountsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMetaAccounts>>,
+  TError = ErrorType<void>,
+>(
+  params: GetMetaAccountsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMetaAccounts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMetaAccountsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMetaAccounts>>> = ({
+    signal,
+  }) => getMetaAccounts(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMetaAccounts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMetaAccountsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMetaAccounts>>
+>;
+export type GetMetaAccountsQueryError = ErrorType<void>;
+
+/**
+ * @summary List Meta ad accounts (read-only)
+ */
+
+export function useGetMetaAccounts<
+  TData = Awaited<ReturnType<typeof getMetaAccounts>>,
+  TError = ErrorType<void>,
+>(
+  params: GetMetaAccountsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMetaAccounts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMetaAccountsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Fetches ad accounts, campaigns, and metrics from Meta (or mock). Logs the sync to the audit trail. Read-only — no Meta data is modified.
+ * @summary Trigger a read-only Meta sync
+ */
+export const getPostMetaSyncUrl = () => {
+  return `/api/meta/sync`;
+};
+
+export const postMetaSync = async (
+  metaSyncRequest: MetaSyncRequest,
+  options?: RequestInit,
+): Promise<MetaSyncResult> => {
+  return customFetch<MetaSyncResult>(getPostMetaSyncUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(metaSyncRequest),
+  });
+};
+
+export const getPostMetaSyncMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postMetaSync>>,
+    TError,
+    { data: BodyType<MetaSyncRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postMetaSync>>,
+  TError,
+  { data: BodyType<MetaSyncRequest> },
+  TContext
+> => {
+  const mutationKey = ["postMetaSync"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postMetaSync>>,
+    { data: BodyType<MetaSyncRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postMetaSync(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostMetaSyncMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postMetaSync>>
+>;
+export type PostMetaSyncMutationBody = BodyType<MetaSyncRequest>;
+export type PostMetaSyncMutationError = ErrorType<void>;
+
+/**
+ * @summary Trigger a read-only Meta sync
+ */
+export const usePostMetaSync = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postMetaSync>>,
+    TError,
+    { data: BodyType<MetaSyncRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof postMetaSync>>,
+  TError,
+  { data: BodyType<MetaSyncRequest> },
+  TContext
+> => {
+  return useMutation(getPostMetaSyncMutationOptions(options));
+};

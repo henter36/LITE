@@ -12,6 +12,7 @@ import metricsRouter from "./metrics";
 import recommendationsRouter from "./recommendations";
 import auditLogsRouter from "./auditLogs";
 import membersRouter from "./members";
+import metaRouter from "./meta";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(metricsRouter);
 router.use(recommendationsRouter);
 router.use(auditLogsRouter);
 router.use(membersRouter);
+router.use(metaRouter);
 
 export default router;

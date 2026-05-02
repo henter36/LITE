@@ -4,7 +4,7 @@
 
 A full-stack marketing campaign management platform (MVP) that helps small businesses plan, generate, approve, and monitor marketing campaigns across Instagram, Snapchat, YouTube, and X/Twitter — all from one dashboard.
 
-**IMPORTANT:** This is a Lite MVP. All ad platform integrations are mock/simulated. No real ad budget is spent, no live ads are published, and no real APIs are connected.
+**IMPORTANT:** This is a Lite MVP. All ad platform integrations are mock/simulated by default. No real ad budget is spent, no live ads are published. Meta/Instagram read-only data access is available when credentials are configured (see Phase 3 below).
 
 ## Stack
 
@@ -63,6 +63,24 @@ Tables: `workspaces`, `brand_profiles`, `campaigns`, `generated_assets`, `channe
 ### Seed Data
 
 1 demo workspace, 1 brand profile, 3 campaigns, 4 mock platform connections, 30 days of mock metrics, 10 recommendations, 15 audit log entries.
+
+## Phase 3 Meta Read-only Integration (completed)
+
+- **`artifacts/api-server/src/lib/meta-provider.ts`** — `MetaAdsProvider` interface, `MockMetaAdsProvider` (seeded demo data), `MetaReadOnlyProvider` (Meta Graph API v20.0 — GET only), `getMetaProvider()` factory with graceful fallback, `assertNoForbiddenOp()` guard
+- **Provider selection:** `META_PROVIDER` env var (`"mock"` default, `"real"` to activate live read-only). Falls back to mock if `META_ACCESS_TOKEN` is missing.
+- **API routes (`artifacts/api-server/src/routes/meta.ts`):**
+  - `GET /meta/status` — provider mode + credentials state (auth + workspace access required)
+  - `GET /meta/accounts` — list ad accounts, source-labeled (auth + workspace access required)
+  - `POST /meta/sync` — fetch accounts/campaigns/metrics, write audit log (auth + editor role minimum)
+- **Data labeling:** every record carries `source: "mock" | "meta_readonly"`. Real and demo data are never mixed unlabeled.
+- **Audit log:** `meta_readonly_sync_started`, `meta_readonly_sync_completed`, `meta_readonly_sync_failed` — all include workspaceId, actor, provider, fallback status
+- **UI:** `MetaReadonlyPanel` component in Settings > Ad Platforms — shows Demo Mode (yellow) or Meta Read-only (blue) badge, sync results with source label, "Sync Read-only" button (editor+ only), footer: "Read-only — no publishing, budget changes, or payments"
+- **No token in frontend:** `META_ACCESS_TOKEN` read server-side only — never in any HTTP response or frontend code
+- **Forbidden operations blocked:** `publishAd`, `createCampaign`, `changeBudget`, `editCampaign`, `pauseCampaign`, `connectPaymentMethod` → HTTP 403
+
+To activate live Meta read-only: add `META_ACCESS_TOKEN` to Replit Secrets + set `META_PROVIDER=real` in shared env vars. No code changes required.
+
+See `docs/phase_3_meta_readonly_report.md` and `docs/meta_readonly_guardrails.md` for full details.
 
 ## Phase 2 AI Provider Layer (completed)
 
