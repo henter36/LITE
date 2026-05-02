@@ -1,0 +1,70 @@
+Before implementing, inspect the current codebase and confirm there are no conflicting partial changes from previous UX work.
+
+Implement the recommended pre-pilot completion sprint for Marketing OS Lite.
+
+Do not connect real ad APIs.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget changes.
+Do not implement autonomous optimization.
+Do not add real LLM integration yet.
+Do not weaken auth, workspace isolation, role checks, audit logs, or safety guards.
+Do not add unrelated features.
+
+Implement only these 5 items:
+
+1. Wire Brand Profile into mock generation
+- Update POST /assets to look up the workspace brand profile.
+- Pass brandName, toneOfVoice, forbiddenClaims, preferredChannels, and visualNotes into mockGenerate().
+- Generated headline should include brand name when available.
+- Caption should reflect toneOfVoice.
+- Forbidden claims must be filtered from generated output.
+- Visual notes should appear in the storyboard or generation note.
+
+2. Channel variant tabs in Content Studio
+- Show tabs for Instagram, Snapchat, YouTube, X, TikTok.
+- Use existing asset variants endpoint/data.
+- Each tab must show platform-specific headline, caption, CTA, and hashtags.
+- TikTok tab must show video script/storyboard when available.
+- Switching tabs must not regenerate content.
+
+3. Inline tracking link creation in Campaign Detail
+- Add “Generate Link” button in the Tracking Links tab.
+- Open a dialog with campaign pre-selected and locked.
+- Create UTM link without leaving Campaign Detail.
+- Refresh the tracking link list after creation.
+
+4. Role-aware UI rendering
+- Use user.role from AuthContext.
+- Viewer must not see write actions.
+- Editor can create/edit campaign/content/tracking but cannot manage members/settings requiring admin.
+- Admin/owner can manage workspace resources.
+- Add clear “Read-only access” indication for viewer.
+
+5. Dashboard Today's Action fallback
+- Today's Action must always render.
+- If no recommendation exists, show:
+  “Create your first campaign to get recommendations.”
+- Add a Create Campaign button.
+
+Verification:
+- TypeScript passes with zero errors.
+- Existing auth still works.
+- Workspace isolation still works.
+- Viewer does not see write buttons.
+- Safety guards still block live publishing, budget changes, payments, and autonomous optimization.
+- Content generation visibly reflects brand profile.
+- TikTok/platform variants are visible in Content Studio.
+- Tracking link can be created from Campaign Detail.
+- Dashboard never has an empty Today’s Action section.
+- No wording implies real ads or real API integrations.
+
+Create:
+docs/pre_pilot_completion_sprint_report.md
+
+Final output:
+- changed files
+- implemented items
+- verification results
+- remaining gaps
+- pilot readiness decision
