@@ -5,6 +5,7 @@ import connectPgSimple from "connect-pg-simple";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { pool } from "@workspace/db";
 import "./session.d.ts";
 
 if (!process.env.SESSION_SECRET) {
@@ -39,9 +40,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     store: new PgSession({
-      conString: process.env.DATABASE_URL,
+      pool,
       tableName: "user_sessions",
-      createTableIfMissing: true,
     }),
     name: "mos.sid",
     secret: process.env.SESSION_SECRET,

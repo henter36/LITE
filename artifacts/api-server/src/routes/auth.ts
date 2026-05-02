@@ -1,8 +1,8 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db } from "@workspace/db";
-import { usersTable, workspaceMembersTable, workspacesTable, auditLogsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { usersTable, workspaceMembersTable, workspacesTable } from "@workspace/db";
+import { and, eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -56,7 +56,6 @@ router.post("/auth/login", async (req, res) => {
     return res.status(401).json({ error: "Invalid email or password" });
   }
 
-  // Load user's workspace memberships
   const memberships = await db
     .select({ workspaceId: workspaceMembersTable.workspaceId, role: workspaceMembersTable.role })
     .from(workspaceMembersTable)
@@ -133,9 +132,14 @@ router.post("/auth/switch-workspace", async (req, res) => {
   const [member] = await db
     .select()
     .from(workspaceMembersTable)
-    .where(eq(workspaceMembersTable.workspaceId, Number(workspaceId)));
+    .where(
+      and(
+        eq(workspaceMembersTable.workspaceId, Number(workspaceId)),
+        eq(workspaceMembersTable.userId, req.session.userId),
+      ),
+    );
 
-  if (!member || member.userId !== req.session.userId) {
+  if (!member) {
     return res.status(403).json({ error: "Access denied to this workspace" });
   }
 

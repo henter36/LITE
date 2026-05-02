@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { brandProfilesTable, auditLogsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, actor } from "../middleware/auth";
+import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 
 const router = Router();
 
@@ -38,19 +38,28 @@ router.post("/brand-profiles", requireAuth, requireWorkspaceRole("editor"), asyn
 router.get("/brand-profiles/:id", requireAuth, async (req, res) => {
   const [p] = await db.select().from(brandProfilesTable).where(eq(brandProfilesTable.id, parseInt(req.params.id)));
   if (!p) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, p.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
   res.json(serializeProfile(p));
 });
 
 router.put("/brand-profiles/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(brandProfilesTable).where(eq(brandProfilesTable.id, id));
+  if (!existing) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, existing.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+
   const { workspaceId, brandName, toneOfVoice, targetAudience, productsServices, forbiddenClaims, preferredChannels, visualNotes } = req.body;
   const [p] = await db.update(brandProfilesTable).set({
-    workspaceId, brandName, toneOfVoice, targetAudience, productsServices,
+    workspaceId: workspaceId || existing.workspaceId, brandName, toneOfVoice, targetAudience, productsServices,
     forbiddenClaims: forbiddenClaims || "",
     preferredChannels: JSON.stringify(preferredChannels || []),
     visualNotes: visualNotes || "",
   }).where(eq(brandProfilesTable.id, id)).returning();
   if (!p) return res.status(404).json({ error: "Not found" });
+  await db.insert(auditLogsTable).values({ workspaceId: p.workspaceId, action: "brand_profile_updated", entityType: "brand_profile", entityId: p.id, actor: actor(req), details: `Brand profile "${p.brandName}" updated` });
   res.json(serializeProfile(p));
 });
 

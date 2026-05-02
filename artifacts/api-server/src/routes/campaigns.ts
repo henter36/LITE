@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { campaignsTable, auditLogsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, actor } from "../middleware/auth";
+import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 
 const router = Router();
 
@@ -68,11 +68,19 @@ router.get("/campaigns/summary", requireAuth, requireWorkspaceAccess, async (req
 router.get("/campaigns/:id", requireAuth, async (req, res) => {
   const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, parseInt(req.params.id)));
   if (!c) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, c.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
   res.json(serializeCampaign(c));
 });
 
 router.put("/campaigns/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
+  if (!existing) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, existing.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+
   const { workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl } = req.body;
   if (!name || !objective || !productService || !audience || !geography || !startDate || !endDate) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -82,7 +90,7 @@ router.put("/campaigns/:id", requireAuth, async (req, res) => {
   }
   try {
     const [c] = await db.update(campaignsTable).set({
-      workspaceId, name, objective, productService, audience, geography,
+      workspaceId: workspaceId || existing.workspaceId, name, objective, productService, audience, geography,
       budgetSuggestion: budgetSuggestion || 0, startDate, endDate,
       channels: JSON.stringify(channels || []), landingUrl: landingUrl || "",
     }).where(eq(campaignsTable.id, id)).returning();
@@ -91,13 +99,24 @@ router.put("/campaigns/:id", requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: "Failed to update campaign" }); }
 });
 
-router.delete("/campaigns/:id", requireAuth, requireWorkspaceRole("admin"), async (req, res) => {
-  await db.delete(campaignsTable).where(eq(campaignsTable.id, parseInt(req.params.id)));
+router.delete("/campaigns/:id", requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
+  if (!existing) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, existing.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!hasMinRole(role, "admin")) return res.status(403).json({ error: "Requires admin role or above" });
+  await db.delete(campaignsTable).where(eq(campaignsTable.id, id));
   res.status(204).send();
 });
 
 router.post("/campaigns/:id/approve", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
+  const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
+  if (!existing) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, existing.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
   const [c] = await db.update(campaignsTable).set({ status: "approved" }).where(eq(campaignsTable.id, id)).returning();
   if (!c) return res.status(404).json({ error: "Not found" });
   await db.insert(auditLogsTable).values({ workspaceId: c.workspaceId, action: "campaign_approved", entityType: "campaign", entityId: c.id, actor: actor(req), details: `Campaign "${c.name}" approved` });

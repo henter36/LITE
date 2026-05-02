@@ -98,7 +98,7 @@ export default function Connections() {
         <Info className="h-4 w-4 text-amber-600" />
         <AlertTitle className="text-amber-800 dark:text-amber-500">Mock Integration Mode</AlertTitle>
         <AlertDescription className="text-amber-700/80 dark:text-amber-500/80">
-          This is an MVP environment. Connecting an account will not authenticate with real APIs or pull real live data. 
+          This is a demo environment. Connecting an account uses simulated data only. No real ad APIs are called and no real spend occurs. 
           Metrics shown are simulated for demonstration purposes.
         </AlertDescription>
       </Alert>

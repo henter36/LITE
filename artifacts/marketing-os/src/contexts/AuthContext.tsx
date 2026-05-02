@@ -27,8 +27,6 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const DEFAULT_WORKSPACE_ID = 1;
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = fetchMe;
 
-  const activeWorkspaceId = user?.activeWorkspaceId ?? DEFAULT_WORKSPACE_ID;
+  const activeWorkspaceId = user?.activeWorkspaceId ?? 0;
 
   return (
     <AuthContext.Provider value={{ user, isLoading, activeWorkspaceId, login, logout, register, refresh }}>

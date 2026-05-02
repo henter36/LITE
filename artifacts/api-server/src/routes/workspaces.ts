@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { workspacesTable, auditLogsTable, workspaceMembersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, actor } from "../middleware/auth";
+import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 
 const router = Router();
 
@@ -14,7 +14,6 @@ function serialize(w: typeof workspacesTable.$inferSelect) {
   };
 }
 
-// List only workspaces the authenticated user belongs to
 router.get("/workspaces", requireAuth, async (req, res) => {
   const memberships = await db.select({ workspaceId: workspaceMembersTable.workspaceId })
     .from(workspaceMembersTable)
@@ -31,7 +30,6 @@ router.post("/workspaces", requireAuth, async (req, res) => {
     return res.status(400).json({ error: "Missing required fields" });
   }
   const [w] = await db.insert(workspacesTable).values({ name, businessType, country, language, defaultCurrency }).returning();
-  // Creator becomes owner
   await db.insert(workspaceMembersTable).values({ workspaceId: w.id, userId: req.session.userId!, role: "owner" });
   await db.insert(auditLogsTable).values({ workspaceId: w.id, action: "workspace_created", entityType: "workspace", entityId: w.id, actor: actor(req), details: `Workspace "${name}" created` });
   res.status(201).json(serialize(w));
@@ -41,25 +39,29 @@ router.get("/workspaces/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   const [w] = await db.select().from(workspacesTable).where(eq(workspacesTable.id, id));
   if (!w) return res.status(404).json({ error: "Not found" });
-  // Verify membership
-  const [member] = await db.select().from(workspaceMembersTable)
-    .where(eq(workspaceMembersTable.workspaceId, id));
-  if (!member || member.userId !== req.session.userId!) {
-    return res.status(403).json({ error: "Access denied" });
-  }
+  const role = await getMemberRole(req.session.userId!, id);
+  if (!role) return res.status(403).json({ error: "Access denied" });
   res.json(serialize(w));
 });
 
-router.put("/workspaces/:id", requireAuth, requireWorkspaceRole("admin"), async (req, res) => {
+router.put("/workspaces/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
+  const role = await getMemberRole(req.session.userId!, id);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!hasMinRole(role, "admin")) return res.status(403).json({ error: "Requires admin role or above" });
+
   const { name, businessType, country, language, defaultCurrency } = req.body;
   const [w] = await db.update(workspacesTable).set({ name, businessType, country, language, defaultCurrency }).where(eq(workspacesTable.id, id)).returning();
   if (!w) return res.status(404).json({ error: "Not found" });
   res.json(serialize(w));
 });
 
-router.delete("/workspaces/:id", requireAuth, requireWorkspaceRole("owner"), async (req, res) => {
-  await db.delete(workspacesTable).where(eq(workspacesTable.id, parseInt(req.params.id)));
+router.delete("/workspaces/:id", requireAuth, async (req, res) => {
+  const id = parseInt(req.params.id);
+  const role = await getMemberRole(req.session.userId!, id);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!hasMinRole(role, "owner")) return res.status(403).json({ error: "Requires owner role" });
+  await db.delete(workspacesTable).where(eq(workspacesTable.id, id));
   res.status(204).send();
 });
 

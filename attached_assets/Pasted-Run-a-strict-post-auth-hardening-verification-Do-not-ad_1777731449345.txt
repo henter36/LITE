@@ -1,0 +1,75 @@
+Run a strict post-auth hardening verification.
+
+Do not add features.
+Do not connect real ad APIs.
+Do not implement publishing, payments, or autonomous optimization.
+Only fix defects discovered during verification.
+
+Verify:
+
+1. Anonymous access
+- All protected APIs return 401 when no session exists.
+- Frontend redirects to /login.
+
+2. Workspace isolation
+- Create or seed a second user and second workspace.
+- Confirm user A cannot read/write user B workspace data.
+- Test campaigns, assets, approvals, tracking links, metrics, recommendations, connections, audit logs.
+
+3. Role permissions
+- viewer cannot create/update/delete.
+- editor can create/update campaign/content/tracking but cannot manage members.
+- admin/owner can manage workspace resources.
+- only owner/admin can manage members.
+
+4. Audit integrity
+- All user actions record real user id, email, workspace id.
+- No fake actor for authenticated actions.
+- System actor only allowed for seed/system jobs.
+
+5. Session security
+- Passwords are hashed.
+- No plaintext password appears in DB, logs, frontend, or seed output.
+- Cookies are httpOnly.
+- SESSION_SECRET is required.
+- Logout invalidates session.
+
+6. WorkspaceId trust boundary
+- Backend must not trust workspaceId blindly from request body/query.
+- All workspace access must be checked against authenticated membership.
+- Any resource lookup must verify ownership or workspace membership.
+
+7. Existing MVP regression
+Verify after login:
+- dashboard loads
+- campaigns work
+- content generation works
+- approvals work
+- tracking links work
+- mock connections work
+- reports work
+- audit log works
+- safety guards still block live publishing, budget changes, payments
+
+8. Language integrity
+Replace any wording like “live data” with:
+- “mock seeded data”
+- “simulated data”
+- “demo metrics”
+unless real APIs are connected, which they are not.
+
+Required output:
+Create docs/auth_hardening_post_implementation_review.md with:
+- executive summary
+- pass/fail checklist
+- tested endpoints
+- role matrix verification
+- workspace isolation test results
+- audit log verification
+- remaining security gaps
+- demo readiness decision: Ready / Ready with warnings / Not ready
+
+Final message:
+- changed files if fixes were needed
+- verification results
+- updated demo readiness classification

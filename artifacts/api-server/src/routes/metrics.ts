@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { adMetricsDailyTable, campaignsTable } from "@workspace/db";
 import { eq, and, gte, lte } from "drizzle-orm";
-import { requireAuth, requireWorkspaceAccess } from "../middleware/auth";
+import { requireAuth, requireWorkspaceAccess, getMemberRole } from "../middleware/auth";
 
 const router = Router();
 
@@ -10,13 +10,33 @@ router.get("/metrics", requireAuth, async (req, res) => {
   if (!req.query.campaignId && !req.query.workspaceId) {
     return res.status(400).json({ error: "campaignId or workspaceId is required" });
   }
-  const conditions = [];
-  if (req.query.campaignId) conditions.push(eq(adMetricsDailyTable.campaignId, Number(req.query.campaignId)));
+  const userId = req.session.userId!;
+
+  if (req.query.workspaceId) {
+    const workspaceId = Number(req.query.workspaceId);
+    const role = await getMemberRole(userId, workspaceId);
+    if (!role) return res.status(403).json({ error: "Access denied" });
+    const rows = await db
+      .select({ m: adMetricsDailyTable })
+      .from(adMetricsDailyTable)
+      .innerJoin(campaignsTable, eq(adMetricsDailyTable.campaignId, campaignsTable.id))
+      .where(eq(campaignsTable.workspaceId, workspaceId))
+      .orderBy(adMetricsDailyTable.date);
+    return res.json(rows.map(r => r.m));
+  }
+
+  const campaignId = Number(req.query.campaignId);
+  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, campaignId));
+  if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+  const role = await getMemberRole(userId, campaign.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+
+  const conditions = [eq(adMetricsDailyTable.campaignId, campaignId)];
   if (req.query.platform) conditions.push(eq(adMetricsDailyTable.platform, String(req.query.platform)));
   if (req.query.fromDate) conditions.push(gte(adMetricsDailyTable.date, String(req.query.fromDate)));
   if (req.query.toDate) conditions.push(lte(adMetricsDailyTable.date, String(req.query.toDate)));
   const metrics = await db.select().from(adMetricsDailyTable).where(and(...conditions)).orderBy(adMetricsDailyTable.date);
-  res.json(metrics);
+  return res.json(metrics);
 });
 
 router.get("/metrics/dashboard", requireAuth, requireWorkspaceAccess, async (req, res) => {

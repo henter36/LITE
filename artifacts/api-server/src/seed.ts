@@ -20,8 +20,8 @@ function dateStr(daysAgo: number) {
 async function seed() {
   const [existing] = await db.select({ count: sql<number>`count(*)` }).from(workspacesTable);
   if (Number(existing.count) > 0) {
-    console.log("Workspace data already seeded. Checking demo user...");
-    // Ensure demo user exists even on re-runs
+    console.log("Workspace data already seeded. Checking users...");
+
     const [demoUser] = await db.select().from(usersTable).where(eq(usersTable.email, "demo@marketingos.local"));
     if (!demoUser) {
       const [ws] = await db.select().from(workspacesTable);
@@ -34,12 +34,27 @@ async function seed() {
     } else {
       console.log("Demo user already exists.");
     }
+
+    const [aliceUser] = await db.select().from(usersTable).where(eq(usersTable.email, "alice@test.local"));
+    if (!aliceUser) {
+      const hash = await bcrypt.hash("AliceTest123!", 12);
+      const [u] = await db.insert(usersTable).values({ email: "alice@test.local", passwordHash: hash, name: "Alice Test" }).returning();
+      const [ws2] = await db.insert(workspacesTable).values({
+        name: "Alice's Agency", businessType: "Agency", country: "United Kingdom",
+        language: "English", defaultCurrency: "GBP",
+      }).returning();
+      await db.insert(workspaceMembersTable).values({ workspaceId: ws2.id, userId: u.id, role: "owner" });
+      await db.insert(auditLogsTable).values({ workspaceId: ws2.id, action: "workspace_created", entityType: "workspace", entityId: ws2.id, actor: "Alice Test", details: 'Workspace "Alice\'s Agency" created' });
+      console.log("Isolation test user created: alice@test.local / AliceTest123!");
+    } else {
+      console.log("Isolation test user already exists.");
+    }
+
     return;
   }
 
   console.log("Seeding database...");
 
-  // 1. Demo user (must come first to get ID for workspace membership)
   const demoPasswordHash = await bcrypt.hash("Demo12345!", 12);
   const [demoUser] = await db.insert(usersTable).values({
     email: "demo@marketingos.local",
@@ -47,18 +62,26 @@ async function seed() {
     name: "Demo User",
   }).returning();
 
-  // 2. Workspace
+  const alicePasswordHash = await bcrypt.hash("AliceTest123!", 12);
+  const [aliceUser] = await db.insert(usersTable).values({
+    email: "alice@test.local",
+    passwordHash: alicePasswordHash,
+    name: "Alice Test",
+  }).returning();
+
   const [workspace] = await db.insert(workspacesTable).values({
     name: "Bright & Bold Agency", businessType: "Marketing Agency", country: "United States",
     language: "English", defaultCurrency: "USD",
   }).returning();
 
-  // 3. Link demo user as owner of workspace
-  await db.insert(workspaceMembersTable).values({
-    workspaceId: workspace.id, userId: demoUser.id, role: "owner",
-  });
+  const [workspace2] = await db.insert(workspacesTable).values({
+    name: "Alice's Agency", businessType: "Agency", country: "United Kingdom",
+    language: "English", defaultCurrency: "GBP",
+  }).returning();
 
-  // 4. Brand Profile
+  await db.insert(workspaceMembersTable).values({ workspaceId: workspace.id, userId: demoUser.id, role: "owner" });
+  await db.insert(workspaceMembersTable).values({ workspaceId: workspace2.id, userId: aliceUser.id, role: "owner" });
+
   const [brand] = await db.insert(brandProfilesTable).values({
     workspaceId: workspace.id,
     brandName: "Bright & Bold",
@@ -70,7 +93,6 @@ async function seed() {
     visualNotes: "Bold colors, clean layouts. Use high-contrast imagery. Avoid stock photo clichés.",
   }).returning();
 
-  // 5. Campaigns
   const campaigns = await db.insert(campaignsTable).values([
     {
       workspaceId: workspace.id, name: "Summer Brand Awareness 2025", objective: "awareness",
@@ -98,7 +120,6 @@ async function seed() {
     },
   ]).returning();
 
-  // 6. Platform connections
   const mockAccounts = [
     { platform: "instagram", accountName: "brightbold_ig", mockSpend: 1842.5, mockImpressions: 87400, mockClicks: 3210 },
     { platform: "snapchat", accountName: "BrightBoldSnap", mockSpend: 920.0, mockImpressions: 42000, mockClicks: 1890 },
@@ -109,7 +130,6 @@ async function seed() {
     mockAccounts.map(a => ({ ...a, workspaceId: workspace.id, accountId: `mock_${a.platform}_${Date.now()}`, status: "connected", lastSyncAt: new Date() }))
   ).returning();
 
-  // 7. Generated assets for campaign 1
   const [asset1] = await db.insert(generatedAssetsTable).values({
     campaignId: campaigns[0].id,
     headline: "Unlock Your Brand's Full Potential This Summer",
@@ -130,20 +150,17 @@ async function seed() {
     hashtags: JSON.stringify(["#marketing", `#${ch}`, "#smallbusiness"]),
   })));
 
-  // 8. Approval for asset
   await db.insert(approvalDecisionsTable).values({
     assetId: asset1.id, campaignId: campaigns[0].id,
     actor: "Demo User", decision: "approved", reason: "Great hook, brand voice is on point.",
   });
 
-  // 9. Tracking links
   await db.insert(trackingLinksTable).values([
     { campaignId: campaigns[0].id, channel: "instagram", source: "instagram", medium: "paid_social", campaign: "summer-awareness-2025", content: "carousel_v1", finalUrl: "https://example.com/summer", generatedTrackingUrl: "https://example.com/summer?utm_source=instagram&utm_medium=paid_social&utm_campaign=summer-awareness-2025&utm_content=carousel_v1" },
     { campaignId: campaigns[0].id, channel: "youtube", source: "youtube", medium: "video", campaign: "summer-awareness-2025", content: "demo_video", finalUrl: "https://example.com/summer", generatedTrackingUrl: "https://example.com/summer?utm_source=youtube&utm_medium=video&utm_campaign=summer-awareness-2025&utm_content=demo_video" },
     { campaignId: campaigns[1].id, channel: "instagram", source: "instagram", medium: "paid_social", campaign: "q3-lead-gen", content: "lead_form_v2", finalUrl: "https://example.com/leads", generatedTrackingUrl: "https://example.com/leads?utm_source=instagram&utm_medium=paid_social&utm_campaign=q3-lead-gen&utm_content=lead_form_v2" },
   ]);
 
-  // 10. 30 days of mock metrics for campaigns 1 and 2
   const metricsData: typeof adMetricsDailyTable.$inferInsert[] = [];
   for (let day = 30; day >= 1; day--) {
     const date = dateStr(day);
@@ -162,7 +179,6 @@ async function seed() {
   }
   await db.insert(adMetricsDailyTable).values(metricsData);
 
-  // 11. Recommendations
   await db.insert(recommendationsTable).values([
     { workspaceId: workspace.id, campaignId: campaigns[0].id, type: "creative", title: "Test a stronger headline hook", description: "Your Instagram CTR is 1.2% — below benchmark. Try opening with a question or bold statistic to capture attention in the first 2 seconds.", priority: "high", isRead: false },
     { workspaceId: workspace.id, campaignId: campaigns[0].id, type: "channel", title: "YouTube is your best performing channel", description: "YouTube is generating 3x higher CTR than X for this campaign. Consider reallocating creative effort to YouTube shorts and pre-roll ads.", priority: "medium", isRead: false },
@@ -176,7 +192,6 @@ async function seed() {
     { workspaceId: workspace.id, campaignId: campaigns[1].id, type: "channel", title: "Instagram outperforming Snapchat by 2x", description: "For Campaign 2, Instagram is delivering 2x the clicks at half the CPC of Snapchat. Focus creative optimization efforts on Instagram.", priority: "medium", isRead: false },
   ]);
 
-  // 12. Audit logs
   await db.insert(auditLogsTable).values([
     { workspaceId: workspace.id, action: "workspace_created", entityType: "workspace", entityId: workspace.id, actor: "Demo User", details: `Workspace "Bright & Bold Agency" created` },
     { workspaceId: workspace.id, action: "brand_profile_created", entityType: "brand_profile", entityId: brand.id, actor: "Demo User", details: "Brand profile configured for Bright & Bold" },
@@ -192,11 +207,13 @@ async function seed() {
     { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[3].id, actor: "Demo User", details: "Simulated X account connected" },
     { workspaceId: workspace.id, action: "tracking_link_created", entityType: "tracking_link", actor: "Demo User", details: "UTM link created for Instagram channel" },
     { workspaceId: workspace.id, action: "mock_sync_executed", entityType: "connection", actor: "system", details: "Scheduled mock sync for all 4 ad platform connections" },
-    { workspaceId: workspace.id, action: "recommendations_generated", entityType: "recommendation", actor: "system", details: "10 recommendations generated from rules engine" },
+    { workspaceId: workspace.id, action: "recommendations_generated", entityType: "recommendation", actor: "system", details: "10 recommendations generated from simulated metrics" },
+    { workspaceId: workspace2.id, action: "workspace_created", entityType: "workspace", entityId: workspace2.id, actor: "Alice Test", details: `Workspace "Alice's Agency" created (isolation test user)` },
   ]);
 
   console.log("Seeding complete!");
-  console.log("Demo user: demo@marketingos.local / Demo12345!");
+  console.log("Demo user:            demo@marketingos.local / Demo12345!  (workspace: Bright & Bold Agency)");
+  console.log("Isolation test user:  alice@test.local / AliceTest123!     (workspace: Alice's Agency)");
 }
 
 seed().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1); });

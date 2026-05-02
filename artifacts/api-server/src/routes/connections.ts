@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { platformConnectionsTable, syncJobsTable, auditLogsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, actor } from "../middleware/auth";
+import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 
 const router = Router();
 
@@ -48,6 +48,9 @@ router.delete("/connections/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   const [conn] = await db.select().from(platformConnectionsTable).where(eq(platformConnectionsTable.id, id));
   if (!conn) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, conn.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!hasMinRole(role, "admin")) return res.status(403).json({ error: "Requires admin role or above" });
   await db.delete(platformConnectionsTable).where(eq(platformConnectionsTable.id, id));
   res.status(204).send();
 });
@@ -56,6 +59,8 @@ router.post("/connections/:id/sync", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   const [conn] = await db.select().from(platformConnectionsTable).where(eq(platformConnectionsTable.id, id));
   if (!conn) return res.status(404).json({ error: "Not found" });
+  const role = await getMemberRole(req.session.userId!, conn.workspaceId);
+  if (!role) return res.status(403).json({ error: "Access denied" });
   const newSpend = conn.mockSpend + Math.random() * 50;
   const newImpressions = conn.mockImpressions + Math.floor(Math.random() * 2000);
   const newClicks = conn.mockClicks + Math.floor(Math.random() * 100);
