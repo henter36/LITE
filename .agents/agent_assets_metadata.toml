@@ -48,3 +48,9 @@ id = "sk1QceGnV-HrXE7KQvq7U"
 uri = "file://docs/ai_generation_guardrails.md"
 type = "text"
 title = "AI Generation Guardrails"
+
+[[outputs]]
+id = "cg_qFxtZUGn4hIL4X18Kz"
+uri = "file://docs/phase_2_stabilization_review.md"
+type = "text"
+title = "Phase 2 Stabilization Review"
