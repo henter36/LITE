@@ -1,0 +1,26 @@
+I'll do a thorough review — testing the API, checking code, and producing the full report. Let me run everything in parallel.
+Now let me read the key source files to check for validation gaps, schema issues, and frontend contract mismatches.
+Let me check the remaining gaps before writing the report.
+I have all the data I need. I found several issues to fix as part of hardening. Let me fix them and write the report in parallel.
+Now I'll fix all identified issues and write the report simultaneously.
+Restarting the API server and writing the review document in parallel.
+All fixes verified. Now writing the full review document.
+# Marketing OS Lite — Implementation Review **Review Date:** 2026-05-02 **Reviewer:** Automated + Static Analysis ...
+Here's a summary of what the review found and what was fixed.
+
+All 20 checklist items passed. The review covered architecture, every API endpoint, all safety guards, mock integrity, data model, and the frontend-to-backend contract.
+
+8 issues were found and hardened immediately:
+
+Issue	Fix
+Campaign POST/PUT exposed raw HTML Drizzle stack traces on bad input	Clean JSON 400 with field names, try/catch for 500s
+Tracking link POST same raw stack trace exposure	Same pattern applied
+Campaign objective accepted any freeform string (e.g. "INVALID")	Enum validated against 6 allowed values
+Approval decision accepted any string	Enum validated; publish_live still blocked at the safety guard layer
+Approval accepted a record with no assetId and no campaignId	Now requires at least one
+GET /metrics without a filter returned every workspace's data	Now requires campaignId or workspaceId
+Audit log was sorted oldest-first	Changed to newest-first (DESC)
+Delete nonexistent tracking link returned 204	Now returns 404
+Demo readiness: Ready with warnings. The warnings are operational, not technical — the app has no authentication yet, so the demo URL is open. Control who has the link, run one session at a time, and communicate clearly to any audience that all ad data is simulated.
+
+The single recommended next step from the report: add authentication (workspace-scoped sessions). It's the one change that makes the app safely shareable with real users and makes every audit log entry meaningful — without touching any business logic.
