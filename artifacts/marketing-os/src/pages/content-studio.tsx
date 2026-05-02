@@ -8,16 +8,29 @@ import {
   getListAssetsQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Check, Edit3, RefreshCw, PenTool, ShieldCheck, Link } from "lucide-react";
-import { Link as WouterLink } from "wouter";
+import {
+  Sparkles,
+  Check,
+  Edit3,
+  RefreshCw,
+  PenTool,
+  ShieldCheck,
+  AlertCircle,
+  ArrowRight,
+  ChevronRight,
+} from "lucide-react";
+import { Link as WouterLink, useSearch } from "wouter";
 
 function countGuardrails(forbiddenClaims: string): number {
   if (!forbiddenClaims.trim()) return 0;
@@ -29,12 +42,26 @@ function countGuardrails(forbiddenClaims: string): number {
 
 export default function ContentStudio() {
   const { activeWorkspaceId } = useAuth();
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
-  const { data: brandProfiles } = useListBrandProfiles({ workspaceId: activeWorkspaceId });
+  // Fix 1: read campaignId from URL query param (e.g. /content-studio?campaignId=3)
+  const search = useSearch();
+  const searchParams = new URLSearchParams(search);
+  const preselectedId = searchParams.get("campaignId") ?? "";
+
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>(preselectedId);
+
+  // Fix 2: request-edit dialog state
+  const [editDialogAssetId, setEditDialogAssetId] = useState<number | null>(null);
+  const [editReason, setEditReason] = useState<string>("");
+
+  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({
+    workspaceId: activeWorkspaceId,
+  });
+  const { data: brandProfiles, isLoading: isBrandLoading } = useListBrandProfiles({
+    workspaceId: activeWorkspaceId,
+  });
   const brandProfile = brandProfiles?.[0];
 
   const campaignIdNum = selectedCampaignId ? parseInt(selectedCampaignId, 10) : undefined;
@@ -49,6 +76,7 @@ export default function ContentStudio() {
 
   const selectedCampaign = campaigns?.find((c) => c.id === campaignIdNum);
   const guardrailCount = brandProfile ? countGuardrails(brandProfile.forbiddenClaims) : 0;
+  const displayAssets = assets?.slice(0, 3) ?? [];
 
   const handleGenerate = () => {
     if (!campaignIdNum) return;
@@ -57,99 +85,190 @@ export default function ContentStudio() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
-          toast({ title: "Ads generated" });
+          toast({ title: "Ads generated", description: "3 variants are ready for your review." });
+        },
+        onError: () => {
+          toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
         },
       }
     );
   };
 
-  const handleDecision = (assetId: number, decision: "approved" | "rejected" | "changes_requested") => {
+  // Fix 2: handleDecision now accepts an explicit reason
+  const handleDecision = (
+    assetId: number,
+    decision: "approved" | "rejected" | "changes_requested",
+    reason?: string
+  ) => {
     createApproval.mutate(
       {
         data: {
           assetId,
           decision,
           actor: "Demo User",
-          reason: decision === "changes_requested" ? "Please revise tone" : "",
+          reason: reason ?? "",
         },
       },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
-          const label = decision === "approved" ? "Ad approved" : decision === "changes_requested" ? "Revisions requested" : "Ad rejected";
+          const label =
+            decision === "approved"
+              ? "Ad approved"
+              : decision === "changes_requested"
+              ? "Edit request submitted"
+              : "Ad rejected";
           toast({ title: label });
+        },
+        onError: () => {
+          toast({ title: "Action failed", description: "Please try again.", variant: "destructive" });
         },
       }
     );
   };
 
-  const displayAssets = assets?.slice(0, 3) ?? [];
+  const handleSubmitEdit = () => {
+    if (editDialogAssetId === null) return;
+    handleDecision(editDialogAssetId, "changes_requested", editReason.trim() || "Please revise");
+    setEditDialogAssetId(null);
+    setEditReason("");
+  };
+
+  const cameFromCampaign = !!preselectedId;
 
   return (
     <SidebarLayout>
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Content</h1>
-        <p className="text-muted-foreground mt-2 text-base">Generate and approve ad copy for your campaigns.</p>
-      </div>
-
-      {/* Step 1: Pick a campaign */}
-      <Card>
-        <CardContent className="pt-6 pb-5">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-5">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold mb-2">Which campaign are these ads for?</p>
-              {isCampaignsLoading ? (
-                <Skeleton className="h-11 w-full rounded-md" />
-              ) : (
-                <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
-                  <SelectTrigger className="h-11 w-full max-w-sm">
-                    <SelectValue placeholder="Select a campaign…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {campaigns?.map((c) => (
-                      <SelectItem key={c.id} value={c.id.toString()}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {!campaigns?.length && !isCampaignsLoading && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  No campaigns yet.{" "}
-                  <WouterLink href="/campaigns/new" className="text-primary hover:underline">
-                    Create one first.
-                  </WouterLink>
-                </p>
-              )}
+      {/* Fix 1: Show campaign context prominently when arriving from Campaign Detail */}
+      {cameFromCampaign && selectedCampaign ? (
+        <div>
+          <WouterLink href={`/campaigns/${selectedCampaign.id}`}>
+            <Button variant="ghost" size="sm" className="text-muted-foreground mb-4 -ml-2">
+              ← Back to {selectedCampaign.name}
+            </Button>
+          </WouterLink>
+          <div className="flex items-start justify-between flex-wrap gap-3">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-1">
+                Generating ad content for
+              </p>
+              <h1 className="text-4xl font-bold tracking-tight">{selectedCampaign.name}</h1>
+              <p className="text-muted-foreground mt-2 text-base capitalize">
+                {selectedCampaign.objective} campaign · {selectedCampaign.channels.join(", ")}
+              </p>
             </div>
+            <Button
+              onClick={handleGenerate}
+              disabled={generateAssets.isPending || !brandProfile}
+              size="lg"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              {generateAssets.isPending
+                ? "Generating…"
+                : displayAssets.length > 0
+                ? "Regenerate Ads"
+                : "Generate Ads"}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Content</h1>
+          <p className="text-muted-foreground mt-2 text-base">
+            Generate and approve ad copy for your campaigns.
+          </p>
+        </div>
+      )}
 
-            {selectedCampaignId && (
-              <div className="flex items-center gap-3 shrink-0">
-                {brandProfile && (
-                  <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-3 py-2 bg-muted/30">
-                    <ShieldCheck className="h-4 w-4 text-primary" />
-                    <span className="font-medium text-foreground">{brandProfile.brandName}</span>
-                    {guardrailCount > 0 && (
-                      <span className="text-xs">· {guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""}</span>
-                    )}
-                  </div>
+      {/* Fix 3: Brand Profile missing warning — shown whenever a campaign is selected but no brand profile exists */}
+      {selectedCampaignId && !isBrandLoading && !brandProfile && (
+        <Alert className="border-amber-500/40 bg-amber-500/5">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800 dark:text-amber-500">
+            No brand profile set up
+          </AlertTitle>
+          <AlertDescription className="text-amber-700/80 dark:text-amber-400/80">
+            Without brand guidelines, generated ads will be generic and may not match your voice.{" "}
+            <WouterLink href="/settings" className="font-semibold underline underline-offset-2 text-amber-800 dark:text-amber-400">
+              Set up your Brand Profile in Settings
+            </WouterLink>{" "}
+            before generating for best results.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Brand profile context strip — shown when brand IS configured */}
+      {selectedCampaignId && brandProfile && (
+        <div className="flex items-center gap-2.5 text-sm text-muted-foreground border rounded-lg px-4 py-2.5 bg-muted/20 w-fit">
+          <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+          <span>
+            Brand voice:{" "}
+            <span className="font-semibold text-foreground">{brandProfile.brandName}</span>
+          </span>
+          {guardrailCount > 0 && (
+            <>
+              <span>·</span>
+              <span>
+                {guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""} active
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Campaign selector — only shown when NOT arriving from a campaign */}
+      {!cameFromCampaign && (
+        <Card>
+          <CardContent className="pt-6 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-5">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold mb-2">Which campaign are these ads for?</p>
+                {isCampaignsLoading ? (
+                  <Skeleton className="h-11 w-full rounded-md" />
+                ) : (
+                  <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
+                    <SelectTrigger className="h-11 w-full max-w-sm">
+                      <SelectValue placeholder="Select a campaign…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {campaigns?.map((c) => (
+                        <SelectItem key={c.id} value={c.id.toString()}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
+                {!campaigns?.length && !isCampaignsLoading && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    No campaigns yet.{" "}
+                    <WouterLink href="/campaigns/new" className="text-primary hover:underline">
+                      Create one first.
+                    </WouterLink>
+                  </p>
+                )}
+              </div>
+
+              {selectedCampaignId && (
                 <Button
                   onClick={handleGenerate}
                   disabled={generateAssets.isPending}
                   size="lg"
+                  className="shrink-0"
                 >
                   <Sparkles className="mr-2 h-4 w-4" />
-                  {generateAssets.isPending ? "Generating…" : displayAssets.length > 0 ? "Regenerate" : "Generate Ads"}
+                  {generateAssets.isPending
+                    ? "Generating…"
+                    : displayAssets.length > 0
+                    ? "Regenerate"
+                    : "Generate Ads"}
                 </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Step 2: Show ads */}
+      {/* Ad variants */}
       {!selectedCampaignId ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -173,23 +292,22 @@ export default function ContentStudio() {
               Click <strong>Generate Ads</strong> above to create 3 variants for{" "}
               <span className="text-foreground font-medium">{selectedCampaign?.name}</span>.
               {brandProfile && (
-                <span className="block mt-1">
+                <span className="block mt-1 text-xs">
                   Brand voice from <strong>{brandProfile.brandName}</strong> will be applied.
                 </span>
               )}
             </p>
-            <Button onClick={handleGenerate} disabled={generateAssets.isPending}>
+            <Button onClick={handleGenerate} disabled={generateAssets.isPending || !brandProfile}>
               <Sparkles className="mr-2 h-4 w-4" />
               {generateAssets.isPending ? "Generating…" : "Generate Ads"}
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-1">
+        <div>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
-              {displayAssets.length} ad variant{displayAssets.length !== 1 ? "s" : ""} for{" "}
-              <span className="text-foreground font-medium">{selectedCampaign?.name}</span>
+              {displayAssets.length} ad variant{displayAssets.length !== 1 ? "s" : ""} ready for review
             </p>
             <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={generateAssets.isPending}>
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
@@ -216,11 +334,16 @@ export default function ContentStudio() {
                       {asset.status}
                     </Badge>
                   </div>
+
+                  {/* Fix 4 (ad-level): Clear labels — "Approve This Ad" vs opening edit dialog */}
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDecision(asset.id, "changes_requested")}
+                      onClick={() => {
+                        setEditDialogAssetId(asset.id);
+                        setEditReason("");
+                      }}
                       disabled={createApproval.isPending}
                     >
                       <Edit3 className="h-3.5 w-3.5 mr-1.5" />
@@ -233,22 +356,24 @@ export default function ContentStudio() {
                       disabled={createApproval.isPending || asset.status === "approved"}
                     >
                       <Check className="h-3.5 w-3.5 mr-1.5" />
-                      Approve
+                      Approve This Ad
                     </Button>
                   </div>
                 </div>
 
                 <CardContent className="p-6 space-y-5">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Headline</p>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                      Headline
+                    </p>
                     <p className="text-xl font-bold leading-snug">{asset.headline}</p>
                   </div>
-
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Caption</p>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                      Caption
+                    </p>
                     <p className="text-sm leading-relaxed">{asset.shortCaption}</p>
                   </div>
-
                   {asset.hashtags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {asset.hashtags.map((tag) => (
@@ -258,7 +383,6 @@ export default function ContentStudio() {
                       ))}
                     </div>
                   )}
-
                   <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 flex items-center gap-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-primary">CTA</span>
                     <span className="font-medium text-sm">{asset.cta}</span>
@@ -267,8 +391,73 @@ export default function ContentStudio() {
               </Card>
             ))}
           </div>
+
+          {/* Fix 4: helper text connecting ad approval to campaign readiness */}
+          {selectedCampaign && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-4 py-3 bg-muted/10">
+              <ChevronRight className="h-4 w-4 shrink-0" />
+              <span>
+                Once you've reviewed all variants, go back to{" "}
+                <WouterLink
+                  href={`/campaigns/${selectedCampaign.id}`}
+                  className="text-primary font-medium hover:underline"
+                >
+                  {selectedCampaign.name}
+                </WouterLink>{" "}
+                and click <strong>Mark Campaign Ready</strong> to confirm it's ready to run.
+              </span>
+            </div>
+          )}
         </div>
       )}
+
+      {/* Fix 2: Request Edit dialog */}
+      <Dialog
+        open={editDialogAssetId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditDialogAssetId(null);
+            setEditReason("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Changes</DialogTitle>
+            <DialogDescription>
+              Describe what you'd like changed in this ad. Your notes will be saved with the revision
+              request.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={editReason}
+            onChange={(e) => setEditReason(e.target.value)}
+            placeholder="e.g. Make the tone more casual, remove the price mention, shorten the headline…"
+            rows={4}
+            className="resize-none"
+          />
+          <p className="text-xs text-muted-foreground">
+            The ad will be marked as "edits requested" so you can track its status.
+          </p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditDialogAssetId(null);
+                setEditReason("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitEdit}
+              disabled={createApproval.isPending}
+            >
+              {createApproval.isPending ? "Submitting…" : "Submit Feedback"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarLayout>
   );
 }

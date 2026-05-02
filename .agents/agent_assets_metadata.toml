@@ -18,3 +18,9 @@ id = "cmlfOnG9nnYgNPhiGzEvA"
 uri = "file://docs/usability_test_analysis.md"
 type = "text"
 title = "Marketing OS Lite — Usability Test Analysis"
+
+[[outputs]]
+id = "LZhw7f4EemrS6Xp0UdsbG"
+uri = "file://docs/usability_fixes_report.md"
+type = "text"
+title = "Usability Fixes Report — Marketing OS Lite"
