@@ -1,8 +1,17 @@
 # Marketing OS Lite — Demo Readiness Checklist
 
-**Version:** 1.0  
-**Date:** 2026-05-02  
+**Version:** 1.1 (Updated 2026-05-02 — Track A UX improvements applied)  
 **Run this checklist within 30 minutes of the demo.**
+
+---
+
+## What Changed in v1.1
+
+| # | Change | What to verify |
+|---|--------|----------------|
+| 1 | Budget pacing panel | Campaign detail → Configuration card shows pacing, days remaining, spend vs expected |
+| 2 | Brand profile attribution | Content Studio → blue banner shows brand name, tone, guardrail count |
+| 3 | TikTok mock connection | Connections page → 5 platform cards including TikTok |
 
 ---
 
@@ -77,14 +86,16 @@ Mark each item: ✅ Pass | ⚠️ Partial | ❌ Fail | — Skipped
 
 | # | Check | Method | Expected | Status |
 |---|-------|--------|----------|--------|
-| 5.1 | Publish-live blocked | `POST /api/approvals { decision: "publish_live" }` | HTTP 403 + "disabled in MVP" message | |
-| 5.2 | Mock banner visible on Connections page | Open Connections page | Yellow "Mock Integration Mode" alert visible | |
+| 5.1 | Publish-live blocked | `POST /api/approvals { publishLive: true }` | HTTP 403 + "disabled in MVP" message | |
+| 5.2 | Mock banner visible on Connections page | Open Connections page | Amber "Mock Integration Mode" alert visible | |
 | 5.3 | Mock banner text is accurate | Read banner text | "simulated data only. No real ad APIs are called and no real spend occurs" | |
 | 5.4 | Login page demo notice | Read footer on login page | "Demo Mode. No real ad spend or publishing occurs." | |
 | 5.5 | Connections form works (mock) | Connect a new mock account via UI | Connection created, mock data generated | |
 | 5.6 | Sync updates mock numbers | Sync an existing connection | Spend/impressions/clicks change | |
+| 5.7 | Budget pacing labelled as simulated | Open any campaign detail | Flask icon + "Simulated pacing" note visible inside pacing panel | |
+| 5.8 | Content attribution labelled as simulated | Generate content in Content Studio | Flask icon + "Simulated" label visible in brand profile banner | |
 
-**All [REQUIRED]. These are the explicit guarantees to the customer.**
+**5.1–5.6 [REQUIRED]. 5.7–5.8 [REQUIRED — new in v1.1].**
 
 ---
 
@@ -96,15 +107,22 @@ Mark each item: ✅ Pass | ⚠️ Partial | ❌ Fail | — Skipped
 | 6.2 | Brand profile visible | Navigate to Brand Profile | Profile for "Bright & Bold" loaded | |
 | 6.3 | Campaigns list loads | Navigate to Campaigns | At least 3 campaigns visible | |
 | 6.4 | Campaign detail loads | Click Summer Brand Awareness 2025 | Campaign detail view renders | |
-| 6.5 | Content generation works | Click Generate Content on a campaign | At least one asset created | |
-| 6.6 | Asset variants visible | Open an asset | Channel variants tab shows Instagram/Snapchat/YouTube/X | |
-| 6.7 | Tracking link creates UTM | Create tracking link | Generated URL has `utm_source`, `utm_medium`, `utm_campaign` params | |
-| 6.8 | Connections page loads | Navigate to Connections | 4 mock accounts visible | |
-| 6.9 | Reports/metrics load | Navigate to Reports | Charts render with data | |
-| 6.10 | Recommendations load | Navigate to Recommendations | At least 5 recommendations, mix of high/medium/low | |
-| 6.11 | Audit log loads | Navigate to Audit Log | At least 10 entries visible | |
+| 6.5 | **Budget pacing panel visible** | Open campaign detail | Configuration card shows pacing panel with days, spend, expected, verdict | |
+| 6.6 | **Pacing verdict shows On Pace** | Open Summer Brand Awareness 2025 detail | Verdict badge reads "On Pace" or "Underspending" | |
+| 6.7 | Content generation works | Click Generate Content on a campaign | At least one asset created | |
+| 6.8 | **Brand profile attribution shows** | Select a campaign in Content Studio | Blue banner shows "Using brand profile: Bright & Bold · Tone: … · N guardrails applied" | |
+| 6.9 | **Asset footer attribution shows** | After generation, view generated asset | Footer shows "Generated using brand profile: Bright & Bold · N guardrails active" | |
+| 6.10 | Asset variants visible | Open an asset in Content Studio | Channel variants tab shows Instagram/Snapchat/YouTube/X | |
+| 6.11 | Tracking link creates UTM | Create tracking link | Generated URL has `utm_source`, `utm_medium`, `utm_campaign` params | |
+| 6.12 | Connections page loads with 5 platforms | Navigate to Connections | **5** platform cards: Instagram, Snapchat, YouTube, X, **TikTok** | |
+| 6.13 | **TikTok card is connected** | Open Connections | TikTok shows "Connected" badge, spend $1,320, impressions 118,000 | |
+| 6.14 | TikTok sync works | Click Sync Now on TikTok | Numbers update | |
+| 6.15 | Reports/metrics load | Navigate to Reports | Charts render with data | |
+| 6.16 | Recommendations load | Navigate to Recommendations | At least 5 recommendations, mix of high/medium/low | |
+| 6.17 | Audit log loads | Navigate to Audit Log | TikTok connection entry visible | |
 
-**6.1–6.11 [REQUIRED]. If any fails, run `node --enable-source-maps ./dist/seed.mjs` from `artifacts/api-server` to re-seed.**
+**New items 6.5, 6.6, 6.8, 6.9, 6.12, 6.13, 6.14 [REQUIRED — v1.1].**  
+**If any pre-existing check fails, run:** `node --enable-source-maps ./dist/seed.mjs` from `artifacts/api-server`
 
 ---
 
@@ -116,30 +134,46 @@ Mark each item: ✅ Pass | ⚠️ Partial | ❌ Fail | — Skipped
 | 7.2 | No real Snapchat API calls | Check server logs for `adsapi.snapchat.com` | No such requests | |
 | 7.3 | No real Google/YouTube API calls | Check server logs for `googleapis.com` or `ads.google.com` | No such requests | |
 | 7.4 | No real X API calls | Check server logs for `api.x.com` or `ads-api.twitter.com` | No such requests | |
-| 7.5 | No payment integration present | Check codebase/UI | No Stripe, PayPal, or billing UI | |
-| 7.6 | No autonomous budget changes | Check codebase | No code path that submits spend changes to real APIs | |
+| 7.5 | No real TikTok API calls | Check server logs for `business-api.tiktok.com` | No such requests | |
+| 7.6 | No payment integration present | Check codebase/UI | No Stripe, PayPal, or billing UI | |
+| 7.7 | No autonomous budget changes | Check codebase | No code path that submits spend changes to real APIs | |
 
 **All [REQUIRED]. These are absolute constraints — non-negotiable before any customer-facing session.**
 
 ---
 
-## Section 8 — Presentation Environment
+## Section 8 — Track A UX Changes (v1.1 specific)
 
-| # | Check | Action | Expected | Status |
+| # | Check | Method | Expected | Status |
 |---|-------|--------|----------|--------|
-| 8.1 | Browser is modern (Chrome/Firefox/Edge) | Check version | Chrome 120+, Firefox 120+, Edge 120+ | |
-| 8.2 | Browser zoom at 100% | Cmd/Ctrl + 0 | No layout breaks | |
-| 8.3 | Screen resolution ≥ 1280×720 | Check display settings | Sidebar and content both visible | |
-| 8.4 | No browser extensions interfering | Test in incognito or clean profile | No ad blockers, no console errors | |
-| 8.5 | Second tab open for UTM paste demo | Open blank tab | Ready for tracking link demonstration | |
-| 8.6 | Demo script open in second window/monitor | Open this script | Presenter can reference without switching app tabs | |
-| 8.7 | Feedback questions doc ready | Open `docs/customer_feedback_questions.md` | Ready for post-demo Q&A | |
+| 8.1 | Budget pacing math is correct | Open Summer Brand Awareness 2025 | Days elapsed ≈ 30, progress bar ~50%, verdict On Pace | |
+| 8.2 | Pacing does not imply real spend | Read pacing panel | Flask icon and "Simulated pacing — connect a live account for real data" text visible | |
+| 8.3 | Brand profile attribution loads before generation | Select campaign in Content Studio | Blue banner appears before clicking Generate | |
+| 8.4 | Guardrail count is accurate | Read blue banner | Count matches number of sentences in forbiddenClaims field | |
+| 8.5 | TikTok platform colour distinct | Connections page | TikTok card has dark (slate) colour bar, visually distinct | |
+| 8.6 | TikTok mock label visible | Connections page, TikTok card footer (if not connected) | "MOCK — no real API" text visible | |
 
-**8.1–8.4 [REQUIRED]. 8.5–8.7 [RECOMMENDED].**
+**All [REQUIRED for v1.1 demo].**
 
 ---
 
-## Section 9 — Known Limitations (Document, Don't Block)
+## Section 9 — Presentation Environment
+
+| # | Check | Action | Expected | Status |
+|---|-------|--------|----------|--------|
+| 9.1 | Browser is modern (Chrome/Firefox/Edge) | Check version | Chrome 120+, Firefox 120+, Edge 120+ | |
+| 9.2 | Browser zoom at 100% | Cmd/Ctrl + 0 | No layout breaks | |
+| 9.3 | Screen resolution ≥ 1280×720 | Check display settings | Sidebar and content both visible | |
+| 9.4 | No browser extensions interfering | Test in incognito or clean profile | No ad blockers, no console errors | |
+| 9.5 | Second tab open for UTM paste demo | Open blank tab | Ready for tracking link demonstration | |
+| 9.6 | Demo script open in second window/monitor | Open `docs/demo_script_marketing_os_lite.md` | Presenter can reference without switching app tabs | |
+| 9.7 | Feedback questions doc ready | Open `docs/customer_feedback_questions.md` | Ready for post-demo Q&A | |
+
+**9.1–9.4 [REQUIRED]. 9.5–9.7 [RECOMMENDED].**
+
+---
+
+## Section 10 — Known Limitations (Document, Don't Block)
 
 These items are acknowledged gaps. They do not prevent the demo but should be proactively disclosed if the topic comes up.
 
@@ -155,6 +189,8 @@ These items are acknowledged gaps. They do not prevent the demo but should be pr
 | L-08 | Single workspace per demo user | "Multi-workspace views (agency parent accounts) are on the roadmap." |
 | L-09 | No CSV/PDF export for reports | "Export is on the short-term roadmap. You can view all data in the UI today." |
 | L-10 | No mobile app | "The platform is responsive on mobile browsers, but a dedicated mobile app is post-MVP." |
+| L-11 | TikTok is mock only (no real integration) | "TikTok is in our integration roadmap. You can see exactly where it fits in the workflow today." |
+| L-12 | Budget pacing uses simulated spend | "When a live account is connected, pacing uses real spend data. The display and calculation are identical." |
 
 ---
 

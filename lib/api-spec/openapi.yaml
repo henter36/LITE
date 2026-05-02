@@ -1032,7 +1032,7 @@ components:
           type: integer
         platform:
           type: string
-          enum: [instagram, snapchat, youtube, x]
+          enum: [instagram, snapchat, youtube, x, tiktok]
         accountName:
           type: string
         accountId:
@@ -1059,7 +1059,7 @@ components:
           type: integer
         platform:
           type: string
-          enum: [instagram, snapchat, youtube, x]
+          enum: [instagram, snapchat, youtube, x, tiktok]
         accountName:
           type: string
       required: [workspaceId, platform, accountName]

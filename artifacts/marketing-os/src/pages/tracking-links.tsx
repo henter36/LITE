@@ -65,7 +65,7 @@ export default function TrackingLinks() {
   });
 
   const onSubmit = (data: z.infer<typeof linkSchema>) => {
-    createLink.mutate({ data }, {
+    createLink.mutate({ data: { ...data, content: data.content || "" } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListTrackingLinksQueryKey() });
         form.reset({

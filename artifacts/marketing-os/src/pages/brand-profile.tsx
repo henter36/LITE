@@ -73,14 +73,14 @@ export default function BrandProfile() {
 
   const onSubmit = (data: z.infer<typeof brandProfileSchema>) => {
     if (profile) {
-      updateProfile.mutate({ id: profile.id, data: { ...data, workspaceId: activeWorkspaceId } }, {
+      updateProfile.mutate({ id: profile.id, data: { ...data, workspaceId: activeWorkspaceId, visualNotes: data.visualNotes || "" } }, {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: activeWorkspaceId }) });
           toast({ title: "Brand profile updated successfully" });
         }
       });
     } else {
-      createProfile.mutate({ data: { ...data, workspaceId: activeWorkspaceId } }, {
+      createProfile.mutate({ data: { ...data, workspaceId: activeWorkspaceId, visualNotes: data.visualNotes || "" } }, {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: activeWorkspaceId }) });
           toast({ title: "Brand profile created successfully" });

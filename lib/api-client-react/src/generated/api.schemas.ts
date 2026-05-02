@@ -203,6 +203,7 @@ export const PlatformConnectionPlatform = {
   snapchat: "snapchat",
   youtube: "youtube",
   x: "x",
+  tiktok: "tiktok",
 } as const;
 
 export type PlatformConnectionStatus =
@@ -236,6 +237,7 @@ export const CreateConnectionBodyPlatform = {
   snapchat: "snapchat",
   youtube: "youtube",
   x: "x",
+  tiktok: "tiktok",
 } as const;
 
 export interface CreateConnectionBody {

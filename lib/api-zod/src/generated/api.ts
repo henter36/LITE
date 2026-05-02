@@ -436,7 +436,7 @@ export const ListConnectionsQueryParams = zod.object({
 export const ListConnectionsResponseItem = zod.object({
   id: zod.number(),
   workspaceId: zod.number(),
-  platform: zod.enum(["instagram", "snapchat", "youtube", "x"]),
+  platform: zod.enum(["instagram", "snapchat", "youtube", "x", "tiktok"]),
   accountName: zod.string(),
   accountId: zod.string(),
   status: zod.enum(["connected", "disconnected", "error"]),
@@ -453,7 +453,7 @@ export const ListConnectionsResponse = zod.array(ListConnectionsResponseItem);
  */
 export const CreateConnectionBody = zod.object({
   workspaceId: zod.number(),
-  platform: zod.enum(["instagram", "snapchat", "youtube", "x"]),
+  platform: zod.enum(["instagram", "snapchat", "youtube", "x", "tiktok"]),
   accountName: zod.string(),
 });
 

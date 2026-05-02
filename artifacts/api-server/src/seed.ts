@@ -8,8 +8,8 @@ import {
 import { sql, eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
-const PLATFORMS = ["instagram", "snapchat", "youtube", "x"] as const;
-const CHANNELS = ["instagram", "snapchat", "youtube", "x"];
+const PLATFORMS = ["instagram", "snapchat", "youtube", "x", "tiktok"] as const;
+const CHANNELS = ["instagram", "snapchat", "youtube", "x", "tiktok"];
 
 function rnd(min: number, max: number) { return Math.random() * (max - min) + min; }
 function rndInt(min: number, max: number) { return Math.floor(rnd(min, max)); }
@@ -125,6 +125,7 @@ async function seed() {
     { platform: "snapchat", accountName: "BrightBoldSnap", mockSpend: 920.0, mockImpressions: 42000, mockClicks: 1890 },
     { platform: "youtube", accountName: "Bright & Bold Official", mockSpend: 2100.0, mockImpressions: 155000, mockClicks: 6200 },
     { platform: "x", accountName: "@brightbold", mockSpend: 650.0, mockImpressions: 38000, mockClicks: 950 },
+    { platform: "tiktok", accountName: "brightbold_tt", mockSpend: 1320.0, mockImpressions: 118000, mockClicks: 4750 },
   ];
   const connections = await db.insert(platformConnectionsTable).values(
     mockAccounts.map(a => ({ ...a, workspaceId: workspace.id, accountId: `mock_${a.platform}_${Date.now()}`, status: "connected", lastSyncAt: new Date() }))
@@ -205,8 +206,9 @@ async function seed() {
     { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[1].id, actor: "Demo User", details: "Simulated Snapchat account connected" },
     { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[2].id, actor: "Demo User", details: "Simulated YouTube account connected" },
     { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[3].id, actor: "Demo User", details: "Simulated X account connected" },
+    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[4].id, actor: "Demo User", details: "Simulated TikTok account connected" },
     { workspaceId: workspace.id, action: "tracking_link_created", entityType: "tracking_link", actor: "Demo User", details: "UTM link created for Instagram channel" },
-    { workspaceId: workspace.id, action: "mock_sync_executed", entityType: "connection", actor: "system", details: "Scheduled mock sync for all 4 ad platform connections" },
+    { workspaceId: workspace.id, action: "mock_sync_executed", entityType: "connection", actor: "system", details: "Scheduled mock sync for all 5 ad platform connections" },
     { workspaceId: workspace.id, action: "recommendations_generated", entityType: "recommendation", actor: "system", details: "10 recommendations generated from simulated metrics" },
     { workspaceId: workspace2.id, action: "workspace_created", entityType: "workspace", entityId: workspace2.id, actor: "Alice Test", details: `Workspace "Alice's Agency" created (isolation test user)` },
   ]);

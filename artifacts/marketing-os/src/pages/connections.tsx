@@ -29,6 +29,7 @@ const PLATFORMS = [
   { id: "snapchat", name: "Snapchat Ads", color: "bg-yellow-400" },
   { id: "youtube", name: "YouTube / Google Ads", color: "bg-red-600" },
   { id: "x", name: "X (Twitter) Ads", color: "bg-neutral-800 dark:bg-neutral-200 dark:text-black" },
+  { id: "tiktok", name: "TikTok Ads", color: "bg-slate-900 dark:bg-slate-100 dark:text-black" },
 ] as const;
 
 const connectSchema = z.object({

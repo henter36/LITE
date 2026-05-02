@@ -12,11 +12,41 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { useRoute } from "wouter";
+import { differenceInDays, parseISO, min as dateMin } from "date-fns";
 import { format } from "date-fns";
-import { CheckCircle, Clock, Link as LinkIcon, Target, Users, MapPin, Calendar } from "lucide-react";
+import { CheckCircle, Clock, Link as LinkIcon, Target, Users, MapPin, Calendar, TrendingUp, TrendingDown, Minus, FlaskConical } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+
+function computeBudgetPacing(budgetSuggestion: number, startDate: string, endDate: string) {
+  const today = new Date();
+  const start = parseISO(startDate);
+  const end = parseISO(endDate);
+  const cappedToday = dateMin([today, end]);
+
+  const totalDays = Math.max(differenceInDays(end, start), 1);
+  const daysElapsed = Math.max(differenceInDays(cappedToday, start), 0);
+  const progressPct = Math.min(daysElapsed / totalDays, 1);
+
+  const expectedSpend = budgetSuggestion * progressPct;
+  const simulatedSpend = expectedSpend * 0.92;
+
+  const variancePct = expectedSpend > 0
+    ? ((simulatedSpend - expectedSpend) / expectedSpend) * 100
+    : 0;
+
+  let verdict: "On Pace" | "Underspending" | "Overspending";
+  if (variancePct < -15) verdict = "Underspending";
+  else if (variancePct > 15) verdict = "Overspending";
+  else verdict = "On Pace";
+
+  const daysRemaining = Math.max(differenceInDays(end, today), 0);
+  const dailyRate = daysElapsed > 0 ? simulatedSpend / daysElapsed : 0;
+
+  return { totalDays, daysElapsed, daysRemaining, progressPct, expectedSpend, simulatedSpend, variancePct, verdict, dailyRate };
+}
 
 export default function CampaignDetail() {
   const [, params] = useRoute("/campaigns/:id");
@@ -68,6 +98,16 @@ export default function CampaignDetail() {
     );
   }
 
+  const pacing = computeBudgetPacing(campaign.budgetSuggestion, campaign.startDate, campaign.endDate);
+
+  const verdictColor = pacing.verdict === "On Pace"
+    ? "bg-green-500/10 text-green-700 border-green-500/20 dark:text-green-400"
+    : pacing.verdict === "Overspending"
+    ? "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400"
+    : "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400";
+
+  const VerdictIcon = pacing.verdict === "On Pace" ? Minus : pacing.verdict === "Overspending" ? TrendingUp : TrendingDown;
+
   return (
     <SidebarLayout>
       <div className="flex items-start justify-between mb-6">
@@ -118,7 +158,7 @@ export default function CampaignDetail() {
                 <Calendar className="h-4 w-4" /> Duration
               </p>
               <p className="font-medium">
-                {format(new Date(campaign.startDate), 'MMM d, yyyy')} - {format(new Date(campaign.endDate), 'MMM d, yyyy')}
+                {format(parseISO(campaign.startDate), 'MMM d, yyyy')} – {format(parseISO(campaign.endDate), 'MMM d, yyyy')}
               </p>
             </div>
             <div className="sm:col-span-2">
@@ -137,6 +177,44 @@ export default function CampaignDetail() {
               <p className="text-sm font-medium text-muted-foreground mb-1">Budget (Advisory)</p>
               <p className="text-xl font-bold">${campaign.budgetSuggestion.toLocaleString()}</p>
             </div>
+
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold flex items-center gap-1.5">
+                  <FlaskConical className="h-3.5 w-3.5 text-muted-foreground" />
+                  Budget Pacing
+                </p>
+                <Badge variant="outline" className={`text-xs font-medium ${verdictColor}`}>
+                  <VerdictIcon className="h-3 w-3 mr-1" />
+                  {pacing.verdict}
+                </Badge>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Day {pacing.daysElapsed} of {pacing.totalDays}</span>
+                  <span>{pacing.daysRemaining}d remaining</span>
+                </div>
+                <Progress value={pacing.progressPct * 100} className="h-2" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-background rounded p-2 border">
+                  <p className="text-muted-foreground mb-0.5">Simulated Spend</p>
+                  <p className="font-semibold text-sm">${pacing.simulatedSpend.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                </div>
+                <div className="bg-background rounded p-2 border">
+                  <p className="text-muted-foreground mb-0.5">Expected by Now</p>
+                  <p className="font-semibold text-sm">${pacing.expectedSpend.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <FlaskConical className="h-3 w-3 shrink-0" />
+                Simulated pacing — connect a live account for real data
+              </p>
+            </div>
+
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">Channels</p>
               <div className="flex flex-wrap gap-2">

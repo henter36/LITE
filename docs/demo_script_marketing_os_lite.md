@@ -1,11 +1,20 @@
 # Marketing OS Lite — Customer Demo Script
 
-**Version:** 1.0  
-**Date:** 2026-05-02  
+**Version:** 1.1 (Updated 2026-05-02 — Track A UX improvements applied)  
 **Duration:** 30–45 minutes  
 **Audience:** Marketing managers, agency owners, growth leads  
 **Presenter:** [Your name]  
 **Environment:** Marketing OS Lite — Demo Mode (all ad data is simulated)
+
+---
+
+## What Changed in v1.1
+
+| # | Change | Where to see it |
+|---|--------|----------------|
+| 1 | Budget pacing panel on every campaign | Campaign detail → Configuration card |
+| 2 | Brand profile attribution on generated assets | Content Studio → blue banner + asset footer |
+| 3 | TikTok added as fifth mock connection | Connections page |
 
 ---
 
@@ -56,7 +65,7 @@
 **What to say:**
 > "This is your command centre. In one glance you can see which channel is performing, where spend is going, and what your overall return looks like."
 
-> "Today this data is simulated across Instagram, Snapchat, YouTube, and X — but once you connect a real account, the same view fills with your actual numbers."
+> "Today this data is simulated across Instagram, Snapchat, YouTube, X, and TikTok — but once you connect a real account, the same view fills with your actual numbers."
 
 **Key message:** The layout and logic are production-ready. The data source switches from mock to real when you connect a live account.
 
@@ -70,11 +79,11 @@
 2. Walk through the fields: **Tone of Voice**, **Target Audience**, **Products/Services**, **Forbidden Claims**, **Preferred Channels**, **Visual Notes**.
 
 **What to say:**
-> "The brand profile is the foundation of everything downstream. When you generate ad content, the AI uses this profile to make sure the copy matches your voice, targets the right audience, and never makes claims you've told it to avoid."
+> "The brand profile is the foundation of everything downstream. When you generate ad content, the system uses this profile to make sure the copy matches your voice, targets the right audience, and never makes claims you've told it to avoid."
 
-> "If you say 'do not claim guaranteed ROI' here, the generated content won't say it. This is your brand guardrail."
+> "If you say 'do not claim guaranteed ROI' here, the generated content won't include it. This is your brand guardrail — and you'll see it confirmed in the Content Studio."
 
-**Demo tip:** Read out the "Forbidden Claims" field to reinforce the governance angle.
+**Demo tip:** Read out the "Forbidden Claims" field. Then say: "In the next step, you'll see this profile referenced on every asset that gets generated."
 
 ---
 
@@ -107,38 +116,59 @@ Click **Create Campaign**.
 
 ---
 
-## Step 5 — Content Generation (5 min)
+## Step 4b — Budget Pacing (NEW — 1 min, inline with Campaign Detail)
 
-**Action:** Open the campaign you just created (or click **Summer Brand Awareness 2025** for a pre-seeded example with more data). Click **Generate Content**.
+**Action:** Click into the campaign you just created (or **Summer Brand Awareness 2025** for a pre-seeded example). Look at the **Configuration** card on the right.
 
-1. Watch the generation run — a set of assets is created: **Headline**, **Short Caption**, **Long Caption**, **CTA**, **Hashtags**, **Video Script**, **Storyboard Outline**.
-2. Click into one asset to expand it.
-3. Click the **Variants** tab to show channel-specific versions: Instagram caption, Snapchat copy, YouTube description, X thread.
+Point to the **Budget Pacing** panel inside the Configuration card.
 
 **What to say:**
-> "Content generation uses your brand profile plus the campaign brief. It produces a full asset pack — everything from a short social caption to a video script outline."
+> "See this pacing panel. It shows you today's simulated spend against where the budget should be given how many days have elapsed. 'Day 30 of 60 — $2,300 spent — expected $2,500 — On Pace.'"
 
-> "Each channel gets its own variant. Instagram gets 'tap the link in bio.' Snapchat gets 'swipe up.' YouTube gets a subscribe-oriented CTA. The platform-specific language is handled automatically."
+> "Right now this runs on simulated data. When a live ad account is connected, the spend figure comes directly from the platform. The calculation and display are identical."
 
-> "Right now this uses a fast mock generator so you can evaluate the workflow. The production version connects to the AI model of your choice — we're provider-agnostic."
+Point to the small **flask icon and 'Simulated pacing'** note at the bottom of the panel:
+> "We always label simulated data clearly so there's no ambiguity. That label disappears when real data is flowing."
 
-**Key message:** The workflow is defined. AI is a pluggable component, not the product.
+**Key message:** Budget pacing answers the most common daily question — 'are we on track?' — without opening four different ad dashboards.
+
+---
+
+## Step 5 — Content Generation (5 min)
+
+**Action:** Click **Content Studio** in the sidebar. Select **Summer Brand Awareness 2025** from the campaign dropdown. Then click **Generate Content**.
+
+**Before clicking Generate — point to the blue banner:**
+
+> "See this banner at the top? It says: 'Using brand profile: Bright & Bold — Tone: Confident, energetic — 2 guardrails applied.' The system is telling you exactly which brand rules it's working from before it even generates a word."
+
+**After generation — point to the asset footer:**
+
+> "And down here at the bottom of every asset — the same confirmation. Brand profile used, guardrails active. If someone on your team asks 'did this follow our brand guidelines?' — the answer is right here, with a timestamp."
+
+Walk through the asset content:
+1. **Headline**, **Short Copy**, **Long Copy**, **CTA**, **Hashtags**
+2. Point to the right panel: **Video Script** and **Storyboard**
+
+**What to say:**
+> "Right now this uses a simulated generator so the workflow is clear. The production version connects to the AI model of your choice — we're provider-agnostic. The brand profile and guardrail logic are the same regardless of which model generates the output."
+
+**Key message:** The brand governance layer is built and visible. The AI provider is a swappable component underneath it.
 
 ---
 
 ## Step 6 — Asset Approval / Rejection (3 min)
 
-**Action:** On the asset you just generated (or the pre-seeded asset), click **Approve** or **Request Changes**.
+**Action:** On the asset you just generated, click **Approve** or **Request Changes**.
 
-1. Show the **decision modal** — approve, reject, or request changes with a reason field.
+1. Show the **decision buttons** — Reject, Revise, Approve.
 2. Submit an approval.
-3. Show how the **asset status** changes (Draft → Approved).
-4. Navigate to the existing approved asset to show the full approval history.
+3. Show how the **asset status badge** changes (Draft → Approved).
 
 **What to say:**
 > "Every asset goes through a review gate before it moves forward. You decide who can approve — only editors and above. Viewers can see but not approve."
 
-> "There's also a hard guard: 'Publish Live' is disabled in this environment. Even if someone tries to push an asset directly to an ad platform, the system blocks it. Publishing requires a real integration to be set up by an admin."
+> "There's also a hard guard: 'Publish Live' is disabled in this environment. Even if someone tries to push an asset directly to an ad platform, the system blocks it at the API level."
 
 **Key message:** Approval workflow + role gates mean nothing goes live without the right eyes on it.
 
@@ -146,24 +176,17 @@ Click **Create Campaign**.
 
 ## Step 7 — Tracking Link Generation (4 min)
 
-**Action:** Click **Tracking Links** in the sidebar. Select the `Summer Brand Awareness 2025` campaign (or your demo campaign).
+**Action:** Click **Tracking Links** in the sidebar. Select the `Summer Brand Awareness 2025` campaign.
 
 1. Click **New Tracking Link**.
-2. Fill in:
-   - Channel: `Instagram`
-   - Source: `instagram`
-   - Medium: `paid_social`
-   - Campaign: `summer-awareness-demo`
-   - Content: `carousel_v1`
-   - Final URL: `https://example.com/landing`
+2. Fill in: Channel `Instagram`, Source `instagram`, Medium `paid_social`, Campaign `summer-awareness-demo`, Final URL `https://example.com/landing`.
 3. Click **Generate**.
-4. Show the generated UTM URL in the result.
-5. Copy it — open a blank tab and paste the URL to show what a tagged link looks like.
+4. Copy the generated UTM URL and paste it in the blank tab.
 
 **What to say:**
-> "Tracking links are UTM-parameterised URLs generated from your campaign metadata. The campaign name, source, and medium flow in automatically — you just add the content variant and the destination URL."
+> "Tracking links are UTM-parameterised URLs generated from your campaign metadata. The campaign name, source, and medium flow in automatically — you just add the destination URL."
 
-> "Every link is stored against the campaign, so your team always knows which URLs belong to which campaign. No more 'where did that UTM link come from?' moments."
+> "Every link is stored against the campaign, so your team always knows which URLs belong to which campaign."
 
 **Key message:** Structured UTM management, scoped to campaigns and workspaces.
 
@@ -173,36 +196,33 @@ Click **Create Campaign**.
 
 **Action:** Click **Connections** in the sidebar.
 
-1. Show the four connected mock accounts: Instagram, Snapchat, YouTube, X.
+1. Show **five** connected mock accounts: Instagram, Snapchat, YouTube, X, **TikTok** (new).
 2. Point out the mock spend, impressions, and click numbers on each card.
 3. Click **Sync** on one account — show the numbers update.
-4. Click **Connect Account** — show the connection form (platform + account name).
+4. Point to the TikTok card specifically.
 
 **What to say:**
-> "In this demo, all four platforms are connected as simulations. The account names, spend figures, and click counts are representative of what real data looks like."
+> "You'll notice we now have five platforms — Instagram, Snapchat, YouTube, X, and TikTok. All are running in simulation mode."
 
-Point to the yellow **Mock Integration Mode** banner:
-> "This banner is always visible in demo environments. It says: 'No real ad APIs are called and no real spend occurs.' In a production integration, this banner disappears and a live sync indicator replaces it."
+Point to the amber **Mock Integration Mode** banner:
+> "This banner is always visible in the demo environment. It says: 'No real ad APIs are called and no real spend occurs.' In a production integration, this banner disappears and a live sync indicator replaces it."
 
-> "The connection architecture supports Meta, Snapchat, YouTube, and X. The integration layer is the same for all — once we connect one, the pattern replicates to the others."
+> "TikTok is here as a mock connection because it's become a major channel, particularly for brands targeting under-35 audiences. The integration architecture supports it alongside the other four."
 
-**Key message:** The plumbing is designed. Connecting a live platform is a configuration step, not a rebuild.
+**Key message:** Five platforms, same integration pattern, clearly labelled as simulated.
 
 ---
 
 ## Step 9 — Performance Reports (4 min)
 
-**Action:** Click **Reports** (or **Performance**) in the sidebar.
+**Action:** Click **Reports** in the sidebar.
 
 1. Walk through the **spend trend** chart over the last 30 days.
 2. Show the **channel breakdown** — spend and CTR by platform.
 3. Point out the **best and worst performing channel** summary cards.
-4. If available, show a per-campaign metric view.
 
 **What to say:**
 > "Reports pull from the same metrics data that feeds the dashboard. Here you can drill into specific date ranges, filter by platform, and compare channels side by side."
-
-> "These 150 data points were generated with realistic variance — CTR around 2–4% depending on the channel, CPC matching real-world averages for awareness campaigns. The structure is identical to what you'd see with live data."
 
 **Key message:** The reporting layer is ready. Real data slots in when the integration is active.
 
@@ -213,14 +233,12 @@ Point to the yellow **Mock Integration Mode** banner:
 **Action:** Click **Recommendations** in the sidebar.
 
 1. Walk through the list — show a mix of `High`, `Medium`, and `Low` priority items.
-2. Click into a High priority recommendation (e.g. "Test a stronger headline hook" or "Narrow Snapchat audience targeting").
-3. Show that recommendations are campaign-linked and include specific rationale.
+2. Click into a High priority recommendation.
+3. Show campaign-linked rationale.
 4. Mark one as read.
 
 **What to say:**
 > "Recommendations are generated from your metrics. When a channel's CTR drops below benchmark, or CPC spikes above target, the system surfaces a specific action with the reason."
-
-> "In this demo they're pre-seeded. In production, they update as performance data refreshes. The goal is to surface the one or two things that will move the needle — not a report you have to interpret yourself."
 
 **Key message:** Actionable intelligence, not just data.
 
@@ -230,14 +248,11 @@ Point to the yellow **Mock Integration Mode** banner:
 
 **Action:** Click **Audit Log** in the sidebar.
 
-1. Show the log entries — campaign created, content generated, asset approved, connections synced.
+1. Show the log entries — including the new TikTok connection entry.
 2. Point out the **actor**, **timestamp**, **action**, and **entity** columns.
-3. Note that the audit log is workspace-scoped — you only see activity from your own workspace.
 
 **What to say:**
-> "Every significant action is logged — who did what, to which object, and when. This is non-negotiable for any platform that touches ad spend. If a campaign goes out with wrong copy, you can trace exactly who approved it and when."
-
-> "The audit log is read-only and append-only. Nobody can delete entries — including admins."
+> "Every significant action is logged — who did what, to which object, and when. If a campaign goes out with wrong copy, you can trace exactly who approved it and when. The log is append-only — nobody can delete entries, including admins."
 
 **Key message:** Full accountability chain for every action in the workspace.
 
@@ -248,13 +263,14 @@ Point to the yellow **Mock Integration Mode** banner:
 **Summary points to hit:**
 
 1. **Single workspace** — campaigns, content, approvals, tracking, reporting, and audit in one place.
-2. **Role-based access** — viewer, editor, admin, owner. Nothing goes live without the right approvals.
-3. **Mock-to-real path is clear** — the workflow is identical whether data is simulated or live. Connecting a real account is a configuration step, not a redesign.
-4. **No surprises** — every guard rail is visible. Live publishing is blocked. No real spend occurs until you explicitly enable it.
+2. **Brand governance is visible** — every generated asset shows which profile was used and which guardrails were active.
+3. **Budget pacing is live** — one glance tells you if you're on track without opening five dashboards.
+4. **Five platforms** — Instagram, Snapchat, YouTube, X, TikTok. All mock today; same workflow when live.
+5. **Mock-to-real path is clear** — simulated data is always labelled. The workflow is identical with real data.
 
 **Hand off to Q&A and feedback collection.**
 
-> "Before we wrap up, I'd love to get your honest reaction to a few things — I have a short set of feedback questions. They'll take about 5 minutes and will directly shape what we build next."
+> "Before we wrap up, I'd love to get your honest reaction to a few things — I have a short set of feedback questions that will take about 5 minutes."
 
 ---
 
@@ -265,14 +281,13 @@ Point to the yellow **Mock Integration Mode** banner:
 | Demo User | `demo@marketingos.local` | `Demo12345!` | Bright & Bold Agency | Owner |
 | Isolation Test | `alice@test.local` | `AliceTest123!` | Alice's Agency | Owner |
 
-> Note: Alice's account can be used live to demonstrate workspace isolation — log in as Alice and show that she cannot see any of Demo User's campaigns, assets, or data.
-
 ---
 
 ## Presenter Reminders
 
-- Never claim real ad spend is happening. The mock banner is always visible.
+- Never claim real ad spend is happening. The mock and flask labels are always visible.
 - Do not promise a specific platform integration date.
 - If asked about pricing — "we're working through pricing models and your feedback today will inform that directly."
 - If the app throws an error — refresh and log in again. Sessions are persistent across refreshes.
 - If asked about AI model — "we're model-agnostic; the content layer connects to the model of your choice."
+- If asked why TikTok isn't integrated for real yet — "it's in our integration roadmap. The mock connection is here so you can see where it fits in the workflow."

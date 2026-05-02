@@ -4,6 +4,7 @@ import {
   useGenerateAssets, 
   useListAssets, 
   useCreateApproval,
+  useListBrandProfiles,
   getListAssetsQueryKey
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,10 +14,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Check, X, Edit3, MessageSquare } from "lucide-react";
+import { Sparkles, Check, X, Edit3, MessageSquare, BookOpen, ShieldCheck, FlaskConical } from "lucide-react";
+
+function countGuardrails(forbiddenClaims: string): number {
+  if (!forbiddenClaims.trim()) return 0;
+  return forbiddenClaims
+    .split(/[.!?]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 5).length;
+}
 
 export default function ContentStudio() {
   const { activeWorkspaceId } = useAuth();
@@ -25,6 +35,8 @@ export default function ContentStudio() {
   const { toast } = useToast();
 
   const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
+  const { data: brandProfiles } = useListBrandProfiles({ workspaceId: activeWorkspaceId });
+  const brandProfile = brandProfiles?.[0];
   
   const campaignIdNum = selectedCampaignId ? parseInt(selectedCampaignId, 10) : undefined;
   
@@ -35,6 +47,10 @@ export default function ContentStudio() {
 
   const generateAssets = useGenerateAssets();
   const createApproval = useCreateApproval();
+
+  const selectedCampaign = campaigns?.find(c => c.id === campaignIdNum);
+  const guardrailCount = brandProfile ? countGuardrails(brandProfile.forbiddenClaims) : 0;
+  const hasGenerated = !!campaignIdNum && !isAssetsLoading && (assets?.length ?? 0) > 0;
 
   const handleGenerate = () => {
     if (!campaignIdNum) return;
@@ -51,6 +67,7 @@ export default function ContentStudio() {
       data: { 
         assetId, 
         decision, 
+        actor: "Demo User",
         reason: decision === "changes_requested" ? "Please revise tone" : "" 
       } 
     }, {
@@ -92,6 +109,38 @@ export default function ContentStudio() {
         </div>
       </div>
 
+      {brandProfile && selectedCampaignId && (
+        <Alert className="mb-6 border-blue-500/30 bg-blue-500/5">
+          <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <span className="font-semibold text-foreground">
+              Using brand profile: {brandProfile.brandName}
+            </span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">
+              Tone: <span className="text-foreground">{brandProfile.toneOfVoice}</span>
+            </span>
+            {guardrailCount > 0 && (
+              <>
+                <span className="text-muted-foreground">·</span>
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
+                  <span>
+                    <span className="font-medium text-green-700 dark:text-green-400">{guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""}</span>
+                    {" "}applied
+                  </span>
+                </span>
+              </>
+            )}
+            <span className="text-muted-foreground">·</span>
+            <span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
+              <FlaskConical className="h-3 w-3 shrink-0" />
+              Simulated generation
+            </span>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {!selectedCampaignId ? (
         <Card className="flex flex-col items-center justify-center py-16">
           <CardHeader className="text-center">
@@ -110,7 +159,14 @@ export default function ContentStudio() {
           <CardHeader className="text-center">
             <Sparkles className="h-12 w-12 text-primary mx-auto mb-4 opacity-80" />
             <CardTitle className="text-xl">Ready to generate content</CardTitle>
-            <CardDescription>Click the Generate Content button to create AI assets for this campaign.</CardDescription>
+            <CardDescription>
+              Click <strong>Generate Content</strong> to create AI assets for this campaign.
+              {brandProfile && (
+                <span className="block mt-1 text-xs">
+                  Your brand profile <strong>{brandProfile.brandName}</strong> will be used to guide tone and apply guardrails.
+                </span>
+              )}
+            </CardDescription>
           </CardHeader>
         </Card>
       ) : (
@@ -185,6 +241,26 @@ export default function ContentStudio() {
                   </div>
                 </div>
               </CardContent>
+
+              {brandProfile && (
+                <CardFooter className="border-t bg-muted/10 px-6 py-3">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <BookOpen className="h-3.5 w-3.5 shrink-0" />
+                    Generated using brand profile
+                    <span className="font-medium text-foreground">{brandProfile.brandName}</span>
+                    {guardrailCount > 0 && (
+                      <>
+                        <span>·</span>
+                        <ShieldCheck className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
+                        <span>{guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""} active</span>
+                      </>
+                    )}
+                    <span>·</span>
+                    <FlaskConical className="h-3 w-3 shrink-0" />
+                    <span>Simulated</span>
+                  </p>
+                </CardFooter>
+              )}
             </Card>
           ))}
         </div>

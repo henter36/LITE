@@ -24,9 +24,10 @@ export default function Reports() {
   
   const campaignFilter = selectedCampaignId !== "all" ? parseInt(selectedCampaignId, 10) : undefined;
   
+  const metricsParams = campaignFilter ? { campaignId: campaignFilter } : {};
   const { data: metrics, isLoading: isMetricsLoading } = useListMetrics(
-    campaignFilter ? { campaignId: campaignFilter } : { workspaceId: activeWorkspaceId },
-    { query: { enabled: !!activeWorkspaceId, queryKey: getListMetricsQueryKey(campaignFilter ? { campaignId: campaignFilter } : { workspaceId: activeWorkspaceId }) } }
+    metricsParams,
+    { query: { enabled: !!activeWorkspaceId, queryKey: getListMetricsQueryKey(metricsParams) } }
   );
 
   const { data: comparison, isLoading: isComparisonLoading } = useGetChannelComparison(
