@@ -12,3 +12,9 @@ id = "R7vgDMWc8F9fJn3JwGfJY"
 uri = "file://docs/track_a_final_stabilization_report.md"
 type = "text"
 title = "Track A Final Stabilization Report"
+
+[[outputs]]
+id = "cmlfOnG9nnYgNPhiGzEvA"
+uri = "file://docs/usability_test_analysis.md"
+type = "text"
+title = "Marketing OS Lite — Usability Test Analysis"
