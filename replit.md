@@ -44,16 +44,17 @@ Pages (sidebar navigation):
 
 ### Backend (`artifacts/api-server/src/routes/`)
 
-- `workspaces.ts` — CRUD for workspaces
+- `workspaces.ts` — CRUD for workspaces + member management (list/add/update-role/remove)
 - `brandProfiles.ts` — Brand profile management
-- `campaigns.ts` — Campaign CRUD + approval + summary
+- `campaigns.ts` — Campaign CRUD + approval + summary (auto-triggers recommendations on approve)
 - `assets.ts` — Mock content generation + channel variants
 - `approvals.ts` — Approval decisions (approve/reject/request changes)
 - `connections.ts` — Mock ad platform connections with safety guards against real API calls
 - `trackingLinks.ts` — UTM tracking link generation
 - `metrics.ts` — Daily metrics + dashboard aggregates + channel comparison
-- `recommendations.ts` — Rules-based recommendation engine
+- `recommendations.ts` — Rules-based recommendation engine + PATCH /:id to mark as read
 - `auditLogs.ts` — Full audit log with search + pagination
+- `lib/generate-recommendations.ts` — Shared recommendation generation helper (all rules)
 
 ### Database (`lib/db/src/schema/`)
 
@@ -62,6 +63,15 @@ Tables: `workspaces`, `brand_profiles`, `campaigns`, `generated_assets`, `channe
 ### Seed Data
 
 1 demo workspace, 1 brand profile, 3 campaigns, 4 mock platform connections, 30 days of mock metrics, 10 recommendations, 15 audit log entries.
+
+## Phase 1 UX/Product Improvements (completed)
+
+- **Settings → Members tab**: Full team management UI — list members, invite by email, change roles, remove. Admin/owner only for mutations.
+- **Dashboard recommendations**: `isRead` filtering (only unread shown), Dismiss button marks rec as read via PATCH endpoint.
+- **Campaigns → New Campaign**: Removed confusing "Step 1 of 4" progress indicator.
+- **Reports**: PDF export button using jsPDF + autoTable.
+- **Production hardening**: Helmet security headers, express-rate-limit on auth routes, pino-http request logging, global ErrorBoundary in React.
+- **Auto-trigger recommendations**: Approving a campaign automatically regenerates workspace recommendations.
 
 ## Safety & Governance
 

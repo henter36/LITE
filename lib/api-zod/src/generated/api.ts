@@ -89,6 +89,66 @@ export const DeleteWorkspaceParams = zod.object({
 });
 
 /**
+ * @summary List members of a workspace
+ */
+export const ListWorkspaceMembersParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListWorkspaceMembersResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "admin", "editor", "viewer"]),
+  createdAt: zod.string(),
+});
+export const ListWorkspaceMembersResponse = zod.array(
+  ListWorkspaceMembersResponseItem,
+);
+
+/**
+ * @summary Add a member to a workspace (admin only)
+ */
+export const AddWorkspaceMemberParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AddWorkspaceMemberBody = zod.object({
+  email: zod.string(),
+  role: zod.enum(["admin", "editor", "viewer"]),
+});
+
+/**
+ * @summary Change a member's role (admin only)
+ */
+export const UpdateWorkspaceMemberParams = zod.object({
+  id: zod.coerce.number(),
+  userId: zod.coerce.number(),
+});
+
+export const UpdateWorkspaceMemberBody = zod.object({
+  role: zod.enum(["admin", "editor", "viewer"]),
+});
+
+export const UpdateWorkspaceMemberResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["owner", "admin", "editor", "viewer"]),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Remove a member from a workspace (admin only)
+ */
+export const RemoveWorkspaceMemberParams = zod.object({
+  id: zod.coerce.number(),
+  userId: zod.coerce.number(),
+});
+
+/**
  * @summary List brand profiles
  */
 export const ListBrandProfilesQueryParams = zod.object({
@@ -637,6 +697,29 @@ export const GenerateRecommendationsResponseItem = zod.object({
 export const GenerateRecommendationsResponse = zod.array(
   GenerateRecommendationsResponseItem,
 );
+
+/**
+ * @summary Mark a recommendation as read/unread
+ */
+export const UpdateRecommendationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateRecommendationBody = zod.object({
+  isRead: zod.boolean(),
+});
+
+export const UpdateRecommendationResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  campaignId: zod.number().optional(),
+  type: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  priority: zod.enum(["high", "medium", "low"]),
+  isRead: zod.boolean(),
+  createdAt: zod.string(),
+});
 
 /**
  * @summary List audit log entries

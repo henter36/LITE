@@ -22,8 +22,10 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
 } from "recharts";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function Reports() {
   const { activeWorkspaceId } = useAuth();
@@ -50,6 +52,35 @@ export default function Reports() {
       },
     }
   );
+
+  const handleExportPDF = () => {
+    if (!metrics || metrics.length === 0) return;
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(18);
+    doc.text("Performance Report", 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(`Marketing OS Lite  ·  Generated ${new Date().toLocaleDateString()}`, 14, 28);
+    doc.setTextColor(0);
+    autoTable(doc, {
+      startY: 36,
+      head: [["Date", "Platform", "Spend", "Impressions", "Clicks", "CTR", "CPC", "Conversions"]],
+      body: metrics.slice(0, 200).map((m) => [
+        m.date.split("T")[0],
+        m.platform.charAt(0).toUpperCase() + m.platform.slice(1),
+        `$${m.spend.toLocaleString()}`,
+        m.impressions.toLocaleString(),
+        m.clicks.toLocaleString(),
+        `${(m.ctr * 100).toFixed(2)}%`,
+        `$${m.cpc.toFixed(2)}`,
+        String(m.conversions),
+      ]),
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [99, 79, 237], fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 248, 255] },
+    });
+    doc.save("performance-report.pdf");
+  };
 
   const handleExportCSV = () => {
     if (!metrics || metrics.length === 0) return;
@@ -97,6 +128,15 @@ export default function Reports() {
               ))}
             </SelectContent>
           </Select>
+          <Button
+            variant="outline"
+            onClick={handleExportPDF}
+            disabled={!metrics || metrics.length === 0}
+            className="shrink-0"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Export PDF
+          </Button>
           <Button
             variant="outline"
             onClick={handleExportCSV}

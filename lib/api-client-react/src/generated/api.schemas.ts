@@ -352,6 +352,56 @@ export interface AuditLog {
   createdAt: string;
 }
 
+export type WorkspaceMemberRole =
+  (typeof WorkspaceMemberRole)[keyof typeof WorkspaceMemberRole];
+
+export const WorkspaceMemberRole = {
+  owner: "owner",
+  admin: "admin",
+  editor: "editor",
+  viewer: "viewer",
+} as const;
+
+export interface WorkspaceMember {
+  id: number;
+  userId: number;
+  email: string;
+  name: string;
+  role: WorkspaceMemberRole;
+  createdAt: string;
+}
+
+export type AddMemberBodyRole =
+  (typeof AddMemberBodyRole)[keyof typeof AddMemberBodyRole];
+
+export const AddMemberBodyRole = {
+  admin: "admin",
+  editor: "editor",
+  viewer: "viewer",
+} as const;
+
+export interface AddMemberBody {
+  email: string;
+  role: AddMemberBodyRole;
+}
+
+export type UpdateMemberBodyRole =
+  (typeof UpdateMemberBodyRole)[keyof typeof UpdateMemberBodyRole];
+
+export const UpdateMemberBodyRole = {
+  admin: "admin",
+  editor: "editor",
+  viewer: "viewer",
+} as const;
+
+export interface UpdateMemberBody {
+  role: UpdateMemberBodyRole;
+}
+
+export interface UpdateRecommendationBody {
+  isRead: boolean;
+}
+
 export interface AuditLogPage {
   items: AuditLog[];
   total: number;

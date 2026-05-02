@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { campaignsTable, auditLogsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, getMemberRole, hasMinRole, actor } from "../middleware/auth";
+import { generateRecommendationsForWorkspace } from "../lib/generate-recommendations";
 
 const router = Router();
 
@@ -122,6 +123,9 @@ router.post("/campaigns/:id/approve", requireAuth, async (req, res): Promise<voi
   const [c] = await db.update(campaignsTable).set({ status: "approved" }).where(eq(campaignsTable.id, id)).returning();
   if (!c) { res.status(404).json({ error: "Not found" }); return; }
   await db.insert(auditLogsTable).values({ workspaceId: c.workspaceId, action: "campaign_approved", entityType: "campaign", entityId: c.id, actor: actor(req), details: `Campaign "${c.name}" approved` });
+  generateRecommendationsForWorkspace(c.workspaceId, actor(req)).catch((err) => {
+    req.log.error({ err }, "Failed to auto-generate recommendations after campaign approval");
+  });
   res.json(serializeCampaign(c));
 });
 

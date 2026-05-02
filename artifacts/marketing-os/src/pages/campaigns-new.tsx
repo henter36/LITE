@@ -38,8 +38,6 @@ const campaignSchema = z.object({
   landingUrl: z.string().url("Must be a valid URL").min(1, "Landing URL required"),
 });
 
-const STEPS = ["Create Campaign", "Generate Ads", "Approve", "Performance"];
-
 export default function NewCampaign() {
   const { activeWorkspaceId } = useAuth();
   const queryClient = useQueryClient();
@@ -87,30 +85,7 @@ export default function NewCampaign() {
           </Button>
         </Link>
         <h1 className="text-4xl font-bold tracking-tight">New Campaign</h1>
-        <p className="text-muted-foreground mt-2 text-base">Step 1 of 4 — Fill in your campaign brief.</p>
-      </div>
-
-      {/* Flow indicator */}
-      <div className="flex items-center gap-0">
-        {STEPS.map((step, i) => (
-          <div key={step} className="flex items-center">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium
-              ${i === 0
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground"}`}
-            >
-              {i === 0 ? (
-                <span className="h-4 w-4 rounded-full bg-primary-foreground/20 flex items-center justify-center text-xs font-bold">1</span>
-              ) : (
-                <span className="h-4 w-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-xs">{i + 1}</span>
-              )}
-              {step}
-            </div>
-            {i < STEPS.length - 1 && (
-              <div className="w-6 h-px bg-border mx-1" />
-            )}
-          </div>
-        ))}
+        <p className="text-muted-foreground mt-2 text-base">Fill in your campaign brief. You can generate ads once the campaign is saved.</p>
       </div>
 
       <Card>

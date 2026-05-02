@@ -19,7 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
-import { RefreshCw, Unplug, Search, Plus, Settings } from "lucide-react";
+import { RefreshCw, Unplug, Search, Plus, Settings, Users, UserMinus, Shield } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
   useListBrandProfiles,
@@ -37,6 +37,11 @@ import {
   useCreateWorkspace,
   useUpdateWorkspace,
   getListWorkspacesQueryKey,
+  useListWorkspaceMembers,
+  useAddWorkspaceMember,
+  useUpdateWorkspaceMember,
+  useRemoveWorkspaceMember,
+  getListWorkspaceMembersQueryKey,
 } from "@workspace/api-client-react";
 
 // --- Brand Profile ---
@@ -524,6 +529,245 @@ function ActivityLogTab() {
   );
 }
 
+// --- Members ---
+const inviteSchema = z.object({
+  email: z.string().email("Must be a valid email"),
+  role: z.enum(["admin", "editor", "viewer"]),
+});
+
+const ROLE_COLORS: Record<string, string> = {
+  owner: "bg-purple-500/10 text-purple-700 border-purple-500/20",
+  admin: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+  editor: "bg-green-500/10 text-green-700 border-green-500/20",
+  viewer: "bg-muted text-muted-foreground",
+};
+
+function MembersTab() {
+  const { activeWorkspaceId, user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const isAdmin = user?.role === "admin" || user?.role === "owner";
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+
+  const { data: members, isLoading } = useListWorkspaceMembers(activeWorkspaceId, {
+    query: { enabled: !!activeWorkspaceId, queryKey: getListWorkspaceMembersQueryKey(activeWorkspaceId) },
+  });
+
+  const addMember = useAddWorkspaceMember();
+  const updateMember = useUpdateWorkspaceMember();
+  const removeMember = useRemoveWorkspaceMember();
+
+  const inviteForm = useForm<z.infer<typeof inviteSchema>>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: { email: "", role: "editor" },
+  });
+
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: getListWorkspaceMembersQueryKey(activeWorkspaceId) });
+
+  const onInvite = (data: z.infer<typeof inviteSchema>) => {
+    addMember.mutate(
+      { id: activeWorkspaceId, data },
+      {
+        onSuccess: () => {
+          invalidate();
+          setIsInviteOpen(false);
+          inviteForm.reset();
+          toast({ title: "Member added", description: `${data.email} can now access this workspace.` });
+        },
+        onError: (err: any) => {
+          const msg = err?.response?.data?.error ?? err?.message ?? "Failed to add member";
+          toast({ title: "Could not add member", description: msg, variant: "destructive" });
+        },
+      },
+    );
+  };
+
+  const onRoleChange = (memberId: number, role: string) => {
+    updateMember.mutate(
+      { id: activeWorkspaceId, userId: memberId, data: { role: role as "admin" | "editor" | "viewer" } },
+      {
+        onSuccess: () => { invalidate(); toast({ title: "Role updated" }); },
+        onError: () => toast({ title: "Failed to update role", variant: "destructive" }),
+      },
+    );
+  };
+
+  const onRemove = (memberId: number, memberName: string) => {
+    removeMember.mutate(
+      { id: activeWorkspaceId, userId: memberId },
+      {
+        onSuccess: () => { invalidate(); toast({ title: `${memberName} removed from workspace` }); },
+        onError: () => toast({ title: "Failed to remove member", variant: "destructive" }),
+      },
+    );
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Team Members
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Manage who has access to this workspace.
+            </CardDescription>
+          </div>
+          {isAdmin && (
+            <Dialog open={isInviteOpen} onOpenChange={(open) => { setIsInviteOpen(open); if (!open) inviteForm.reset(); }}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Invite Member
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Invite a Team Member</DialogTitle>
+                  <DialogDescription>
+                    The user must already have an account. Enter their email and choose a role.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...inviteForm}>
+                  <form onSubmit={inviteForm.handleSubmit(onInvite)} className="space-y-4">
+                    <FormField control={inviteForm.control} name="email" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl><Input placeholder="teammate@example.com" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={inviteForm.control} name="role" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Role</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin — full control</SelectItem>
+                            <SelectItem value="editor">Editor — create & edit</SelectItem>
+                            <SelectItem value="viewer">Viewer — read only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <DialogFooter>
+                      <Button type="submit" disabled={addMember.isPending}>
+                        {addMember.isPending ? "Adding..." : "Add Member"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+          </div>
+        ) : !members || members.length === 0 ? (
+          <div className="text-center py-10 text-muted-foreground border border-dashed rounded-lg bg-muted/20 text-sm">
+            No members found.
+          </div>
+        ) : (
+          <div className="border rounded-md overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead className="w-[140px]">Joined</TableHead>
+                  {isAdmin && <TableHead className="text-right w-[80px]">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.map((member) => {
+                  const isSelf = member.userId === user?.id;
+                  const isOwner = member.role === "owner";
+                  const canModify = isAdmin && !isSelf && !isOwner;
+                  return (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+                            {(member.name || member.email).charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{member.name || "—"}</p>
+                            <p className="text-xs text-muted-foreground">{member.email}</p>
+                          </div>
+                          {isSelf && (
+                            <Badge variant="outline" className="text-xs ml-1">You</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {canModify ? (
+                          <Select
+                            defaultValue={member.role}
+                            onValueChange={(val) => onRoleChange(member.userId, val)}
+                            disabled={updateMember.isPending}
+                          >
+                            <SelectTrigger className="h-8 w-[120px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="editor">Editor</SelectItem>
+                              <SelectItem value="viewer">Viewer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge variant="outline" className={`text-xs capitalize ${ROLE_COLORS[member.role] ?? ""}`}>
+                            {member.role === "owner" && <Shield className="h-3 w-3 mr-1" />}
+                            {member.role}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(member.createdAt), { addSuffix: true })}
+                      </TableCell>
+                      {isAdmin && (
+                        <TableCell className="text-right">
+                          {canModify && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              disabled={removeMember.isPending}
+                              onClick={() => onRemove(member.userId, member.name || member.email)}
+                              title="Remove member"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        {!isAdmin && (
+          <p className="text-xs text-muted-foreground mt-4">
+            Contact a workspace admin to change roles or add members.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // --- Account ---
 const workspaceSchema = z.object({
   name: z.string().min(1, "Account name is required"),
@@ -703,6 +947,7 @@ export default function SettingsPage() {
         <TabsList className="mb-6">
           <TabsTrigger value="brand">Brand Profile</TabsTrigger>
           <TabsTrigger value="platforms">Ad Platforms</TabsTrigger>
+          <TabsTrigger value="members">Members</TabsTrigger>
           <TabsTrigger value="activity">Activity Log</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
@@ -713,6 +958,10 @@ export default function SettingsPage() {
 
         <TabsContent value="platforms">
           <AdPlatformsTab />
+        </TabsContent>
+
+        <TabsContent value="members">
+          <MembersTab />
         </TabsContent>
 
         <TabsContent value="activity">

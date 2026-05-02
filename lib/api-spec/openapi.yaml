@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: workspaces
     description: Workspace management
+  - name: members
+    description: Workspace member management
   - name: brand-profiles
     description: Brand profile management
   - name: campaigns
@@ -132,6 +134,99 @@ paths:
       responses:
         "204":
           description: Deleted
+
+  # Workspace Members
+  /workspaces/{id}/members:
+    get:
+      operationId: listWorkspaceMembers
+      tags: [members]
+      summary: List members of a workspace
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkspaceMember"
+    post:
+      operationId: addWorkspaceMember
+      tags: [members]
+      summary: Add a member to a workspace (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMemberBody"
+      responses:
+        "201":
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceMember"
+
+  /workspaces/{id}/members/{userId}:
+    patch:
+      operationId: updateWorkspaceMember
+      tags: [members]
+      summary: Change a member's role (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberBody"
+      responses:
+        "200":
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceMember"
+    delete:
+      operationId: removeWorkspaceMember
+      tags: [members]
+      summary: Remove a member from a workspace (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removed
 
   # Brand Profiles
   /brand-profiles:
@@ -719,6 +814,31 @@ paths:
                 items:
                   $ref: "#/components/schemas/Recommendation"
 
+  /recommendations/{id}:
+    patch:
+      operationId: updateRecommendation
+      tags: [recommendations]
+      summary: Mark a recommendation as read/unread
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecommendationBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recommendation"
+
   # Audit Log
   /audit-logs:
     get:
@@ -1251,6 +1371,49 @@ components:
         createdAt:
           type: string
       required: [id, workspaceId, action, actor, createdAt]
+
+    WorkspaceMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, editor, viewer]
+        createdAt:
+          type: string
+      required: [id, userId, email, name, role, createdAt]
+
+    AddMemberBody:
+      type: object
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, editor, viewer]
+      required: [email, role]
+
+    UpdateMemberBody:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [admin, editor, viewer]
+      required: [role]
+
+    UpdateRecommendationBody:
+      type: object
+      properties:
+        isRead:
+          type: boolean
+      required: [isRead]
 
     AuditLogPage:
       type: object

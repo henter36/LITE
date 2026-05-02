@@ -4,9 +4,12 @@ import {
   useGetChannelComparison,
   useListCampaigns,
   useListRecommendations,
+  useUpdateRecommendation,
   getGetDashboardMetricsQueryKey,
   getGetChannelComparisonQueryKey,
+  getListRecommendationsQueryKey,
 } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,11 +52,14 @@ export default function Dashboard() {
   const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({
     workspaceId: activeWorkspaceId,
   });
+  const queryClient = useQueryClient();
   const { data: recommendations } = useListRecommendations({
     workspaceId: activeWorkspaceId,
   });
+  const dismissRec = useUpdateRecommendation();
 
-  const topRec = recommendations?.find((r) => r.priority === "high") ?? recommendations?.[0];
+  const unreadRecs = recommendations?.filter((r) => !r.isRead);
+  const topRec = unreadRecs?.find((r) => r.priority === "high") ?? unreadRecs?.[0];
   const topCampaigns = campaigns?.slice(0, 3) ?? [];
   const hasCampaigns = (campaigns?.length ?? 0) > 0;
 
@@ -79,11 +85,32 @@ export default function Dashboard() {
                 <p className="text-lg font-semibold leading-snug">{topRec.title}</p>
                 <p className="text-sm text-muted-foreground mt-1">{topRec.description}</p>
               </div>
-              <Link href="/campaigns">
-                <Button size="sm" variant="outline" className="shrink-0">
-                  View Campaigns <ArrowRight className="ml-1 h-3.5 w-3.5" />
+              <div className="flex flex-col gap-2 shrink-0">
+                <Link href="/campaigns">
+                  <Button size="sm" variant="outline" className="w-full">
+                    View Campaigns <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-muted-foreground text-xs"
+                  disabled={dismissRec.isPending}
+                  onClick={() =>
+                    dismissRec.mutate(
+                      { id: topRec.id, data: { isRead: true } },
+                      {
+                        onSuccess: () =>
+                          queryClient.invalidateQueries({
+                            queryKey: getListRecommendationsQueryKey({ workspaceId: activeWorkspaceId }),
+                          }),
+                      },
+                    )
+                  }
+                >
+                  Dismiss
                 </Button>
-              </Link>
+              </div>
             </div>
           ) : (
             <div className="flex items-start gap-4">
