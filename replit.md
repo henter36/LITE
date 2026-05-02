@@ -64,6 +64,19 @@ Tables: `workspaces`, `brand_profiles`, `campaigns`, `generated_assets`, `channe
 
 1 demo workspace, 1 brand profile, 3 campaigns, 4 mock platform connections, 30 days of mock metrics, 10 recommendations, 15 audit log entries.
 
+## Phase 2 AI Provider Layer (completed)
+
+- **`artifacts/api-server/src/lib/ai-provider.ts`** — `AIProvider` interface, `MockAIProvider`, `OpenAIProvider` (reads `OPENAI_API_KEY` server-side only), `getAIProvider()` factory with two-layer graceful fallback
+- **Provider selection:** `AI_PROVIDER` env var (`"mock"` default, `"openai"` to activate). Falls back to mock silently if key missing or API call fails.
+- **Brand-safe generation:** all 6 brand profile fields (brandName, toneOfVoice, targetAudience, forbiddenClaims, preferredChannels, visualNotes) fed into both mock templates and OpenAI system prompt
+- **Guardrails:** hard-banned phrase list (guaranteed sales, instant results, etc.) + workspace-level forbidden claims filter applied pre- and post-generation
+- **Metadata:** `generated_assets` table now has `ai_provider`, `ai_model`, `prompt_version`, `ai_fallback_used` columns
+- **Audit log:** every `content_generated` entry records provider, model, prompt version, fallback status, campaignId, workspaceId, actor
+- **No API key in frontend:** `OPENAI_API_KEY` is server-side only — confirmed zero frontend references
+- **Prompt version:** `v1.0` — increment in `ai-provider.ts` when prompt changes materially
+
+To activate OpenAI: add `OPENAI_API_KEY` to Replit Secrets + set `AI_PROVIDER=openai` in shared env vars. No code changes required.
+
 ## Phase 1 UX/Product Improvements (completed)
 
 - **Settings → Members tab**: Full team management UI — list members, invite by email, change roles, remove. Admin/owner only for mutations.

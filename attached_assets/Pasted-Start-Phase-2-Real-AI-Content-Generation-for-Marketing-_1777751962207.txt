@@ -1,0 +1,97 @@
+Start Phase 2 — Real AI Content Generation for Marketing OS Lite.
+
+Do not implement Meta/Instagram integration.
+Do not implement live publishing.
+Do not implement budget changes.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not weaken auth, workspace isolation, roles, audit logs, or safety guards.
+
+Objective:
+Replace the mock-only content generation with a pluggable AI provider layer while keeping mock fallback.
+
+Implement:
+
+1. AI Provider Architecture
+- AIProvider interface
+- MockAIProvider fallback
+- OpenAIProvider using server-side environment variable only
+- no API key in frontend
+- provider selection through env/config
+- graceful fallback to mock generation if AI provider is unavailable
+
+2. Brand-safe generation
+Generation must use:
+- campaign brief
+- brandName
+- toneOfVoice
+- targetAudience
+- forbiddenClaims
+- preferredChannels
+- visualNotes
+
+Guardrails:
+- filter forbidden claims before and after generation
+- no unsupported performance promises
+- no fake guarantees like “guaranteed sales”
+- human approval still required before campaign readiness
+
+3. Output compatibility
+Keep the same stored fields:
+- headline
+- shortCaption
+- longCaption
+- cta
+- hashtags
+- videoScript
+- storyboardOutline
+- channelVariants
+
+Do not break existing frontend.
+
+4. Metadata
+Store or log where feasible:
+- provider used: mock/openai
+- model name
+- prompt version
+- fallback used or not
+- generation timestamp
+
+5. Audit logs
+Audit log must record:
+- content_generated
+- provider used
+- whether fallback occurred
+- campaign id
+- workspace id
+- actor
+
+6. Documentation
+Create:
+docs/phase_2_ai_provider_report.md
+docs/ai_generation_guardrails.md
+
+Include:
+- provider architecture
+- env vars required
+- fallback behavior
+- guardrails
+- limitations
+- verification results
+
+Verification:
+- TypeScript passes with zero errors.
+- Content generation works with mock fallback.
+- If OpenAI env vars are missing, app still works.
+- Generated output visibly reflects brand profile.
+- Forbidden claims are filtered.
+- No frontend exposes API keys.
+- Auth, workspace isolation, roles, and audit logs still work.
+- Safety guards still block live publishing, budget changes, payments, and autonomous optimization.
+
+Final output:
+- changed files
+- AI provider summary
+- verification results
+- remaining risks
+- decision: Phase 2 accepted / accepted with warnings / rejected

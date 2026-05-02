@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { campaignsTable } from "./campaigns";
@@ -14,6 +14,10 @@ export const generatedAssetsTable = pgTable("generated_assets", {
   videoScript: text("video_script").notNull().default(""),
   storyboardOutline: text("storyboard_outline").notNull().default(""),
   status: text("status").notNull().default("draft"),
+  aiProvider: text("ai_provider"),
+  aiModel: text("ai_model"),
+  promptVersion: text("prompt_version"),
+  aiFallbackUsed: boolean("ai_fallback_used"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

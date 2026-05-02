@@ -36,3 +36,15 @@ id = "mprtyZjaNdlxRZnVUs306"
 uri = "file://docs/phase_1_stabilization_report.md"
 type = "text"
 title = "Phase 1 Stabilization Report"
+
+[[outputs]]
+id = "Q5yen798r5Q2XU0FhYlUL"
+uri = "file://docs/phase_2_ai_provider_report.md"
+type = "text"
+title = "Phase 2 AI Provider Report"
+
+[[outputs]]
+id = "sk1QceGnV-HrXE7KQvq7U"
+uri = "file://docs/ai_generation_guardrails.md"
+type = "text"
+title = "AI Generation Guardrails"
