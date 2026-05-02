@@ -24,3 +24,9 @@ id = "LZhw7f4EemrS6Xp0UdsbG"
 uri = "file://docs/usability_fixes_report.md"
 type = "text"
 title = "Usability Fixes Report — Marketing OS Lite"
+
+[[outputs]]
+id = "8wjt4hnOu2TMBMTzo-utD"
+uri = "file://docs/feature_completion_roadmap.md"
+type = "text"
+title = "Marketing OS Lite — Feature Completion Roadmap"
