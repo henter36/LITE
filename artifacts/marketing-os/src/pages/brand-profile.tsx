@@ -1,5 +1,6 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import { useListBrandProfiles, useCreateBrandProfile, useUpdateBrandProfile, getListBrandProfilesQueryKey } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +34,8 @@ const brandProfileSchema = z.object({
 });
 
 export default function BrandProfile() {
-  const { data: profiles, isLoading } = useListBrandProfiles({ workspaceId: 1 });
+  const { activeWorkspaceId } = useAuth();
+  const { data: profiles, isLoading } = useListBrandProfiles({ workspaceId: activeWorkspaceId });
   const profile = profiles?.[0]; // Assume 1 profile per workspace for MVP
   
   const queryClient = useQueryClient();
@@ -71,16 +73,16 @@ export default function BrandProfile() {
 
   const onSubmit = (data: z.infer<typeof brandProfileSchema>) => {
     if (profile) {
-      updateProfile.mutate({ id: profile.id, data: { ...data, workspaceId: 1 } }, {
+      updateProfile.mutate({ id: profile.id, data: { ...data, workspaceId: activeWorkspaceId } }, {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: 1 }) });
+          queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: activeWorkspaceId }) });
           toast({ title: "Brand profile updated successfully" });
         }
       });
     } else {
-      createProfile.mutate({ data: { ...data, workspaceId: 1 } }, {
+      createProfile.mutate({ data: { ...data, workspaceId: activeWorkspaceId } }, {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: 1 }) });
+          queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: activeWorkspaceId }) });
           toast({ title: "Brand profile created successfully" });
         }
       });

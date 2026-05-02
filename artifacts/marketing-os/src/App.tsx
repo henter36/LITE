@@ -2,7 +2,10 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "@/pages/not-found";
+import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import Workspaces from "@/pages/workspaces";
 import Campaigns from "@/pages/campaigns";
@@ -27,17 +30,18 @@ const queryClient = new QueryClient({
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/workspaces" component={Workspaces} />
-      <Route path="/brand-profile" component={BrandProfile} />
-      <Route path="/campaigns" component={Campaigns} />
-      <Route path="/campaigns/new" component={NewCampaign} />
-      <Route path="/campaigns/:id" component={CampaignDetail} />
-      <Route path="/content-studio" component={ContentStudio} />
-      <Route path="/tracking-links" component={TrackingLinks} />
-      <Route path="/connections" component={Connections} />
-      <Route path="/reports" component={Reports} />
-      <Route path="/audit-log" component={AuditLog} />
+      <Route path="/login" component={Login} />
+      <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
+      <Route path="/workspaces" component={() => <ProtectedRoute component={Workspaces} />} />
+      <Route path="/brand-profile" component={() => <ProtectedRoute component={BrandProfile} />} />
+      <Route path="/campaigns" component={() => <ProtectedRoute component={Campaigns} />} />
+      <Route path="/campaigns/new" component={() => <ProtectedRoute component={NewCampaign} />} />
+      <Route path="/campaigns/:id" component={() => <ProtectedRoute component={CampaignDetail} />} />
+      <Route path="/content-studio" component={() => <ProtectedRoute component={ContentStudio} />} />
+      <Route path="/tracking-links" component={() => <ProtectedRoute component={TrackingLinks} />} />
+      <Route path="/connections" component={() => <ProtectedRoute component={Connections} />} />
+      <Route path="/reports" component={() => <ProtectedRoute component={Reports} />} />
+      <Route path="/audit-log" component={() => <ProtectedRoute component={AuditLog} />} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -46,12 +50,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

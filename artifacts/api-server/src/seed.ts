@@ -3,8 +3,10 @@ import {
   workspacesTable, brandProfilesTable, campaignsTable, generatedAssetsTable,
   channelVariantsTable, platformConnectionsTable, adMetricsDailyTable,
   recommendationsTable, auditLogsTable, approvalDecisionsTable, trackingLinksTable,
+  usersTable, workspaceMembersTable,
 } from "@workspace/db";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 const PLATFORMS = ["instagram", "snapchat", "youtube", "x"] as const;
 const CHANNELS = ["instagram", "snapchat", "youtube", "x"];
@@ -16,19 +18,47 @@ function dateStr(daysAgo: number) {
 }
 
 async function seed() {
-  // Check if already seeded
   const [existing] = await db.select({ count: sql<number>`count(*)` }).from(workspacesTable);
-  if (Number(existing.count) > 0) { console.log("Already seeded, skipping."); return; }
+  if (Number(existing.count) > 0) {
+    console.log("Workspace data already seeded. Checking demo user...");
+    // Ensure demo user exists even on re-runs
+    const [demoUser] = await db.select().from(usersTable).where(eq(usersTable.email, "demo@marketingos.local"));
+    if (!demoUser) {
+      const [ws] = await db.select().from(workspacesTable);
+      if (ws) {
+        const hash = await bcrypt.hash("Demo12345!", 12);
+        const [u] = await db.insert(usersTable).values({ email: "demo@marketingos.local", passwordHash: hash, name: "Demo User" }).returning();
+        await db.insert(workspaceMembersTable).values({ workspaceId: ws.id, userId: u.id, role: "owner" });
+        console.log("Demo user created: demo@marketingos.local / Demo12345!");
+      }
+    } else {
+      console.log("Demo user already exists.");
+    }
+    return;
+  }
 
   console.log("Seeding database...");
 
-  // 1. Workspace
+  // 1. Demo user (must come first to get ID for workspace membership)
+  const demoPasswordHash = await bcrypt.hash("Demo12345!", 12);
+  const [demoUser] = await db.insert(usersTable).values({
+    email: "demo@marketingos.local",
+    passwordHash: demoPasswordHash,
+    name: "Demo User",
+  }).returning();
+
+  // 2. Workspace
   const [workspace] = await db.insert(workspacesTable).values({
     name: "Bright & Bold Agency", businessType: "Marketing Agency", country: "United States",
     language: "English", defaultCurrency: "USD",
   }).returning();
 
-  // 2. Brand Profile
+  // 3. Link demo user as owner of workspace
+  await db.insert(workspaceMembersTable).values({
+    workspaceId: workspace.id, userId: demoUser.id, role: "owner",
+  });
+
+  // 4. Brand Profile
   const [brand] = await db.insert(brandProfilesTable).values({
     workspaceId: workspace.id,
     brandName: "Bright & Bold",
@@ -40,7 +70,7 @@ async function seed() {
     visualNotes: "Bold colors, clean layouts. Use high-contrast imagery. Avoid stock photo clichés.",
   }).returning();
 
-  // 3. Campaigns
+  // 5. Campaigns
   const campaigns = await db.insert(campaignsTable).values([
     {
       workspaceId: workspace.id, name: "Summer Brand Awareness 2025", objective: "awareness",
@@ -68,7 +98,7 @@ async function seed() {
     },
   ]).returning();
 
-  // 4. Platform connections
+  // 6. Platform connections
   const mockAccounts = [
     { platform: "instagram", accountName: "brightbold_ig", mockSpend: 1842.5, mockImpressions: 87400, mockClicks: 3210 },
     { platform: "snapchat", accountName: "BrightBoldSnap", mockSpend: 920.0, mockImpressions: 42000, mockClicks: 1890 },
@@ -79,15 +109,15 @@ async function seed() {
     mockAccounts.map(a => ({ ...a, workspaceId: workspace.id, accountId: `mock_${a.platform}_${Date.now()}`, status: "connected", lastSyncAt: new Date() }))
   ).returning();
 
-  // 5. Generated assets for campaign 1
+  // 7. Generated assets for campaign 1
   const [asset1] = await db.insert(generatedAssetsTable).values({
     campaignId: campaigns[0].id,
     headline: "Unlock Your Brand's Full Potential This Summer",
     shortCaption: "Small business owners: stop guessing and start growing. Our digital marketing pros have the blueprint for your summer surge.",
-    longCaption: "The summer season is your biggest opportunity to connect with new customers and re-engage existing ones. Our digital marketing services are designed specifically for small business owners who want real results without the agency price tag. From social media management to targeted ad campaigns, we have everything you need to make this your best quarter yet. Join over 500 businesses already on the path to sustainable growth.",
+    longCaption: "The summer season is your biggest opportunity to connect with new customers and re-engage existing ones. Our digital marketing services are designed specifically for small business owners who want measurable results without the agency price tag. From social media management to targeted ad campaigns, we have everything you need to make this your best quarter yet. Join over 500 businesses already on the path to sustainable growth.",
     cta: "Get Your Free Strategy Session",
-    hashtags: JSON.stringify(["#digitialmarketing", "#smallbusiness", "#growth", "#summerdeals", "#marketing"]),
-    videoScript: "[SCENE 1 - Hook]\nSplit-screen: busy entrepreneur vs. relaxed entrepreneur with great metrics.\n\n[SCENE 2 - Problem]\nText overlay: \"Still running ads that don't convert?\"\n\n[SCENE 3 - Solution]\nShow Bright & Bold dashboard with growing metrics.\n\n[SCENE 4 - Results]\nTestimonial overlay with real business names and results.\n\n[SCENE 5 - CTA]\n\"Book your free strategy session today\" — URL and phone number.",
+    hashtags: JSON.stringify(["#digitalmarketing", "#smallbusiness", "#growth", "#summerdeals", "#marketing"]),
+    videoScript: "[SCENE 1 - Hook]\nSplit-screen: busy entrepreneur vs. relaxed entrepreneur with strong metrics.\n\n[SCENE 2 - Problem]\nText overlay: \"Still running ads that don't convert?\"\n\n[SCENE 3 - Solution]\nShow Bright & Bold dashboard with growing metrics.\n\n[SCENE 4 - Results]\nTestimonial overlay with business names and outcomes.\n\n[SCENE 5 - CTA]\n\"Book your free strategy session today\" — URL and phone number.",
     storyboardOutline: "Frame 1: Attention-grabbing split comparison\nFrame 2: Pain point statement\nFrame 3: Service showcase\nFrame 4: Social proof / testimonials\nFrame 5: Strong CTA with contact info",
     status: "approved",
   }).returning();
@@ -100,31 +130,29 @@ async function seed() {
     hashtags: JSON.stringify(["#marketing", `#${ch}`, "#smallbusiness"]),
   })));
 
-  // 6. Approval for asset
+  // 8. Approval for asset
   await db.insert(approvalDecisionsTable).values({
     assetId: asset1.id, campaignId: campaigns[0].id,
-    actor: "Sarah (Brand Manager)", decision: "approved", reason: "Great hook, brand voice is on point.",
+    actor: "Demo User", decision: "approved", reason: "Great hook, brand voice is on point.",
   });
 
-  // 7. Tracking links
+  // 9. Tracking links
   await db.insert(trackingLinksTable).values([
     { campaignId: campaigns[0].id, channel: "instagram", source: "instagram", medium: "paid_social", campaign: "summer-awareness-2025", content: "carousel_v1", finalUrl: "https://example.com/summer", generatedTrackingUrl: "https://example.com/summer?utm_source=instagram&utm_medium=paid_social&utm_campaign=summer-awareness-2025&utm_content=carousel_v1" },
     { campaignId: campaigns[0].id, channel: "youtube", source: "youtube", medium: "video", campaign: "summer-awareness-2025", content: "demo_video", finalUrl: "https://example.com/summer", generatedTrackingUrl: "https://example.com/summer?utm_source=youtube&utm_medium=video&utm_campaign=summer-awareness-2025&utm_content=demo_video" },
     { campaignId: campaigns[1].id, channel: "instagram", source: "instagram", medium: "paid_social", campaign: "q3-lead-gen", content: "lead_form_v2", finalUrl: "https://example.com/leads", generatedTrackingUrl: "https://example.com/leads?utm_source=instagram&utm_medium=paid_social&utm_campaign=q3-lead-gen&utm_content=lead_form_v2" },
   ]);
 
-  // 8. 30 days of mock metrics for campaigns 1 and 2 across platforms
+  // 10. 30 days of mock metrics for campaigns 1 and 2
   const metricsData: typeof adMetricsDailyTable.$inferInsert[] = [];
   for (let day = 30; day >= 1; day--) {
     const date = dateStr(day);
-    // Campaign 1: instagram, youtube, x
     for (const platform of ["instagram", "youtube", "x"]) {
       const impressions = rndInt(800, 5000);
       const clicks = rndInt(20, 200);
       const spend = rnd(20, 150);
       metricsData.push({ campaignId: campaigns[0].id, platform, date, spend, impressions, clicks, ctr: clicks / impressions * 100, cpc: clicks > 0 ? spend / clicks : 0, conversions: rndInt(0, 8) });
     }
-    // Campaign 2: instagram, snapchat
     for (const platform of ["instagram", "snapchat"]) {
       const impressions = rndInt(500, 3000);
       const clicks = rndInt(10, 120);
@@ -134,7 +162,7 @@ async function seed() {
   }
   await db.insert(adMetricsDailyTable).values(metricsData);
 
-  // 9. Recommendations
+  // 11. Recommendations
   await db.insert(recommendationsTable).values([
     { workspaceId: workspace.id, campaignId: campaigns[0].id, type: "creative", title: "Test a stronger headline hook", description: "Your Instagram CTR is 1.2% — below benchmark. Try opening with a question or bold statistic to capture attention in the first 2 seconds.", priority: "high", isRead: false },
     { workspaceId: workspace.id, campaignId: campaigns[0].id, type: "channel", title: "YouTube is your best performing channel", description: "YouTube is generating 3x higher CTR than X for this campaign. Consider reallocating creative effort to YouTube shorts and pre-roll ads.", priority: "medium", isRead: false },
@@ -148,26 +176,27 @@ async function seed() {
     { workspaceId: workspace.id, campaignId: campaigns[1].id, type: "channel", title: "Instagram outperforming Snapchat by 2x", description: "For Campaign 2, Instagram is delivering 2x the clicks at half the CPC of Snapchat. Focus creative optimization efforts on Instagram.", priority: "medium", isRead: false },
   ]);
 
-  // 10. Audit logs
+  // 12. Audit logs
   await db.insert(auditLogsTable).values([
-    { workspaceId: workspace.id, action: "workspace_created", entityType: "workspace", entityId: workspace.id, actor: "admin", details: `Workspace "Bright & Bold Agency" created` },
-    { workspaceId: workspace.id, action: "brand_profile_created", entityType: "brand_profile", entityId: brand.id, actor: "admin", details: "Brand profile configured for Bright & Bold" },
-    { workspaceId: workspace.id, action: "campaign_created", entityType: "campaign", entityId: campaigns[0].id, actor: "Sarah (Brand Manager)", details: `Campaign "Summer Brand Awareness 2025" created` },
-    { workspaceId: workspace.id, action: "campaign_created", entityType: "campaign", entityId: campaigns[1].id, actor: "Tom (Growth Lead)", details: `Campaign "Q3 Lead Generation Sprint" created` },
-    { workspaceId: workspace.id, action: "campaign_created", entityType: "campaign", entityId: campaigns[2].id, actor: "Tom (Growth Lead)", details: `Campaign "YouTube Product Demo Push" created` },
-    { workspaceId: workspace.id, action: "content_generated", entityType: "asset", entityId: asset1.id, actor: "system", details: "Mock AI content generated for Summer Brand Awareness 2025" },
-    { workspaceId: workspace.id, action: "asset_approved", entityType: "asset", entityId: asset1.id, actor: "Sarah (Brand Manager)", details: "Asset approved: Great hook, brand voice is on point." },
-    { workspaceId: workspace.id, action: "campaign_approved", entityType: "campaign", entityId: campaigns[1].id, actor: "Sarah (Brand Manager)", details: `Campaign "Q3 Lead Generation Sprint" approved for launch` },
-    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[0].id, actor: "admin", details: "Mock Instagram account connected" },
-    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[1].id, actor: "admin", details: "Mock Snapchat account connected" },
-    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[2].id, actor: "admin", details: "Mock YouTube account connected" },
-    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[3].id, actor: "admin", details: "Mock X account connected" },
-    { workspaceId: workspace.id, action: "tracking_link_created", entityType: "tracking_link", actor: "Sarah (Brand Manager)", details: "UTM link created for Instagram channel" },
+    { workspaceId: workspace.id, action: "workspace_created", entityType: "workspace", entityId: workspace.id, actor: "Demo User", details: `Workspace "Bright & Bold Agency" created` },
+    { workspaceId: workspace.id, action: "brand_profile_created", entityType: "brand_profile", entityId: brand.id, actor: "Demo User", details: "Brand profile configured for Bright & Bold" },
+    { workspaceId: workspace.id, action: "campaign_created", entityType: "campaign", entityId: campaigns[0].id, actor: "Demo User", details: `Campaign "Summer Brand Awareness 2025" created` },
+    { workspaceId: workspace.id, action: "campaign_created", entityType: "campaign", entityId: campaigns[1].id, actor: "Demo User", details: `Campaign "Q3 Lead Generation Sprint" created` },
+    { workspaceId: workspace.id, action: "campaign_created", entityType: "campaign", entityId: campaigns[2].id, actor: "Demo User", details: `Campaign "YouTube Product Demo Push" created` },
+    { workspaceId: workspace.id, action: "content_generated", entityType: "asset", entityId: asset1.id, actor: "system", details: "Simulated content generated for Summer Brand Awareness 2025" },
+    { workspaceId: workspace.id, action: "asset_approved", entityType: "asset", entityId: asset1.id, actor: "Demo User", details: "Asset approved: Great hook, brand voice is on point." },
+    { workspaceId: workspace.id, action: "campaign_approved", entityType: "campaign", entityId: campaigns[1].id, actor: "Demo User", details: `Campaign "Q3 Lead Generation Sprint" approved for launch` },
+    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[0].id, actor: "Demo User", details: "Simulated Instagram account connected" },
+    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[1].id, actor: "Demo User", details: "Simulated Snapchat account connected" },
+    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[2].id, actor: "Demo User", details: "Simulated YouTube account connected" },
+    { workspaceId: workspace.id, action: "mock_connection_created", entityType: "connection", entityId: connections[3].id, actor: "Demo User", details: "Simulated X account connected" },
+    { workspaceId: workspace.id, action: "tracking_link_created", entityType: "tracking_link", actor: "Demo User", details: "UTM link created for Instagram channel" },
     { workspaceId: workspace.id, action: "mock_sync_executed", entityType: "connection", actor: "system", details: "Scheduled mock sync for all 4 ad platform connections" },
     { workspaceId: workspace.id, action: "recommendations_generated", entityType: "recommendation", actor: "system", details: "10 recommendations generated from rules engine" },
   ]);
 
   console.log("Seeding complete!");
+  console.log("Demo user: demo@marketingos.local / Demo12345!");
 }
 
 seed().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1); });

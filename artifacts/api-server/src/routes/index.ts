@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import authRouter from "./auth";
 import workspacesRouter from "./workspaces";
 import brandProfilesRouter from "./brandProfiles";
 import campaignsRouter from "./campaigns";
@@ -10,10 +11,12 @@ import trackingLinksRouter from "./trackingLinks";
 import metricsRouter from "./metrics";
 import recommendationsRouter from "./recommendations";
 import auditLogsRouter from "./auditLogs";
+import membersRouter from "./members";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(authRouter);
 router.use(workspacesRouter);
 router.use(brandProfilesRouter);
 router.use(campaignsRouter);
@@ -24,5 +27,6 @@ router.use(trackingLinksRouter);
 router.use(metricsRouter);
 router.use(recommendationsRouter);
 router.use(auditLogsRouter);
+router.use(membersRouter);
 
 export default router;

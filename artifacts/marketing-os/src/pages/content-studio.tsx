@@ -6,6 +6,7 @@ import {
   useCreateApproval,
   getListAssetsQueryKey
 } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,11 +19,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Check, X, Edit3, MessageSquare } from "lucide-react";
 
 export default function ContentStudio() {
+  const { activeWorkspaceId } = useAuth();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: 1 });
+  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
   
   const campaignIdNum = selectedCampaignId ? parseInt(selectedCampaignId, 10) : undefined;
   
@@ -48,7 +50,6 @@ export default function ContentStudio() {
     createApproval.mutate({ 
       data: { 
         assetId, 
-        actor: "Current User", // Mock user
         decision, 
         reason: decision === "changes_requested" ? "Please revise tone" : "" 
       } 

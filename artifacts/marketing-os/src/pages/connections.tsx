@@ -6,6 +6,7 @@ import {
   useSyncConnection,
   getListConnectionsQueryKey
 } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,12 +36,13 @@ const connectSchema = z.object({
 });
 
 export default function Connections() {
+  const { activeWorkspaceId } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [connectingPlatform, setConnectingPlatform] = useState<string | null>(null);
 
-  const { data: connections, isLoading } = useListConnections({ workspaceId: 1 }, {
-    query: { enabled: true, queryKey: getListConnectionsQueryKey({ workspaceId: 1 }) }
+  const { data: connections, isLoading } = useListConnections({ workspaceId: activeWorkspaceId }, {
+    query: { enabled: !!activeWorkspaceId, queryKey: getListConnectionsQueryKey({ workspaceId: activeWorkspaceId }) }
   });
 
   const createConnection = useCreateConnection();
@@ -56,10 +58,10 @@ export default function Connections() {
     if (!connectingPlatform) return;
     
     createConnection.mutate({ 
-      data: { workspaceId: 1, platform: connectingPlatform as any, accountName: data.accountName } 
+      data: { workspaceId: activeWorkspaceId, platform: connectingPlatform as any, accountName: data.accountName } 
     }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey({ workspaceId: 1 }) });
+        queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey({ workspaceId: activeWorkspaceId }) });
         setConnectingPlatform(null);
         form.reset();
         toast({ title: "Mock account connected successfully" });
@@ -70,7 +72,7 @@ export default function Connections() {
   const handleDisconnect = (id: number) => {
     deleteConnection.mutate({ id }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey({ workspaceId: 1 }) });
+        queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey({ workspaceId: activeWorkspaceId }) });
         toast({ title: "Account disconnected" });
       }
     });
@@ -79,7 +81,7 @@ export default function Connections() {
   const handleSync = (id: number) => {
     syncConnection.mutate({ id }, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey({ workspaceId: 1 }) });
+        queryClient.invalidateQueries({ queryKey: getListConnectionsQueryKey({ workspaceId: activeWorkspaceId }) });
         toast({ title: "Sync initiated", description: "Mock data is being updated." });
       }
     });

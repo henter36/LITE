@@ -6,6 +6,7 @@ import {
   getListMetricsQueryKey,
   getGetChannelComparisonQueryKey
 } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,20 +17,21 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 export default function Reports() {
+  const { activeWorkspaceId } = useAuth();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("all");
   
-  const { data: campaigns } = useListCampaigns({ workspaceId: 1 });
+  const { data: campaigns } = useListCampaigns({ workspaceId: activeWorkspaceId });
   
   const campaignFilter = selectedCampaignId !== "all" ? parseInt(selectedCampaignId, 10) : undefined;
   
   const { data: metrics, isLoading: isMetricsLoading } = useListMetrics(
-    campaignFilter ? { campaignId: campaignFilter } : {},
-    { query: { enabled: true, queryKey: getListMetricsQueryKey(campaignFilter ? { campaignId: campaignFilter } : {}) } }
+    campaignFilter ? { campaignId: campaignFilter } : { workspaceId: activeWorkspaceId },
+    { query: { enabled: !!activeWorkspaceId, queryKey: getListMetricsQueryKey(campaignFilter ? { campaignId: campaignFilter } : { workspaceId: activeWorkspaceId }) } }
   );
 
   const { data: comparison, isLoading: isComparisonLoading } = useGetChannelComparison(
-    { workspaceId: 1 },
-    { query: { enabled: true, queryKey: getGetChannelComparisonQueryKey({ workspaceId: 1 }) } }
+    { workspaceId: activeWorkspaceId },
+    { query: { enabled: !!activeWorkspaceId, queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }) } }
   );
 
   const handleExportCSV = () => {

@@ -7,9 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Target, Users, MapPin, Calendar, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Campaigns() {
-  const { data: campaigns, isLoading } = useListCampaigns({ workspaceId: 1 });
+  const { activeWorkspaceId } = useAuth();
+  const { data: campaigns, isLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
 
   return (
     <SidebarLayout>

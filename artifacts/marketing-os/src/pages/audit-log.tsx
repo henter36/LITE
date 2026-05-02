@@ -1,5 +1,6 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import { useListAuditLogs, getListAuditLogsQueryKey } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,12 +12,13 @@ import { Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 
 export default function AuditLog() {
+  const { activeWorkspaceId } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
 
   const { data: logPage, isLoading } = useListAuditLogs(
-    { workspaceId: 1, limit: 50, search: debouncedSearch || undefined },
-    { query: { enabled: true, queryKey: getListAuditLogsQueryKey({ workspaceId: 1, limit: 50, search: debouncedSearch || undefined }) } }
+    { workspaceId: activeWorkspaceId, limit: 50, search: debouncedSearch || undefined },
+    { query: { enabled: !!activeWorkspaceId, queryKey: getListAuditLogsQueryKey({ workspaceId: activeWorkspaceId, limit: 50, search: debouncedSearch || undefined }) } }
   );
 
   return (

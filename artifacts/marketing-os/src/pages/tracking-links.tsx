@@ -6,6 +6,7 @@ import {
   useDeleteTrackingLink,
   getListTrackingLinksQueryKey
 } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,11 +34,12 @@ const linkSchema = z.object({
 });
 
 export default function TrackingLinks() {
+  const { activeWorkspaceId } = useAuth();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("all");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: campaigns } = useListCampaigns({ workspaceId: 1 });
+  const { data: campaigns } = useListCampaigns({ workspaceId: activeWorkspaceId });
   
   const campaignFilter = selectedCampaignId !== "all" ? parseInt(selectedCampaignId, 10) : undefined;
   

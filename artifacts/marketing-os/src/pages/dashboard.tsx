@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { DollarSign, Eye, MousePointerClick, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, BarChart, Bar } from "recharts";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
-  const { data: metrics, isLoading: isMetricsLoading } = useGetDashboardMetrics({ workspaceId: 1 }, { query: { enabled: true, queryKey: getGetDashboardMetricsQueryKey({ workspaceId: 1 }) } });
-  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: 1 });
-  const { data: recommendations, isLoading: isRecsLoading } = useListRecommendations({ workspaceId: 1 });
+  const { activeWorkspaceId } = useAuth();
+  const { data: metrics, isLoading: isMetricsLoading } = useGetDashboardMetrics({ workspaceId: activeWorkspaceId }, { query: { enabled: !!activeWorkspaceId, queryKey: getGetDashboardMetricsQueryKey({ workspaceId: activeWorkspaceId }) } });
+  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
+  const { data: recommendations, isLoading: isRecsLoading } = useListRecommendations({ workspaceId: activeWorkspaceId });
 
   return (
     <SidebarLayout>
@@ -55,7 +57,7 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-2xl font-bold">{metrics.totalClicks.toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Avg CTR: {(metrics.avgCtr * 100).toFixed(2)}%
+                    Avg CTR: {(metrics.avgCtr).toFixed(2)}%
                   </p>
                 </CardContent>
               </Card>
@@ -89,33 +91,10 @@ export default function Dashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={metrics.dailyTrend}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="date" 
-                        tickFormatter={(val) => format(new Date(val), 'MMM d')}
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(val) => `${val / 1000}k`}
-                      />
-                      <RechartsTooltip 
-                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                        labelFormatter={(val) => format(new Date(val), 'MMM d, yyyy')}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="impressions" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                      />
+                      <XAxis dataKey="date" tickFormatter={(val) => format(new Date(val), 'MMM d')} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val / 1000}k`} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} labelFormatter={(val) => format(new Date(val), 'MMM d, yyyy')} />
+                      <Line type="monotone" dataKey="impressions" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -124,29 +103,15 @@ export default function Dashboard() {
               <Card>
                 <CardHeader>
                   <CardTitle>Channel Performance</CardTitle>
-                  <CardDescription>Clicks by channel</CardDescription>
+                  <CardDescription>Clicks by day</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={metrics.dailyTrend}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="date" 
-                        tickFormatter={(val) => format(new Date(val), 'MMM d')}
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <RechartsTooltip 
-                         contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                      />
+                      <XAxis dataKey="date" tickFormatter={(val) => format(new Date(val), 'MMM d')} stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }} />
                       <Bar dataKey="clicks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -163,10 +128,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               {isCampaignsLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
+                <div className="space-y-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div>
               ) : campaigns?.filter(c => c.status === 'active').length === 0 ? (
                 <p className="text-muted-foreground text-sm">No active campaigns.</p>
               ) : (
@@ -191,10 +153,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               {isRecsLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-16 w-full" />
-                  <Skeleton className="h-16 w-full" />
-                </div>
+                <div className="space-y-4"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></div>
               ) : recommendations?.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No recommendations at this time.</p>
               ) : (

@@ -1,5 +1,6 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import { useCreateCampaign, getListCampaignsQueryKey } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ const campaignSchema = z.object({
 });
 
 export default function NewCampaign() {
+  const { activeWorkspaceId } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -60,9 +62,9 @@ export default function NewCampaign() {
   });
 
   const onSubmit = (data: z.infer<typeof campaignSchema>) => {
-    createCampaign.mutate({ data: { ...data, workspaceId: 1 } }, {
+    createCampaign.mutate({ data: { ...data, workspaceId: activeWorkspaceId } }, {
       onSuccess: (campaign) => {
-        queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey({ workspaceId: 1 }) });
+        queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey({ workspaceId: activeWorkspaceId }) });
         toast({ title: "Campaign created successfully" });
         setLocation(`/campaigns/${campaign.id}`);
       }

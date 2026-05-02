@@ -2,10 +2,11 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { adMetricsDailyTable, campaignsTable } from "@workspace/db";
 import { eq, and, gte, lte } from "drizzle-orm";
+import { requireAuth, requireWorkspaceAccess } from "../middleware/auth";
 
 const router = Router();
 
-router.get("/metrics", async (req, res) => {
+router.get("/metrics", requireAuth, async (req, res) => {
   if (!req.query.campaignId && !req.query.workspaceId) {
     return res.status(400).json({ error: "campaignId or workspaceId is required" });
   }
@@ -18,7 +19,7 @@ router.get("/metrics", async (req, res) => {
   res.json(metrics);
 });
 
-router.get("/metrics/dashboard", async (req, res) => {
+router.get("/metrics/dashboard", requireAuth, requireWorkspaceAccess, async (req, res) => {
   const allMetrics = req.query.workspaceId
     ? await db.select({ m: adMetricsDailyTable }).from(adMetricsDailyTable)
         .innerJoin(campaignsTable, eq(adMetricsDailyTable.campaignId, campaignsTable.id))
@@ -33,7 +34,6 @@ router.get("/metrics/dashboard", async (req, res) => {
   const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const avgCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
 
-  // Channel breakdown for best/worst
   const byPlatform: Record<string, { spend: number; clicks: number; impressions: number }> = {};
   for (const m of metrics) {
     if (!byPlatform[m.platform]) byPlatform[m.platform] = { spend: 0, clicks: 0, impressions: 0 };
@@ -45,7 +45,6 @@ router.get("/metrics/dashboard", async (req, res) => {
   const bestChannel = platforms.sort((a, b) => b.ctr - a.ctr)[0]?.p || "N/A";
   const worstChannel = platforms.sort((a, b) => a.ctr - b.ctr)[0]?.p || "N/A";
 
-  // Daily trend (aggregate by date)
   const byDate: Record<string, { date: string; spend: number; impressions: number; clicks: number; conversions: number }> = {};
   for (const m of metrics) {
     if (!byDate[m.date]) byDate[m.date] = { date: m.date, spend: 0, impressions: 0, clicks: 0, conversions: 0 };
@@ -54,12 +53,10 @@ router.get("/metrics/dashboard", async (req, res) => {
     byDate[m.date].clicks += m.clicks;
     byDate[m.date].conversions += m.conversions;
   }
-  const dailyTrend = Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
-
-  res.json({ totalSpend, totalImpressions, totalClicks, avgCtr, avgCpc, totalConversions, bestChannel, worstChannel, dailyTrend });
+  res.json({ totalSpend, totalImpressions, totalClicks, avgCtr, avgCpc, totalConversions, bestChannel, worstChannel, dailyTrend: Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date)) });
 });
 
-router.get("/metrics/channel-comparison", async (req, res) => {
+router.get("/metrics/channel-comparison", requireAuth, requireWorkspaceAccess, async (req, res) => {
   const allMetrics = req.query.workspaceId
     ? await db.select({ m: adMetricsDailyTable }).from(adMetricsDailyTable)
         .innerJoin(campaignsTable, eq(adMetricsDailyTable.campaignId, campaignsTable.id))
@@ -74,16 +71,11 @@ router.get("/metrics/channel-comparison", async (req, res) => {
     byPlatform[m.platform].clicks += m.clicks;
     byPlatform[m.platform].conversions += m.conversions;
   }
-  const result = Object.entries(byPlatform).map(([platform, d]) => ({
-    platform,
-    spend: d.spend,
-    impressions: d.impressions,
-    clicks: d.clicks,
+  res.json(Object.entries(byPlatform).map(([platform, d]) => ({
+    platform, spend: d.spend, impressions: d.impressions, clicks: d.clicks,
     ctr: d.impressions > 0 ? (d.clicks / d.impressions) * 100 : 0,
-    cpc: d.clicks > 0 ? d.spend / d.clicks : 0,
-    conversions: d.conversions,
-  }));
-  res.json(result);
+    cpc: d.clicks > 0 ? d.spend / d.clicks : 0, conversions: d.conversions,
+  })));
 });
 
 export default router;

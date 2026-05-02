@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { trackingLinksTable, campaignsTable, auditLogsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { requireAuth, requireWorkspaceRole, actor } from "../middleware/auth";
 
 const router = Router();
 
@@ -15,28 +16,17 @@ function buildUtmUrl(finalUrl: string, source: string, medium: string, campaign:
 }
 
 function serialize(t: typeof trackingLinksTable.$inferSelect) {
-  return {
-    id: t.id,
-    campaignId: t.campaignId,
-    channel: t.channel,
-    source: t.source,
-    medium: t.medium,
-    campaign: t.campaign,
-    content: t.content,
-    finalUrl: t.finalUrl,
-    generatedTrackingUrl: t.generatedTrackingUrl,
-    createdAt: t.createdAt.toISOString(),
-  };
+  return { id: t.id, campaignId: t.campaignId, channel: t.channel, source: t.source, medium: t.medium, campaign: t.campaign, content: t.content, finalUrl: t.finalUrl, generatedTrackingUrl: t.generatedTrackingUrl, createdAt: t.createdAt.toISOString() };
 }
 
-router.get("/tracking-links", async (req, res) => {
+router.get("/tracking-links", requireAuth, async (req, res) => {
   const links = req.query.campaignId
     ? await db.select().from(trackingLinksTable).where(eq(trackingLinksTable.campaignId, Number(req.query.campaignId))).orderBy(trackingLinksTable.createdAt)
     : await db.select().from(trackingLinksTable).orderBy(trackingLinksTable.createdAt);
   res.json(links.map(serialize));
 });
 
-router.post("/tracking-links", async (req, res) => {
+router.post("/tracking-links", requireAuth, async (req, res) => {
   const { campaignId, channel, source, medium, campaign, content, finalUrl } = req.body;
   if (!campaignId || !channel || !source || !medium || !campaign || !finalUrl) {
     return res.status(400).json({ error: "Missing required fields: campaignId, channel, source, medium, campaign, finalUrl" });
@@ -48,21 +38,16 @@ router.post("/tracking-links", async (req, res) => {
     return res.status(400).json({ error: "Invalid finalUrl — must be a valid URL" });
   }
   try {
-    const [link] = await db.insert(trackingLinksTable).values({
-      campaignId: Number(campaignId), channel, source, medium,
-      campaign, content: content || "", finalUrl, generatedTrackingUrl,
-    }).returning();
+    const [link] = await db.insert(trackingLinksTable).values({ campaignId: Number(campaignId), channel, source, medium, campaign, content: content || "", finalUrl, generatedTrackingUrl }).returning();
     const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(campaignId)));
     if (c) {
-      await db.insert(auditLogsTable).values({ workspaceId: c.workspaceId, action: "tracking_link_created", entityType: "tracking_link", entityId: link.id, actor: "user", details: `UTM link created for channel "${channel}"` });
+      await db.insert(auditLogsTable).values({ workspaceId: c.workspaceId, action: "tracking_link_created", entityType: "tracking_link", entityId: link.id, actor: actor(req), details: `UTM link created for channel "${channel}"` });
     }
     res.status(201).json(serialize(link));
-  } catch (err) {
-    res.status(500).json({ error: "Failed to create tracking link" });
-  }
+  } catch { res.status(500).json({ error: "Failed to create tracking link" }); }
 });
 
-router.delete("/tracking-links/:id", async (req, res) => {
+router.delete("/tracking-links/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   const [existing] = await db.select().from(trackingLinksTable).where(eq(trackingLinksTable.id, id));
   if (!existing) return res.status(404).json({ error: "Not found" });
