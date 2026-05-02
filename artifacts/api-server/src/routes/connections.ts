@@ -22,14 +22,14 @@ function serialize(c: typeof platformConnectionsTable.$inferSelect) {
   };
 }
 
-router.get("/connections", requireAuth, requireWorkspaceAccess, async (req, res) => {
+router.get("/connections", requireAuth, requireWorkspaceAccess, async (req, res): Promise<void> => {
   const connections = req.query.workspaceId
     ? await db.select().from(platformConnectionsTable).where(eq(platformConnectionsTable.workspaceId, Number(req.query.workspaceId)))
     : await db.select().from(platformConnectionsTable);
   res.json(connections.map(serialize));
 });
 
-router.post("/connections", requireAuth, requireWorkspaceRole("admin"), async (req, res) => {
+router.post("/connections", requireAuth, requireWorkspaceRole("admin"), async (req, res): Promise<void> => {
   if (rejectRealOps(req, res)) return;
   const { workspaceId, platform, accountName } = req.body;
   const mockAccountId = `mock_${platform}_${Date.now()}`;
@@ -44,23 +44,23 @@ router.post("/connections", requireAuth, requireWorkspaceRole("admin"), async (r
   res.status(201).json(serialize(conn));
 });
 
-router.delete("/connections/:id", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+router.delete("/connections/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
   const [conn] = await db.select().from(platformConnectionsTable).where(eq(platformConnectionsTable.id, id));
-  if (!conn) return res.status(404).json({ error: "Not found" });
+  if (!conn) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, conn.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "admin")) return res.status(403).json({ error: "Requires admin role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "admin")) { res.status(403).json({ error: "Requires admin role or above" }); return; }
   await db.delete(platformConnectionsTable).where(eq(platformConnectionsTable.id, id));
   res.status(204).send();
 });
 
-router.post("/connections/:id/sync", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+router.post("/connections/:id/sync", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
   const [conn] = await db.select().from(platformConnectionsTable).where(eq(platformConnectionsTable.id, id));
-  if (!conn) return res.status(404).json({ error: "Not found" });
+  if (!conn) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, conn.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
   const newSpend = conn.mockSpend + Math.random() * 50;
   const newImpressions = conn.mockImpressions + Math.floor(Math.random() * 2000);
   const newClicks = conn.mockClicks + Math.floor(Math.random() * 100);

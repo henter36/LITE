@@ -11,9 +11,9 @@ function serialize(a: typeof approvalDecisionsTable.$inferSelect) {
   return { id: a.id, assetId: a.assetId, campaignId: a.campaignId, actor: a.actor, decision: a.decision, reason: a.reason, createdAt: a.createdAt.toISOString() };
 }
 
-router.get("/approvals", requireAuth, async (req, res) => {
+router.get("/approvals", requireAuth, async (req, res): Promise<void> => {
   if (!req.query.assetId && !req.query.campaignId) {
-    return res.status(400).json({ error: "assetId or campaignId is required" });
+    res.status(400).json({ error: "assetId or campaignId is required" }); return;
   }
   const conditions = [];
   if (req.query.assetId) {
@@ -23,7 +23,7 @@ router.get("/approvals", requireAuth, async (req, res) => {
       const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, asset.campaignId));
       if (campaign) {
         const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
-        if (!role) return res.status(403).json({ error: "Access denied" });
+        if (!role) { res.status(403).json({ error: "Access denied" }); return; }
       }
     }
   }
@@ -32,24 +32,25 @@ router.get("/approvals", requireAuth, async (req, res) => {
     const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(req.query.campaignId)));
     if (campaign) {
       const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
-      if (!role) return res.status(403).json({ error: "Access denied" });
+      if (!role) { res.status(403).json({ error: "Access denied" }); return; }
     }
   }
   const approvals = await db.select().from(approvalDecisionsTable).where(and(...conditions)).orderBy(approvalDecisionsTable.createdAt);
   res.json(approvals.map(serialize));
 });
 
-router.post("/approvals", requireAuth, async (req, res) => {
+router.post("/approvals", requireAuth, async (req, res): Promise<void> => {
   const { assetId, campaignId, decision, reason } = req.body;
 
-  if (decision === "publish_live") {
-    return res.status(403).json({ error: "Live ad publishing is disabled in Marketing OS Lite MVP." });
+  if (req.body?.publishLive || decision === "publish_live") {
+    res.status(403).json({ error: "Live ad publishing is disabled in Marketing OS Lite MVP." });
+    return;
   }
   if (!assetId && !campaignId) {
-    return res.status(400).json({ error: "At least one of assetId or campaignId is required" });
+    res.status(400).json({ error: "At least one of assetId or campaignId is required" }); return;
   }
   if (!decision || !VALID_DECISIONS.includes(decision)) {
-    return res.status(400).json({ error: `Invalid decision. Must be one of: ${VALID_DECISIONS.join(", ")}` });
+    res.status(400).json({ error: `Invalid decision. Must be one of: ${VALID_DECISIONS.join(", ")}` }); return;
   }
 
   const userId = req.session.userId!;
@@ -57,23 +58,23 @@ router.post("/approvals", requireAuth, async (req, res) => {
 
   if (assetId) {
     const [asset] = await db.select().from(generatedAssetsTable).where(eq(generatedAssetsTable.id, Number(assetId)));
-    if (!asset) return res.status(404).json({ error: "Asset not found" });
+    if (!asset) { res.status(404).json({ error: "Asset not found" }); return; }
     const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, asset.campaignId));
     if (campaign) workspaceId = campaign.workspaceId;
   }
   if (!workspaceId && campaignId) {
     const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(campaignId)));
-    if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+    if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
     workspaceId = campaign.workspaceId;
   }
 
   if (!workspaceId) {
-    return res.status(400).json({ error: "Could not determine workspace from provided identifiers" });
+    res.status(400).json({ error: "Could not determine workspace from provided identifiers" }); return;
   }
 
   const role = await getMemberRole(userId, workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
 
   const approvalActor = actor(req);
   const [approval] = await db.insert(approvalDecisionsTable).values({

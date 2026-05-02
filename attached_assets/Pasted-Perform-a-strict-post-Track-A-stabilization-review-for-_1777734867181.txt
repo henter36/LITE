@@ -1,0 +1,79 @@
+Perform a strict post-Track A stabilization review for Marketing OS Lite.
+
+Do not add new features.
+Do not connect real ad APIs.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Only fix defects found during verification.
+
+Verify:
+
+1. Track A completion
+- Budget pacing appears correctly using simulated/mock campaign budget data.
+- Brand Profile → Generated Content relationship is visible and understandable in the UI.
+- TikTok appears as a mock/simulated connection only.
+- Demo docs reflect the new flow accurately.
+
+2. Data integrity
+- Existing seeded/demo data remains valid.
+- TikTok mock connection exists for the demo workspace.
+- No real ad API language appears anywhere.
+- No “live data” wording remains unless explicitly described as simulated/mock.
+
+3. Auth and isolation
+- Login still works.
+- Anonymous users receive 401.
+- Cross-workspace access returns 403.
+- Workspace isolation still works after the new changes.
+
+4. Role permissions
+- Viewer cannot write.
+- Editor cannot manage members.
+- Owner/admin can manage workspace resources.
+
+5. Safety guards
+Confirm the backend still blocks:
+- live publishing
+- budget changes
+- payment connection
+- autonomous optimization
+- external campaign modification
+
+6. Frontend regression
+Verify:
+- Dashboard loads.
+- Campaign detail loads.
+- Content Studio loads.
+- Connections page shows Meta, Snapchat, Google/YouTube, X, and TikTok as mock/simulated.
+- Reports still load.
+- Audit log still loads.
+
+7. Typecheck and server health
+- Resolve any TypeScript errors caused by Track A.
+- Separate pre-existing errors from new errors.
+- Confirm both frontend and backend workflows are healthy.
+
+8. Documentation
+Create or update:
+docs/track_a_post_implementation_review.md
+
+Include:
+- executive summary
+- changed files
+- pass/fail checklist
+- defects found and fixed
+- remaining limitations
+- demo readiness decision
+- recommendation for the next step
+
+Final decision must be one of:
+- Ready for controlled demo
+- Ready with warnings
+- Not ready
+
+Final output:
+- changed files
+- verification results
+- remaining risks
+- next recommended step

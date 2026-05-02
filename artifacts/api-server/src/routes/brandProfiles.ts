@@ -16,14 +16,14 @@ function serializeProfile(p: typeof brandProfilesTable.$inferSelect) {
   };
 }
 
-router.get("/brand-profiles", requireAuth, requireWorkspaceAccess, async (req, res) => {
+router.get("/brand-profiles", requireAuth, requireWorkspaceAccess, async (req, res): Promise<void> => {
   const profiles = req.query.workspaceId
     ? await db.select().from(brandProfilesTable).where(eq(brandProfilesTable.workspaceId, Number(req.query.workspaceId)))
     : await db.select().from(brandProfilesTable);
   res.json(profiles.map(serializeProfile));
 });
 
-router.post("/brand-profiles", requireAuth, requireWorkspaceRole("editor"), async (req, res) => {
+router.post("/brand-profiles", requireAuth, requireWorkspaceRole("editor"), async (req, res): Promise<void> => {
   const { workspaceId, brandName, toneOfVoice, targetAudience, productsServices, forbiddenClaims, preferredChannels, visualNotes } = req.body;
   const [p] = await db.insert(brandProfilesTable).values({
     workspaceId, brandName, toneOfVoice, targetAudience, productsServices,
@@ -35,32 +35,32 @@ router.post("/brand-profiles", requireAuth, requireWorkspaceRole("editor"), asyn
   res.status(201).json(serializeProfile(p));
 });
 
-router.get("/brand-profiles/:id", requireAuth, async (req, res) => {
-  const [p] = await db.select().from(brandProfilesTable).where(eq(brandProfilesTable.id, parseInt(req.params.id)));
-  if (!p) return res.status(404).json({ error: "Not found" });
+router.get("/brand-profiles/:id", requireAuth, async (req, res): Promise<void> => {
+  const [p] = await db.select().from(brandProfilesTable).where(eq(brandProfilesTable.id, parseInt(String(req.params.id))));
+  if (!p) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, p.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
   res.json(serializeProfile(p));
 });
 
-router.put("/brand-profiles/:id", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+router.put("/brand-profiles/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
   const [existing] = await db.select().from(brandProfilesTable).where(eq(brandProfilesTable.id, id));
-  if (!existing) return res.status(404).json({ error: "Not found" });
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, existing.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
 
   const { workspaceId, brandName, toneOfVoice, targetAudience, productsServices, forbiddenClaims, preferredChannels, visualNotes } = req.body;
-  const [p] = await db.update(brandProfilesTable).set({
+  const [updated] = await db.update(brandProfilesTable).set({
     workspaceId: workspaceId || existing.workspaceId, brandName, toneOfVoice, targetAudience, productsServices,
     forbiddenClaims: forbiddenClaims || "",
     preferredChannels: JSON.stringify(preferredChannels || []),
     visualNotes: visualNotes || "",
   }).where(eq(brandProfilesTable.id, id)).returning();
-  if (!p) return res.status(404).json({ error: "Not found" });
-  await db.insert(auditLogsTable).values({ workspaceId: p.workspaceId, action: "brand_profile_updated", entityType: "brand_profile", entityId: p.id, actor: actor(req), details: `Brand profile "${p.brandName}" updated` });
-  res.json(serializeProfile(p));
+  if (!updated) { res.status(404).json({ error: "Not found" }); return; }
+  await db.insert(auditLogsTable).values({ workspaceId: updated.workspaceId, action: "brand_profile_updated", entityType: "brand_profile", entityId: updated.id, actor: actor(req), details: `Brand profile "${updated.brandName}" updated` });
+  res.json(serializeProfile(updated));
 });
 
 export default router;

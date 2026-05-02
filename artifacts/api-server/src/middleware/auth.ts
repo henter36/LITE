@@ -12,7 +12,7 @@ export function hasMinRole(userRole: Role, minRole: Role): boolean {
 
 function getWorkspaceId(req: Request): number | null {
   const raw = req.params["workspaceId"] ?? req.query["workspaceId"] ?? req.body?.workspaceId;
-  const n = Number(raw);
+  const n = Number(Array.isArray(raw) ? raw[0] : raw);
   return n > 0 ? n : null;
 }
 
@@ -29,23 +29,26 @@ export async function getMemberRole(userId: number, workspaceId: number): Promis
   return member ? (member.role as Role) : null;
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   if (!req.session.userId) {
-    return res.status(401).json({ error: "Authentication required" });
+    res.status(401).json({ error: "Authentication required" });
+    return;
   }
   next();
 }
 
-export function requireWorkspaceAccess(req: Request, res: Response, next: NextFunction) {
+export function requireWorkspaceAccess(req: Request, res: Response, next: NextFunction): void {
   const workspaceId = getWorkspaceId(req);
   if (!workspaceId) {
-    return res.status(400).json({ error: "workspaceId is required" });
+    res.status(400).json({ error: "workspaceId is required" });
+    return;
   }
   const userId = req.session.userId!;
   getMemberRole(userId, workspaceId)
     .then((role) => {
       if (!role) {
-        return res.status(403).json({ error: "Access denied: you are not a member of this workspace" });
+        res.status(403).json({ error: "Access denied: you are not a member of this workspace" });
+        return;
       }
       req.session.role = role;
       req.session.activeWorkspaceId = workspaceId;
@@ -55,19 +58,22 @@ export function requireWorkspaceAccess(req: Request, res: Response, next: NextFu
 }
 
 export function requireWorkspaceRole(minRole: Role) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const workspaceId = getWorkspaceId(req);
     if (!workspaceId) {
-      return res.status(400).json({ error: "workspaceId is required" });
+      res.status(400).json({ error: "workspaceId is required" });
+      return;
     }
     const userId = req.session.userId!;
     getMemberRole(userId, workspaceId)
       .then((role) => {
         if (!role) {
-          return res.status(403).json({ error: "Access denied: you are not a member of this workspace" });
+          res.status(403).json({ error: "Access denied: you are not a member of this workspace" });
+          return;
         }
         if (!hasMinRole(role, minRole)) {
-          return res.status(403).json({ error: `Insufficient permissions. Required: ${minRole}, your role: ${role}` });
+          res.status(403).json({ error: `Insufficient permissions. Required: ${minRole}, your role: ${role}` });
+          return;
         }
         req.session.role = role;
         req.session.activeWorkspaceId = workspaceId;

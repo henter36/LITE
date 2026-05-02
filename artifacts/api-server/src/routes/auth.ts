@@ -9,21 +9,25 @@ const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN = 8;
 
-router.post("/auth/register", async (req, res) => {
+router.post("/auth/register", async (req, res): Promise<void> => {
   const { email, password, name } = req.body;
   if (!email || !password || !name) {
-    return res.status(400).json({ error: "email, password, and name are required" });
+    res.status(400).json({ error: "email, password, and name are required" });
+    return;
   }
   if (!EMAIL_RE.test(email)) {
-    return res.status(400).json({ error: "Invalid email address" });
+    res.status(400).json({ error: "Invalid email address" });
+    return;
   }
   if (password.length < PASSWORD_MIN) {
-    return res.status(400).json({ error: `Password must be at least ${PASSWORD_MIN} characters` });
+    res.status(400).json({ error: `Password must be at least ${PASSWORD_MIN} characters` });
+    return;
   }
 
   const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase()));
   if (existing) {
-    return res.status(409).json({ error: "An account with this email already exists" });
+    res.status(409).json({ error: "An account with this email already exists" });
+    return;
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
@@ -40,20 +44,23 @@ router.post("/auth/register", async (req, res) => {
   res.status(201).json({ id: user.id, email: user.email, name: user.name });
 });
 
-router.post("/auth/login", async (req, res) => {
+router.post("/auth/login", async (req, res): Promise<void> => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ error: "email and password are required" });
+    res.status(400).json({ error: "email and password are required" });
+    return;
   }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email.toLowerCase()));
   if (!user) {
-    return res.status(401).json({ error: "Invalid email or password" });
+    res.status(401).json({ error: "Invalid email or password" });
+    return;
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    return res.status(401).json({ error: "Invalid email or password" });
+    res.status(401).json({ error: "Invalid email or password" });
+    return;
   }
 
   const memberships = await db
@@ -82,23 +89,25 @@ router.post("/auth/login", async (req, res) => {
   });
 });
 
-router.post("/auth/logout", (req, res) => {
+router.post("/auth/logout", (req, res): void => {
   req.session.destroy((err) => {
-    if (err) return res.status(500).json({ error: "Logout failed" });
+    if (err) { res.status(500).json({ error: "Logout failed" }); return; }
     res.clearCookie("mos.sid");
     res.json({ ok: true });
   });
 });
 
-router.get("/auth/me", async (req, res) => {
+router.get("/auth/me", async (req, res): Promise<void> => {
   if (!req.session.userId) {
-    return res.status(401).json({ error: "Not authenticated" });
+    res.status(401).json({ error: "Not authenticated" });
+    return;
   }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.session.userId));
   if (!user) {
     req.session.destroy(() => {});
-    return res.status(401).json({ error: "User not found" });
+    res.status(401).json({ error: "User not found" });
+    return;
   }
 
   const memberships = await db
@@ -124,10 +133,10 @@ router.get("/auth/me", async (req, res) => {
   });
 });
 
-router.post("/auth/switch-workspace", async (req, res) => {
-  if (!req.session.userId) return res.status(401).json({ error: "Not authenticated" });
+router.post("/auth/switch-workspace", async (req, res): Promise<void> => {
+  if (!req.session.userId) { res.status(401).json({ error: "Not authenticated" }); return; }
   const { workspaceId } = req.body;
-  if (!workspaceId) return res.status(400).json({ error: "workspaceId required" });
+  if (!workspaceId) { res.status(400).json({ error: "workspaceId required" }); return; }
 
   const [member] = await db
     .select()
@@ -140,7 +149,8 @@ router.post("/auth/switch-workspace", async (req, res) => {
     );
 
   if (!member) {
-    return res.status(403).json({ error: "Access denied to this workspace" });
+    res.status(403).json({ error: "Access denied to this workspace" });
+    return;
   }
 
   req.session.activeWorkspaceId = member.workspaceId;

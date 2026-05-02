@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 
 const router = Router();
-const CHANNELS = ["instagram", "snapchat", "youtube", "x"];
+const CHANNELS = ["instagram", "snapchat", "youtube", "x", "tiktok"];
 
 const MOCK_HEADLINES = ["Discover the Difference Today","Transform Your Experience","Unleash Your Potential","Built for the Bold","The Future Is Here"];
 const MOCK_CTAS = ["Shop Now", "Learn More", "Get Started", "Try Free", "Explore Today"];
@@ -35,6 +35,7 @@ function channelVariant(assetId: number, channel: string, base: ReturnType<typeo
     snapchat: { cta: "Swipe Up", hashtags: ["#snapchat", "#snap", ...base.hashtags.slice(0, 3)] },
     youtube: { cta: "Subscribe & Learn More", hashtags: ["#youtube", "#video", ...base.hashtags.slice(0, 3)] },
     x: { cta: "See thread below", hashtags: base.hashtags.slice(0, 3) },
+    tiktok: { cta: "Follow for more", hashtags: ["#tiktok", "#tiktokviral", ...base.hashtags.slice(0, 3)] },
   };
   const v = overrides[channel] || {};
   return { assetId, channel, headline: base.headline, caption: base.shortCaption, cta: v.cta || base.cta, hashtags: JSON.stringify(v.hashtags || base.hashtags) };
@@ -49,15 +50,15 @@ function serializeAsset(a: typeof generatedAssetsTable.$inferSelect) {
   };
 }
 
-router.get("/assets", requireAuth, async (req, res) => {
+router.get("/assets", requireAuth, async (req, res): Promise<void> => {
   if (!req.query.campaignId) {
-    return res.status(400).json({ error: "campaignId is required" });
+    res.status(400).json({ error: "campaignId is required" }); return;
   }
   const campaignId = Number(req.query.campaignId);
   const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, campaignId));
-  if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+  if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
   const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
 
   const conditions = [eq(generatedAssetsTable.campaignId, campaignId)];
   if (req.query.status) conditions.push(eq(generatedAssetsTable.status, String(req.query.status)));
@@ -65,14 +66,14 @@ router.get("/assets", requireAuth, async (req, res) => {
   res.json(assets.map(serializeAsset));
 });
 
-router.post("/assets", requireAuth, async (req, res) => {
+router.post("/assets", requireAuth, async (req, res): Promise<void> => {
   const { campaignId } = req.body;
-  if (!campaignId) return res.status(400).json({ error: "campaignId required" });
+  if (!campaignId) { res.status(400).json({ error: "campaignId required" }); return; }
   const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(campaignId)));
-  if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+  if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
   const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
 
   const generated = mockGenerate(campaign);
   const [asset] = await db.insert(generatedAssetsTable).values({
@@ -87,26 +88,27 @@ router.post("/assets", requireAuth, async (req, res) => {
   res.status(201).json([serializeAsset(asset)]);
 });
 
-router.get("/assets/:id", requireAuth, async (req, res) => {
-  const [a] = await db.select().from(generatedAssetsTable).where(eq(generatedAssetsTable.id, parseInt(req.params.id)));
-  if (!a) return res.status(404).json({ error: "Not found" });
+router.get("/assets/:id", requireAuth, async (req, res): Promise<void> => {
+  const [a] = await db.select().from(generatedAssetsTable).where(eq(generatedAssetsTable.id, parseInt(String(req.params.id))));
+  if (!a) { res.status(404).json({ error: "Not found" }); return; }
   const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, a.campaignId));
   if (campaign) {
     const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
-    if (!role) return res.status(403).json({ error: "Access denied" });
+    if (!role) { res.status(403).json({ error: "Access denied" }); return; }
   }
   res.json(serializeAsset(a));
 });
 
-router.get("/assets/:id/variants", requireAuth, async (req, res) => {
-  const [a] = await db.select().from(generatedAssetsTable).where(eq(generatedAssetsTable.id, parseInt(req.params.id)));
-  if (!a) return res.status(404).json({ error: "Not found" });
+router.get("/assets/:id/variants", requireAuth, async (req, res): Promise<void> => {
+  const assetId = parseInt(String(req.params.id));
+  const [a] = await db.select().from(generatedAssetsTable).where(eq(generatedAssetsTable.id, assetId));
+  if (!a) { res.status(404).json({ error: "Not found" }); return; }
   const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, a.campaignId));
   if (campaign) {
     const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
-    if (!role) return res.status(403).json({ error: "Access denied" });
+    if (!role) { res.status(403).json({ error: "Access denied" }); return; }
   }
-  const variants = await db.select().from(channelVariantsTable).where(eq(channelVariantsTable.assetId, parseInt(req.params.id)));
+  const variants = await db.select().from(channelVariantsTable).where(eq(channelVariantsTable.assetId, assetId));
   res.json(variants.map(v => ({ id: v.id, assetId: v.assetId, channel: v.channel, headline: v.headline, caption: v.caption, cta: v.cta, hashtags: JSON.parse(v.hashtags || "[]") })));
 });
 

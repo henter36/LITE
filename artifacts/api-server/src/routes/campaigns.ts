@@ -19,12 +19,12 @@ function serializeCampaign(c: typeof campaignsTable.$inferSelect) {
   };
 }
 
-router.get("/campaigns", requireAuth, requireWorkspaceAccess, async (req, res) => {
+router.get("/campaigns", requireAuth, requireWorkspaceAccess, async (req, res): Promise<void> => {
   const conditions = [];
   if (req.query.workspaceId) conditions.push(eq(campaignsTable.workspaceId, Number(req.query.workspaceId)));
   if (req.query.status) {
     const s = String(req.query.status);
-    if (!VALID_STATUSES.includes(s)) return res.status(400).json({ error: `Invalid status` });
+    if (!VALID_STATUSES.includes(s)) { res.status(400).json({ error: `Invalid status` }); return; }
     conditions.push(eq(campaignsTable.status, s));
   }
   const campaigns = conditions.length > 0
@@ -33,13 +33,15 @@ router.get("/campaigns", requireAuth, requireWorkspaceAccess, async (req, res) =
   res.json(campaigns.map(serializeCampaign));
 });
 
-router.post("/campaigns", requireAuth, requireWorkspaceRole("editor"), async (req, res) => {
+router.post("/campaigns", requireAuth, requireWorkspaceRole("editor"), async (req, res): Promise<void> => {
   const { workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl } = req.body;
   if (!workspaceId || !name || !objective || !productService || !audience || !geography || !startDate || !endDate) {
-    return res.status(400).json({ error: "Missing required fields: workspaceId, name, objective, productService, audience, geography, startDate, endDate" });
+    res.status(400).json({ error: "Missing required fields: workspaceId, name, objective, productService, audience, geography, startDate, endDate" });
+    return;
   }
   if (!VALID_OBJECTIVES.includes(objective)) {
-    return res.status(400).json({ error: `Invalid objective. Must be one of: ${VALID_OBJECTIVES.join(", ")}` });
+    res.status(400).json({ error: `Invalid objective. Must be one of: ${VALID_OBJECTIVES.join(", ")}` });
+    return;
   }
   try {
     const [c] = await db.insert(campaignsTable).values({
@@ -52,7 +54,7 @@ router.post("/campaigns", requireAuth, requireWorkspaceRole("editor"), async (re
   } catch { res.status(500).json({ error: "Failed to create campaign" }); }
 });
 
-router.get("/campaigns/summary", requireAuth, requireWorkspaceAccess, async (req, res) => {
+router.get("/campaigns/summary", requireAuth, requireWorkspaceAccess, async (req, res): Promise<void> => {
   const campaigns = req.query.workspaceId
     ? await db.select().from(campaignsTable).where(eq(campaignsTable.workspaceId, Number(req.query.workspaceId)))
     : await db.select().from(campaignsTable);
@@ -65,28 +67,28 @@ router.get("/campaigns/summary", requireAuth, requireWorkspaceAccess, async (req
   });
 });
 
-router.get("/campaigns/:id", requireAuth, async (req, res) => {
-  const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, parseInt(req.params.id)));
-  if (!c) return res.status(404).json({ error: "Not found" });
+router.get("/campaigns/:id", requireAuth, async (req, res): Promise<void> => {
+  const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, parseInt(String(req.params.id))));
+  if (!c) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, c.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
   res.json(serializeCampaign(c));
 });
 
-router.put("/campaigns/:id", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+router.put("/campaigns/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
   const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
-  if (!existing) return res.status(404).json({ error: "Not found" });
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, existing.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
 
   const { workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl } = req.body;
   if (!name || !objective || !productService || !audience || !geography || !startDate || !endDate) {
-    return res.status(400).json({ error: "Missing required fields" });
+    res.status(400).json({ error: "Missing required fields" }); return;
   }
   if (!VALID_OBJECTIVES.includes(objective)) {
-    return res.status(400).json({ error: `Invalid objective` });
+    res.status(400).json({ error: `Invalid objective` }); return;
   }
   try {
     const [c] = await db.update(campaignsTable).set({
@@ -94,31 +96,31 @@ router.put("/campaigns/:id", requireAuth, async (req, res) => {
       budgetSuggestion: budgetSuggestion || 0, startDate, endDate,
       channels: JSON.stringify(channels || []), landingUrl: landingUrl || "",
     }).where(eq(campaignsTable.id, id)).returning();
-    if (!c) return res.status(404).json({ error: "Not found" });
+    if (!c) { res.status(404).json({ error: "Not found" }); return; }
     res.json(serializeCampaign(c));
   } catch { res.status(500).json({ error: "Failed to update campaign" }); }
 });
 
-router.delete("/campaigns/:id", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+router.delete("/campaigns/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
   const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
-  if (!existing) return res.status(404).json({ error: "Not found" });
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, existing.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "admin")) return res.status(403).json({ error: "Requires admin role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "admin")) { res.status(403).json({ error: "Requires admin role or above" }); return; }
   await db.delete(campaignsTable).where(eq(campaignsTable.id, id));
   res.status(204).send();
 });
 
-router.post("/campaigns/:id/approve", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+router.post("/campaigns/:id/approve", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
   const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
-  if (!existing) return res.status(404).json({ error: "Not found" });
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
   const role = await getMemberRole(req.session.userId!, existing.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
   const [c] = await db.update(campaignsTable).set({ status: "approved" }).where(eq(campaignsTable.id, id)).returning();
-  if (!c) return res.status(404).json({ error: "Not found" });
+  if (!c) { res.status(404).json({ error: "Not found" }); return; }
   await db.insert(auditLogsTable).values({ workspaceId: c.workspaceId, action: "campaign_approved", entityType: "campaign", entityId: c.id, actor: actor(req), details: `Campaign "${c.name}" approved` });
   res.json(serializeCampaign(c));
 });

@@ -19,17 +19,18 @@ function serialize(t: typeof trackingLinksTable.$inferSelect) {
   return { id: t.id, campaignId: t.campaignId, channel: t.channel, source: t.source, medium: t.medium, campaign: t.campaign, content: t.content, finalUrl: t.finalUrl, generatedTrackingUrl: t.generatedTrackingUrl, createdAt: t.createdAt.toISOString() };
 }
 
-router.get("/tracking-links", requireAuth, async (req, res) => {
+router.get("/tracking-links", requireAuth, async (req, res): Promise<void> => {
   const userId = req.session.userId!;
 
   if (req.query.campaignId) {
     const campaignId = Number(req.query.campaignId);
     const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, campaignId));
-    if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+    if (!campaign) { res.status(404).json({ error: "Campaign not found" }); return; }
     const role = await getMemberRole(userId, campaign.workspaceId);
-    if (!role) return res.status(403).json({ error: "Access denied" });
+    if (!role) { res.status(403).json({ error: "Access denied" }); return; }
     const links = await db.select().from(trackingLinksTable).where(eq(trackingLinksTable.campaignId, campaignId)).orderBy(trackingLinksTable.createdAt);
-    return res.json(links.map(serialize));
+    res.json(links.map(serialize));
+    return;
   }
 
   const memberships = await db
@@ -37,7 +38,7 @@ router.get("/tracking-links", requireAuth, async (req, res) => {
     .from(workspaceMembersTable)
     .where(eq(workspaceMembersTable.userId, userId));
 
-  if (memberships.length === 0) return res.json([]);
+  if (memberships.length === 0) { res.json([]); return; }
 
   const wIds = memberships.map(m => m.workspaceId);
   const rows = await db
@@ -50,23 +51,23 @@ router.get("/tracking-links", requireAuth, async (req, res) => {
   res.json(rows.map(r => serialize(r.l)));
 });
 
-router.post("/tracking-links", requireAuth, async (req, res) => {
+router.post("/tracking-links", requireAuth, async (req, res): Promise<void> => {
   const { campaignId, channel, source, medium, campaign, content, finalUrl } = req.body;
   if (!campaignId || !channel || !source || !medium || !campaign || !finalUrl) {
-    return res.status(400).json({ error: "Missing required fields: campaignId, channel, source, medium, campaign, finalUrl" });
+    res.status(400).json({ error: "Missing required fields: campaignId, channel, source, medium, campaign, finalUrl" }); return;
   }
 
   const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(campaignId)));
-  if (!c) return res.status(404).json({ error: "Campaign not found" });
+  if (!c) { res.status(404).json({ error: "Campaign not found" }); return; }
   const role = await getMemberRole(req.session.userId!, c.workspaceId);
-  if (!role) return res.status(403).json({ error: "Access denied" });
-  if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
 
   let generatedTrackingUrl: string;
   try {
     generatedTrackingUrl = buildUtmUrl(finalUrl, source, medium, campaign, content || "");
   } catch {
-    return res.status(400).json({ error: "Invalid finalUrl — must be a valid URL" });
+    res.status(400).json({ error: "Invalid finalUrl — must be a valid URL" }); return;
   }
   try {
     const [link] = await db.insert(trackingLinksTable).values({ campaignId: Number(campaignId), channel, source, medium, campaign, content: content || "", finalUrl, generatedTrackingUrl }).returning();
@@ -75,15 +76,15 @@ router.post("/tracking-links", requireAuth, async (req, res) => {
   } catch { res.status(500).json({ error: "Failed to create tracking link" }); }
 });
 
-router.delete("/tracking-links/:id", requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+router.delete("/tracking-links/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
   const [existing] = await db.select().from(trackingLinksTable).where(eq(trackingLinksTable.id, id));
-  if (!existing) return res.status(404).json({ error: "Not found" });
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
   const [c] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, existing.campaignId));
   if (c) {
     const role = await getMemberRole(req.session.userId!, c.workspaceId);
-    if (!role) return res.status(403).json({ error: "Access denied" });
-    if (!hasMinRole(role, "editor")) return res.status(403).json({ error: "Requires editor role or above" });
+    if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+    if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
   }
   await db.delete(trackingLinksTable).where(eq(trackingLinksTable.id, id));
   res.status(204).send();
