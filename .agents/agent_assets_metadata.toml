@@ -6,3 +6,9 @@ id = "W9EIBIpPctHQa1T_rg8-I"
 uri = "file://docs/implementation_review_marketing_os_lite.md"
 type = "text"
 title = "Implementation Review — Marketing OS Lite"
+
+[[outputs]]
+id = "R7vgDMWc8F9fJn3JwGfJY"
+uri = "file://docs/track_a_final_stabilization_report.md"
+type = "text"
+title = "Track A Final Stabilization Report"
