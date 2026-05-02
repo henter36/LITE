@@ -53,6 +53,9 @@ function serializeAsset(a: typeof generatedAssetsTable.$inferSelect) {
     aiModel: a.aiModel ?? null,
     promptVersion: a.promptVersion ?? null,
     aiFallbackUsed: a.aiFallbackUsed ?? null,
+    imageBrief: a.imageBrief ?? null,
+    videoBrief: a.videoBrief ?? null,
+    assetReference: a.assetReference ?? null,
     createdAt: a.createdAt.toISOString(),
   };
 }
@@ -225,6 +228,33 @@ router.get("/assets/:id", requireAuth, async (req, res): Promise<void> => {
     if (!role) { res.status(403).json({ error: "Access denied" }); return; }
   }
   res.json(serializeAsset(a));
+});
+
+router.patch("/assets/:id", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
+  const [a] = await db.select().from(generatedAssetsTable).where(eq(generatedAssetsTable.id, id));
+  if (!a) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, a.campaignId));
+  if (campaign) {
+    const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
+    if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+    if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
+  }
+
+  const { imageBrief, videoBrief, assetReference } = req.body;
+  const updates: Partial<{ imageBrief: string; videoBrief: string; assetReference: string }> = {};
+  if (imageBrief !== undefined) updates.imageBrief = imageBrief;
+  if (videoBrief !== undefined) updates.videoBrief = videoBrief;
+  if (assetReference !== undefined) updates.assetReference = assetReference;
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No updatable fields provided (imageBrief, videoBrief, assetReference)" });
+    return;
+  }
+
+  const [updated] = await db.update(generatedAssetsTable).set(updates).where(eq(generatedAssetsTable.id, id)).returning();
+  res.json(serializeAsset(updated));
 });
 
 router.get("/assets/:id/variants", requireAuth, async (req, res): Promise<void> => {

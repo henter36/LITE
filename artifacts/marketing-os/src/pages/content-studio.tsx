@@ -4,6 +4,7 @@ import {
   useGenerateAssets,
   useListAssets,
   useCreateApproval,
+  useUpdateAssetBrief,
   useListBrandProfiles,
   useGetAssetVariants,
   getListAssetsQueryKey,
@@ -17,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -28,9 +31,14 @@ import {
   PenTool,
   ShieldCheck,
   AlertCircle,
-  ArrowRight,
   ChevronRight,
   EyeOff,
+  ImageIcon,
+  Video,
+  Link as LinkIcon,
+  ChevronDown,
+  ChevronUp,
+  Save,
 } from "lucide-react";
 import { Link as WouterLink, useSearch } from "wouter";
 
@@ -146,6 +154,153 @@ function VariantTabPanel({
         <p className="text-sm text-muted-foreground">
           No variant data found. Try regenerating the ad.
         </p>
+      )}
+    </div>
+  );
+}
+
+function CreativeBriefPanel({
+  assetId,
+  initialImageBrief,
+  initialVideoBrief,
+  initialAssetReference,
+  isViewer,
+}: {
+  assetId: number;
+  initialImageBrief?: string | null;
+  initialVideoBrief?: string | null;
+  initialAssetReference?: string | null;
+  isViewer: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [imageBrief, setImageBrief] = useState(initialImageBrief ?? "");
+  const [videoBrief, setVideoBrief] = useState(initialVideoBrief ?? "");
+  const [assetReference, setAssetReference] = useState(initialAssetReference ?? "");
+  const [saved, setSaved] = useState(false);
+  const updateBrief = useUpdateAssetBrief();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const hasBriefContent = !!(initialImageBrief || initialVideoBrief || initialAssetReference);
+
+  const handleSave = () => {
+    updateBrief.mutate(
+      {
+        id: assetId,
+        data: {
+          imageBrief: imageBrief || undefined,
+          videoBrief: videoBrief || undefined,
+          assetReference: assetReference || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });
+          setSaved(true);
+          setTimeout(() => setSaved(false), 2000);
+          toast({ title: "Creative brief saved" });
+        },
+        onError: () => {
+          toast({ title: "Failed to save brief", variant: "destructive" });
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="border-t pt-5">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center justify-between w-full text-left group"
+      >
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Creative Brief
+          </p>
+          {hasBriefContent && (
+            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+              Added
+            </span>
+          )}
+        </div>
+        {open ? (
+          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+
+      {open && (
+        <div className="mt-4 space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Attach image/video direction and asset references to guide your creative team.
+          </p>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5" />
+              Image Creative Brief
+            </Label>
+            <Textarea
+              value={imageBrief}
+              onChange={(e) => setImageBrief(e.target.value)}
+              placeholder="e.g. Bright lifestyle photo of product in use, warm tones, natural light, show the packaging clearly…"
+              rows={3}
+              className="resize-none text-sm"
+              disabled={isViewer}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium flex items-center gap-1.5">
+              <Video className="h-3.5 w-3.5" />
+              Video Creative Brief
+            </Label>
+            <Textarea
+              value={videoBrief}
+              onChange={(e) => setVideoBrief(e.target.value)}
+              placeholder="e.g. 15-second vertical video, hook in first 2s, show product demo at 8s, end card with CTA overlay…"
+              rows={3}
+              className="resize-none text-sm"
+              disabled={isViewer}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium flex items-center gap-1.5">
+              <LinkIcon className="h-3.5 w-3.5" />
+              Asset Reference (URL or notes)
+            </Label>
+            <Input
+              value={assetReference}
+              onChange={(e) => setAssetReference(e.target.value)}
+              placeholder="e.g. https://drive.google.com/... or 'Use the hero shot from the April shoot'"
+              className="text-sm"
+              disabled={isViewer}
+            />
+          </div>
+
+          {!isViewer && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSave}
+              disabled={updateBrief.isPending || saved}
+            >
+              {saved ? (
+                <>
+                  <Check className="h-3.5 w-3.5 mr-1.5 text-green-600" />
+                  Saved
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
+                  {updateBrief.isPending ? "Saving…" : "Save Brief"}
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -542,6 +697,15 @@ export default function ContentStudio() {
                       storyboardOutline={asset.storyboardOutline}
                     />
                   </div>
+
+                  {/* Creative brief section */}
+                  <CreativeBriefPanel
+                    assetId={asset.id}
+                    initialImageBrief={asset.imageBrief}
+                    initialVideoBrief={asset.videoBrief}
+                    initialAssetReference={asset.assetReference}
+                    isViewer={isViewer}
+                  />
                 </CardContent>
               </Card>
             ))}
@@ -558,7 +722,8 @@ export default function ContentStudio() {
                 >
                   {selectedCampaign.name}
                 </WouterLink>{" "}
-                and click <strong>Mark Campaign Ready</strong> to confirm it's ready to run.
+                and click <strong>Mark Campaign Ready</strong>, then use the{" "}
+                <strong>Publish</strong> tab to go live.
               </span>
             </div>
           )}

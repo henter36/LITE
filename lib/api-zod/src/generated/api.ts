@@ -258,6 +258,9 @@ export const ListCampaignsResponseItem = zod.object({
   channels: zod.array(zod.string()),
   landingUrl: zod.string(),
   status: zod.enum(["draft", "active", "paused", "completed", "approved"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
   createdAt: zod.string(),
 });
 export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem);
@@ -300,6 +303,9 @@ export const GetCampaignResponse = zod.object({
   channels: zod.array(zod.string()),
   landingUrl: zod.string(),
   status: zod.enum(["draft", "active", "paused", "completed", "approved"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
   createdAt: zod.string(),
 });
 
@@ -338,6 +344,9 @@ export const UpdateCampaignResponse = zod.object({
   channels: zod.array(zod.string()),
   landingUrl: zod.string(),
   status: zod.enum(["draft", "active", "paused", "completed", "approved"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
   createdAt: zod.string(),
 });
 
@@ -369,6 +378,41 @@ export const ApproveCampaignResponse = zod.object({
   channels: zod.array(zod.string()),
   landingUrl: zod.string(),
   status: zod.enum(["draft", "active", "paused", "completed", "approved"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Mark a campaign as manually published (demo only)
+ */
+export const ManualPublishCampaignParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ManualPublishCampaignBody = zod.object({
+  channels: zod.array(zod.string()),
+  notes: zod.string().optional(),
+});
+
+export const ManualPublishCampaignResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  name: zod.string(),
+  objective: zod.enum(["awareness", "traffic", "leads", "sales"]),
+  productService: zod.string(),
+  audience: zod.string(),
+  geography: zod.string(),
+  budgetSuggestion: zod.number(),
+  startDate: zod.string(),
+  endDate: zod.string(),
+  channels: zod.array(zod.string()),
+  landingUrl: zod.string(),
+  status: zod.enum(["draft", "active", "paused", "completed", "approved"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
   createdAt: zod.string(),
 });
 
@@ -406,6 +450,13 @@ export const ListAssetsResponseItem = zod.object({
   videoScript: zod.string(),
   storyboardOutline: zod.string(),
   status: zod.enum(["draft", "reviewed", "approved", "rejected"]),
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+  aiProvider: zod.string().nullish(),
+  aiModel: zod.string().nullish(),
+  promptVersion: zod.string().nullish(),
+  aiFallbackUsed: zod.boolean().nullish(),
   createdAt: zod.string(),
 });
 export const ListAssetsResponse = zod.array(ListAssetsResponseItem);
@@ -435,6 +486,47 @@ export const GetAssetResponse = zod.object({
   videoScript: zod.string(),
   storyboardOutline: zod.string(),
   status: zod.enum(["draft", "reviewed", "approved", "rejected"]),
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+  aiProvider: zod.string().nullish(),
+  aiModel: zod.string().nullish(),
+  promptVersion: zod.string().nullish(),
+  aiFallbackUsed: zod.boolean().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Update creative brief fields on a generated asset
+ */
+export const UpdateAssetBriefParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateAssetBriefBody = zod.object({
+  imageBrief: zod.string().optional(),
+  videoBrief: zod.string().optional(),
+  assetReference: zod.string().optional(),
+});
+
+export const UpdateAssetBriefResponse = zod.object({
+  id: zod.number(),
+  campaignId: zod.number(),
+  headline: zod.string(),
+  shortCaption: zod.string(),
+  longCaption: zod.string(),
+  cta: zod.string(),
+  hashtags: zod.array(zod.string()),
+  videoScript: zod.string(),
+  storyboardOutline: zod.string(),
+  status: zod.enum(["draft", "reviewed", "approved", "rejected"]),
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+  aiProvider: zod.string().nullish(),
+  aiModel: zod.string().nullish(),
+  promptVersion: zod.string().nullish(),
+  aiFallbackUsed: zod.boolean().nullish(),
   createdAt: zod.string(),
 });
 

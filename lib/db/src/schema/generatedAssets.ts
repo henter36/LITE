@@ -18,6 +18,9 @@ export const generatedAssetsTable = pgTable("generated_assets", {
   aiModel: text("ai_model"),
   promptVersion: text("prompt_version"),
   aiFallbackUsed: boolean("ai_fallback_used"),
+  imageBrief: text("image_brief"),
+  videoBrief: text("video_brief"),
+  assetReference: text("asset_reference"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

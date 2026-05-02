@@ -1,0 +1,177 @@
+Complete the full Campaign Creation → Text/Image/Video Creative → Approval → Manual Publish → Performance cycle in Marketing OS Lite.
+
+Do not implement real live publishing.
+Do not create campaigns on external ad platforms.
+Do not change budgets.
+Do not connect payments.
+Do not implement autonomous optimization.
+Do not implement real image generation yet.
+Do not implement real video generation yet.
+Do not call image/video AI APIs.
+Do not weaken auth, workspace isolation, role checks, audit logs, AI fallback, Meta read-only, or safety guards.
+
+Objective:
+Make one campaign fully executable from start to finish inside the product, ending with governed manual publishing and performance tracking.
+
+Implement:
+
+1. Campaign Creation Completion
+- Required fields clearly separated from optional fields.
+- After creation, route user to Campaign Detail.
+
+2. Campaign Brief Summary
+Show:
+- objective
+- product/service
+- audience
+- geography
+- channels
+- budget
+- dates
+- landing URL
+- brand profile used
+- status
+
+3. Text Creative Completion
+Ensure campaign generates:
+- base ad content
+- channel variants for selected channels
+- headline
+- short caption
+- long caption
+- CTA
+- hashtags
+- video script
+- storyboard outline
+- tracking link recommendation
+
+4. Image & Video Creative Completion
+For every campaign, support creative assets as part of the campaign cycle.
+
+Implement:
+- Image creative brief:
+  - image concept
+  - product focus
+  - visual style
+  - required text overlay
+  - forbidden visual elements
+  - platform size notes
+
+- Video creative brief:
+  - hook
+  - script
+  - storyboard
+  - scenes
+  - call to action
+  - duration suggestion
+  - platform format notes
+
+- Manual asset reference:
+  - allow user to attach/reference image/video assets by URL or text reference
+  - do not implement binary file storage unless already available
+  - do not call external media APIs
+
+- Creative asset status:
+  - draft
+  - needs_review
+  - approved
+  - rejected
+
+- Show creative readiness per channel:
+  - text ready
+  - image brief ready
+  - video brief ready
+  - approved for manual publishing
+
+5. Approval Completion
+Require:
+- at least one approved text ad
+- image/video creative brief or reference reviewed
+- campaign marked ready
+- audit logs for all approvals
+
+6. Manual Publish Workflow
+Add a “Publish Checklist” step inside Campaign Detail.
+
+This must NOT publish externally.
+
+Checklist must include:
+- selected channels
+- approved text copy per channel
+- image creative brief or asset reference
+- video creative brief or asset reference
+- UTM tracking link
+- landing URL
+- budget suggestion
+- platform-specific size/format notes
+- publishing notes
+- copy buttons where useful
+- “Mark as Manually Published” button
+
+When marked manually published:
+- store publish status
+- store published_at
+- store published_by
+- store selected channels
+- write audit log
+- show label:
+  “Manually published outside Marketing OS — no real ad API was used.”
+
+7. Performance Tracking Completion
+After manual publish:
+- show Performance step as active/completed when metrics exist.
+- allow manual/simulated performance data entry if no Meta data exists:
+  spend, impressions, clicks, conversions, date, channel.
+- label data as manual/demo unless Meta read-only source is active.
+- show result summary:
+  spend, clicks, conversions, CTR, CPC.
+
+8. Campaign Flow Enforcement
+Update flow:
+[ Create → Generate Creative → Approve → Publish Checklist → Performance ]
+
+Do not allow skipping:
+- Publish Checklist before campaign ready.
+- Performance before manually published or metrics exist.
+
+9. Role Permissions
+- Viewer: read-only.
+- Editor: create campaign, generate creative, approve ads, create tracking links, mark manually published, enter manual metrics.
+- Admin/Owner: all editor permissions + member/account management.
+
+10. Documentation
+Create:
+docs/campaign_end_to_end_cycle_report.md
+
+Include:
+- implemented flow
+- what counts as complete campaign
+- image/video creative readiness
+- manual publish guardrails
+- what is still not real publishing
+- verification results
+- remaining risks
+
+Verification:
+- TypeScript passes with zero errors.
+- New campaign can be created and routes to detail page.
+- Text creative can be generated.
+- Channel variants are visible.
+- Image/video creative brief or reference can be added.
+- Ad can be approved.
+- Campaign can be marked ready only when requirements are met.
+- Publish checklist appears only after readiness.
+- Mark as manually published works.
+- Audit log records manual publish.
+- Manual/simulated metrics can be entered or displayed.
+- Performance step completes when metrics exist.
+- Viewer cannot write.
+- Safety guards still block live publishing, budget changes, payments, and autonomous optimization.
+- No wording implies real external publishing.
+
+Final output:
+- changed files
+- completed campaign flow summary
+- verification results
+- remaining gaps
+- readiness decision

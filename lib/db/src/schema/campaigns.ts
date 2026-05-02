@@ -17,6 +17,9 @@ export const campaignsTable = pgTable("campaigns", {
   channels: text("channels").notNull().default("[]"),
   landingUrl: text("landing_url").notNull().default(""),
   status: text("status").notNull().default("draft"),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  publishedBy: text("published_by"),
+  publishedChannels: text("published_channels"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

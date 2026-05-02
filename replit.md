@@ -35,8 +35,8 @@ Pages (sidebar navigation):
 - `/` — Dashboard: KPI cards, daily trend chart, channel comparison, active campaigns, recommendations
 - `/workspaces` — Workspace management (create/edit)
 - `/brand-profile` — Brand profile configuration
-- `/campaigns` — Campaign list + create/detail
-- `/content-studio` — AI content generation (mock) + approval workflow
+- `/campaigns` — Campaign list + create/detail (5-step flow: Create → Generate Ads → Approve → Publish → Performance)
+- `/content-studio` — AI content generation (mock) + approval workflow + creative brief editor per asset
 - `/tracking-links` — UTM link generator
 - `/connections` — Mock ad platform connections (Instagram, Snapchat, YouTube, X)
 - `/reports` — Performance reports + CSV export
@@ -46,8 +46,8 @@ Pages (sidebar navigation):
 
 - `workspaces.ts` — CRUD for workspaces + member management (list/add/update-role/remove)
 - `brandProfiles.ts` — Brand profile management
-- `campaigns.ts` — Campaign CRUD + approval + summary (auto-triggers recommendations on approve)
-- `assets.ts` — Mock content generation + channel variants
+- `campaigns.ts` — Campaign CRUD + approve + manual-publish + summary (auto-triggers recommendations on approve)
+- `assets.ts` — Mock content generation + channel variants + PATCH creative brief fields
 - `approvals.ts` — Approval decisions (approve/reject/request changes)
 - `connections.ts` — Mock ad platform connections with safety guards against real API calls
 - `trackingLinks.ts` — UTM tracking link generation
@@ -60,9 +60,33 @@ Pages (sidebar navigation):
 
 Tables: `workspaces`, `brand_profiles`, `campaigns`, `generated_assets`, `channel_variants`, `approval_decisions`, `platform_connections`, `sync_jobs`, `tracking_links`, `ad_metrics_daily`, `recommendations`, `audit_logs`
 
+**Phase 4 additions:**
+- `campaigns`: `published_at`, `published_by`, `published_channels` columns
+- `generated_assets`: `image_brief`, `video_brief`, `asset_reference` columns
+
 ### Seed Data
 
 1 demo workspace, 1 brand profile, 3 campaigns, 4 mock platform connections, 30 days of mock metrics, 10 recommendations, 15 audit log entries.
+
+## Phase 4 Campaign Publish Cycle (completed)
+
+Full Create → Generate Creative → Approve → Manual Publish → Performance loop.
+
+### New API Endpoints
+- **`POST /campaigns/:id/manual-publish`** — Marks an approved campaign as published (active). Body: `{ channels: string[], notes?: string }`. Guards: campaign must be `approved` status, at least one channel required, editor+ role. Sets `publishedAt`, `publishedBy`, `publishedChannels`, `status="active"`. Writes audit log `campaign_published`. Returns updated Campaign.
+- **`PATCH /assets/:id`** — Updates creative brief fields on a generated asset. Body: `{ imageBrief?, videoBrief?, assetReference? }`. Editor+ role required.
+
+### DB Schema Changes (direct SQL ALTER TABLE)
+- `campaigns`: `published_at TIMESTAMPTZ`, `published_by TEXT`, `published_channels TEXT` (JSON array)
+- `generated_assets`: `image_brief TEXT`, `video_brief TEXT`, `asset_reference TEXT`
+
+### Frontend Changes
+- **`campaign-detail.tsx`**: Updated from 4-step to 5-step flow stepper (Create → Generate Ads → Approve → Publish → Performance). Added "Publish" tab with Publish Checklist card (shows pre-flight checks, publish confirmation dialog, published-at/by/channels after publish). Publish button (green) appears on header for approved-but-not-yet-published campaigns.
+- **`content-studio.tsx`**: Added collapsible "Creative Brief" panel on each asset card — image brief, video brief, and asset reference (URL/notes) fields. Saved via `PATCH /assets/:id`. "Added" badge shown when brief content exists.
+
+### Safety
+- No real ad creation, budget spend, or platform API calls. All publish actions are demo-only, clearly labeled with FlaskConical icon and disclaimer text.
+- `published_at` field drives the `isPublished` state (status=active AND publishedAt set) — prevents false positives from manual status changes.
 
 ## Phase 3 Meta Read-only Integration (completed)
 
@@ -107,11 +131,11 @@ To activate OpenAI: add `OPENAI_API_KEY` to Replit Secrets + set `AI_PROVIDER=op
 ## Safety & Governance
 
 Backend guards reject any API requests that try to:
-- Publish live ads
+- Publish live ads (rejectRealOps guard in connections.ts)
 - Change live budget
 - Connect payment methods
 
-A visible "MOCK MODE" warning banner is displayed throughout the UI.
+A visible "MOCK MODE" warning banner is displayed throughout the UI. All publish actions include explicit "demo only" disclaimers.
 
 ## Future-Ready Architecture
 

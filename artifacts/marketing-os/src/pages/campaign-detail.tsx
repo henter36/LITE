@@ -3,6 +3,7 @@ import {
   useGetCampaign,
   useListAssets,
   useApproveCampaign,
+  useManualPublishCampaign,
   useListTrackingLinks,
   useListMetrics,
   useCreateTrackingLink,
@@ -21,6 +22,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -60,6 +63,9 @@ import {
   ArrowRight,
   Sparkles,
   EyeOff,
+  Rocket,
+  Send,
+  ClipboardCheck,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -99,6 +105,7 @@ function computeBudgetPacing(budgetSuggestion: number, startDate: string, endDat
 }
 
 const LINK_CHANNELS = ["instagram", "snapchat", "youtube", "x", "tiktok", "email", "other"];
+const PUBLISH_CHANNELS = ["instagram", "snapchat", "youtube", "x", "tiktok"];
 
 export default function CampaignDetail() {
   const [, params] = useRoute("/campaigns/:id");
@@ -118,6 +125,11 @@ export default function CampaignDetail() {
   const [linkContent, setLinkContent] = useState("");
   const [linkFinalUrl, setLinkFinalUrl] = useState("");
 
+  // Publish dialog state
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [publishChannels, setPublishChannels] = useState<string[]>([]);
+  const [publishNotes, setPublishNotes] = useState("");
+
   const { data: campaign, isLoading: isCampaignLoading } = useGetCampaign(campaignId, {
     query: { enabled: !!campaignId, queryKey: getGetCampaignQueryKey(campaignId) },
   });
@@ -129,6 +141,7 @@ export default function CampaignDetail() {
 
   const { data: trackingLinks } = useListTrackingLinks({ campaignId });
   const approveCampaign = useApproveCampaign();
+  const manualPublishCampaign = useManualPublishCampaign();
   const createTrackingLink = useCreateTrackingLink();
 
   const { data: metrics } = useListMetrics(
@@ -151,6 +164,45 @@ export default function CampaignDetail() {
           toast({ title: "Campaign marked as ready" });
         },
       },
+    );
+  };
+
+  const openPublishDialog = () => {
+    setPublishChannels((campaign?.channels as string[]) ?? []);
+    setPublishNotes("");
+    setPublishDialogOpen(true);
+  };
+
+  const handleManualPublish = () => {
+    if (publishChannels.length === 0) {
+      toast({ title: "Select at least one channel", variant: "destructive" });
+      return;
+    }
+    manualPublishCampaign.mutate(
+      { id: campaignId, data: { channels: publishChannels, notes: publishNotes } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetCampaignQueryKey(campaignId) });
+          setPublishDialogOpen(false);
+          toast({
+            title: "Campaign published",
+            description: `Marked as live on ${publishChannels.join(", ")}.`,
+          });
+        },
+        onError: (err: unknown) => {
+          const msg =
+            err && typeof err === "object" && "message" in err
+              ? String((err as { message: string }).message)
+              : "Please try again.";
+          toast({ title: "Publish failed", description: msg, variant: "destructive" });
+        },
+      },
+    );
+  };
+
+  const togglePublishChannel = (ch: string) => {
+    setPublishChannels((prev) =>
+      prev.includes(ch) ? prev.filter((c) => c !== ch) : [...prev, ch],
     );
   };
 
@@ -250,10 +302,12 @@ export default function CampaignDetail() {
 
   const hasAssets = !isAssetsLoading && (assets?.length ?? 0) > 0;
   const isApproved = campaign.status === "approved" || campaign.status === "active";
+  const isPublished = campaign.status === "active" && !!campaign.publishedAt;
 
-  const completedSteps = [true, hasAssets, isApproved, hasMetrics];
+  // 5-step flow: Create (0) → Generate Ads (1) → Approve (2) → Publish (3) → Performance (4)
+  const completedSteps = [true, hasAssets, isApproved, isPublished, hasMetrics];
   const currentStep = completedSteps.findIndex((done) => !done);
-  const effectiveStep = currentStep === -1 ? 4 : currentStep;
+  const effectiveStep = currentStep === -1 ? 5 : currentStep;
 
   const FLOW_STEPS = [
     { label: "Create Campaign", icon: Megaphone, href: null, nextAction: null },
@@ -264,10 +318,16 @@ export default function CampaignDetail() {
       nextAction: "Generate your ad content →",
     },
     {
-      label: "Mark Ready",
+      label: "Approve",
       icon: CheckCircle,
       href: null,
       nextAction: "Review ads, then click 'Mark Campaign Ready' above",
+    },
+    {
+      label: "Publish",
+      icon: Send,
+      href: null,
+      nextAction: "Campaign is approved — open the Publish tab to go live",
     },
     {
       label: "Performance",
@@ -277,7 +337,7 @@ export default function CampaignDetail() {
     },
   ];
 
-  const activeStep = FLOW_STEPS[effectiveStep];
+  const activeStep = effectiveStep < FLOW_STEPS.length ? FLOW_STEPS[effectiveStep] : null;
 
   return (
     <SidebarLayout>
@@ -319,34 +379,51 @@ export default function CampaignDetail() {
             </p>
           </div>
 
-          {!isViewer && !isApproved && (
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button onClick={handleApprove} disabled={approveCampaign.isPending}>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    {approveCampaign.isPending ? "Saving…" : "Mark Campaign Ready"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[240px] text-center">
-                  Confirms the whole campaign is reviewed and ready to run. Different from approving
-                  individual ads in the Content page.
-                </TooltipContent>
-              </Tooltip>
-              <p className="text-xs text-muted-foreground text-right">
-                Approve individual ads first in the Content page
-              </p>
-            </div>
-          )}
-          {isApproved && (
-            <Badge
-              variant="outline"
-              className="bg-green-500/10 text-green-700 border-green-500/20 shrink-0 flex items-center gap-1.5 px-3 py-1.5"
-            >
-              <Check className="h-3.5 w-3.5" />
-              Campaign Ready
-            </Badge>
-          )}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            {!isViewer && !isApproved && (
+              <div className="flex flex-col items-end gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={handleApprove} disabled={approveCampaign.isPending}>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      {approveCampaign.isPending ? "Saving…" : "Mark Campaign Ready"}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[240px] text-center">
+                    Confirms the whole campaign is reviewed and ready to run. Different from approving
+                    individual ads in the Content page.
+                  </TooltipContent>
+                </Tooltip>
+                <p className="text-xs text-muted-foreground text-right">
+                  Approve individual ads first in the Content page
+                </p>
+              </div>
+            )}
+            {isApproved && !isPublished && !isViewer && (
+              <Button onClick={openPublishDialog} className="bg-green-600 hover:bg-green-700 text-white">
+                <Rocket className="mr-2 h-4 w-4" />
+                Publish Campaign
+              </Button>
+            )}
+            {isPublished && (
+              <Badge
+                variant="outline"
+                className="bg-green-500/10 text-green-700 border-green-500/20 flex items-center gap-1.5 px-3 py-1.5"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Published
+              </Badge>
+            )}
+            {isApproved && !isPublished && (
+              <Badge
+                variant="outline"
+                className="bg-primary/5 text-primary border-primary/20 flex items-center gap-1.5 px-3 py-1.5"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Campaign Ready
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
@@ -383,7 +460,7 @@ export default function CampaignDetail() {
           })}
         </div>
 
-        {effectiveStep < 4 && activeStep?.nextAction && (
+        {effectiveStep < FLOW_STEPS.length && activeStep?.nextAction && (
           <div className="flex items-center gap-2 text-sm">
             {activeStep.href ? (
               <Link
@@ -508,6 +585,7 @@ export default function CampaignDetail() {
       <Tabs defaultValue="assets">
         <TabsList>
           <TabsTrigger value="assets">Ad Content</TabsTrigger>
+          <TabsTrigger value="publish">Publish</TabsTrigger>
           <TabsTrigger value="links">Tracking Links</TabsTrigger>
         </TabsList>
 
@@ -606,6 +684,141 @@ export default function CampaignDetail() {
           </Card>
         </TabsContent>
 
+        {/* Publish tab */}
+        <TabsContent value="publish" className="mt-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardCheck className="h-5 w-5" />
+                  Publish Checklist
+                </CardTitle>
+                {isPublished && (
+                  <Badge className="bg-green-600 text-white hover:bg-green-600">
+                    <Check className="h-3.5 w-3.5 mr-1" />
+                    Published
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {isPublished ? (
+                <>
+                  <div className="rounded-lg border bg-green-500/5 border-green-500/20 p-5 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <Check className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-green-800 dark:text-green-400">
+                          Campaign is live
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          This campaign has been marked as published and is now active.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-green-500/10">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Published at</p>
+                        <p className="text-sm font-medium">
+                          {campaign.publishedAt
+                            ? format(new Date(campaign.publishedAt), "MMM d, yyyy 'at' h:mm a")
+                            : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Published by</p>
+                        <p className="text-sm font-medium">{campaign.publishedBy ?? "—"}</p>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Channels</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(campaign.publishedChannels ?? []).map((ch) => (
+                            <Badge key={ch} variant="outline" className="capitalize">
+                              {ch}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground flex items-start gap-2 border rounded-lg p-4 bg-muted/10">
+                    <FlaskConical className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      This is a demo publish — no real ads have been created on any ad platform.
+                      Performance data will populate in the Reports page as simulated metrics.
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Checklist */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Complete these steps before publishing:
+                    </p>
+                    <div className="space-y-2">
+                      {[
+                        { label: "Campaign created", done: true },
+                        { label: "Ad content generated", done: hasAssets },
+                        { label: "Content reviewed in Content Studio", done: hasAssets && (assets?.some(a => a.status === "approved") ?? false) },
+                        { label: "Campaign marked as ready (approved)", done: isApproved },
+                      ].map(({ label, done }) => (
+                        <div key={label} className="flex items-center gap-3 text-sm">
+                          <div
+                            className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
+                              done ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {done ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+                            )}
+                          </div>
+                          <span className={done ? "text-foreground" : "text-muted-foreground"}>
+                            {label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {!isApproved ? (
+                    <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
+                      <p className="font-medium mb-1">Campaign not yet approved</p>
+                      <p className="text-amber-700/80 dark:text-amber-400/80">
+                        You need to mark the campaign as ready before publishing. Review and approve
+                        individual ads in the Content page first, then click "Mark Campaign Ready".
+                      </p>
+                    </div>
+                  ) : !isViewer ? (
+                    <div className="space-y-4">
+                      <div className="rounded-lg border bg-muted/10 p-4 text-sm text-muted-foreground flex items-start gap-2">
+                        <FlaskConical className="h-4 w-4 shrink-0 mt-0.5" />
+                        <span>
+                          This is a demo environment — no real ads will be created. Clicking "Publish"
+                          records the publish event and moves the campaign to Active status for demo
+                          purposes.
+                        </span>
+                      </div>
+                      <Button onClick={openPublishDialog} className="bg-green-600 hover:bg-green-700 text-white">
+                        <Rocket className="mr-2 h-4 w-4" />
+                        Publish Campaign
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Ask an admin or editor to publish this campaign.
+                    </p>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="links" className="mt-4">
           <Card>
             <CardHeader>
@@ -674,6 +887,86 @@ export default function CampaignDetail() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Manual Publish Dialog */}
+      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Rocket className="h-5 w-5" />
+              Publish Campaign
+            </DialogTitle>
+            <DialogDescription>
+              Select which channels you're publishing to and confirm. This is a demo — no real ads
+              will be created on any ad platform.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Channels <span className="text-destructive">*</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {PUBLISH_CHANNELS.map((ch) => (
+                  <div
+                    key={ch}
+                    className="flex items-center gap-2 border rounded-lg px-3 py-2.5 cursor-pointer hover:bg-muted/30 transition-colors"
+                    onClick={() => togglePublishChannel(ch)}
+                  >
+                    <Checkbox
+                      id={`ch-${ch}`}
+                      checked={publishChannels.includes(ch)}
+                      onCheckedChange={() => togglePublishChannel(ch)}
+                    />
+                    <label
+                      htmlFor={`ch-${ch}`}
+                      className="text-sm font-medium capitalize cursor-pointer"
+                    >
+                      {ch}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="publish-notes" className="text-sm font-medium">
+                Publish notes (optional)
+              </Label>
+              <Textarea
+                id="publish-notes"
+                value={publishNotes}
+                onChange={(e) => setPublishNotes(e.target.value)}
+                placeholder="e.g. Approved by client on 5 May, using assets variant A…"
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <div className="rounded-lg border bg-muted/10 p-3 text-xs text-muted-foreground flex items-start gap-2">
+              <FlaskConical className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <span>
+                Demo only — this records the publish event for tracking purposes but does not
+                create real ads, spend any budget, or connect to any ad platform.
+              </span>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleManualPublish}
+              disabled={manualPublishCampaign.isPending || publishChannels.length === 0}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {manualPublishCampaign.isPending ? "Publishing…" : "Confirm Publish"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Generate Tracking Link Dialog */}
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>

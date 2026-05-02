@@ -51,6 +51,7 @@ import type {
   ListMetricsParams,
   ListRecommendationsParams,
   ListTrackingLinksParams,
+  ManualPublishBody,
   MetaAdAccount,
   MetaProviderStatus,
   MetaSyncRequest,
@@ -59,6 +60,7 @@ import type {
   Recommendation,
   SyncJob,
   TrackingLink,
+  UpdateAssetBriefBody,
   UpdateMemberBody,
   UpdateRecommendationBody,
   Workspace,
@@ -1796,6 +1798,93 @@ export const useApproveCampaign = <
 };
 
 /**
+ * @summary Mark a campaign as manually published (demo only)
+ */
+export const getManualPublishCampaignUrl = (id: number) => {
+  return `/api/campaigns/${id}/manual-publish`;
+};
+
+export const manualPublishCampaign = async (
+  id: number,
+  manualPublishBody: ManualPublishBody,
+  options?: RequestInit,
+): Promise<Campaign> => {
+  return customFetch<Campaign>(getManualPublishCampaignUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(manualPublishBody),
+  });
+};
+
+export const getManualPublishCampaignMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof manualPublishCampaign>>,
+    TError,
+    { id: number; data: BodyType<ManualPublishBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof manualPublishCampaign>>,
+  TError,
+  { id: number; data: BodyType<ManualPublishBody> },
+  TContext
+> => {
+  const mutationKey = ["manualPublishCampaign"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof manualPublishCampaign>>,
+    { id: number; data: BodyType<ManualPublishBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return manualPublishCampaign(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ManualPublishCampaignMutationResult = NonNullable<
+  Awaited<ReturnType<typeof manualPublishCampaign>>
+>;
+export type ManualPublishCampaignMutationBody = BodyType<ManualPublishBody>;
+export type ManualPublishCampaignMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark a campaign as manually published (demo only)
+ */
+export const useManualPublishCampaign = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof manualPublishCampaign>>,
+    TError,
+    { id: number; data: BodyType<ManualPublishBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof manualPublishCampaign>>,
+  TError,
+  { id: number; data: BodyType<ManualPublishBody> },
+  TContext
+> => {
+  return useMutation(getManualPublishCampaignMutationOptions(options));
+};
+
+/**
  * @summary Dashboard campaign summary
  */
 export const getGetCampaignSummaryUrl = (params?: GetCampaignSummaryParams) => {
@@ -2156,6 +2245,93 @@ export function useGetAsset<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Update creative brief fields on a generated asset
+ */
+export const getUpdateAssetBriefUrl = (id: number) => {
+  return `/api/assets/${id}`;
+};
+
+export const updateAssetBrief = async (
+  id: number,
+  updateAssetBriefBody: UpdateAssetBriefBody,
+  options?: RequestInit,
+): Promise<GeneratedAsset> => {
+  return customFetch<GeneratedAsset>(getUpdateAssetBriefUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateAssetBriefBody),
+  });
+};
+
+export const getUpdateAssetBriefMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAssetBrief>>,
+    TError,
+    { id: number; data: BodyType<UpdateAssetBriefBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAssetBrief>>,
+  TError,
+  { id: number; data: BodyType<UpdateAssetBriefBody> },
+  TContext
+> => {
+  const mutationKey = ["updateAssetBrief"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAssetBrief>>,
+    { id: number; data: BodyType<UpdateAssetBriefBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAssetBrief(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAssetBriefMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAssetBrief>>
+>;
+export type UpdateAssetBriefMutationBody = BodyType<UpdateAssetBriefBody>;
+export type UpdateAssetBriefMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update creative brief fields on a generated asset
+ */
+export const useUpdateAssetBrief = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAssetBrief>>,
+    TError,
+    { id: number; data: BodyType<UpdateAssetBriefBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAssetBrief>>,
+  TError,
+  { id: number; data: BodyType<UpdateAssetBriefBody> },
+  TContext
+> => {
+  return useMutation(getUpdateAssetBriefMutationOptions(options));
+};
 
 /**
  * @summary Get channel variants for an asset

@@ -16,7 +16,11 @@ function serializeCampaign(c: typeof campaignsTable.$inferSelect) {
     productService: c.productService, audience: c.audience, geography: c.geography,
     budgetSuggestion: c.budgetSuggestion, startDate: c.startDate, endDate: c.endDate,
     channels: JSON.parse(c.channels || "[]"), landingUrl: c.landingUrl,
-    status: c.status, createdAt: c.createdAt.toISOString(),
+    status: c.status,
+    publishedAt: c.publishedAt ? c.publishedAt.toISOString() : null,
+    publishedBy: c.publishedBy ?? null,
+    publishedChannels: c.publishedChannels ? JSON.parse(c.publishedChannels) : null,
+    createdAt: c.createdAt.toISOString(),
   };
 }
 
@@ -126,6 +130,49 @@ router.post("/campaigns/:id/approve", requireAuth, async (req, res): Promise<voi
   generateRecommendationsForWorkspace(c.workspaceId, actor(req)).catch((err) => {
     req.log.error({ err }, "Failed to auto-generate recommendations after campaign approval");
   });
+  res.json(serializeCampaign(c));
+});
+
+router.post("/campaigns/:id/manual-publish", requireAuth, async (req, res): Promise<void> => {
+  const id = parseInt(String(req.params.id));
+  const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+  const role = await getMemberRole(req.session.userId!, existing.workspaceId);
+  if (!role) { res.status(403).json({ error: "Access denied" }); return; }
+  if (!hasMinRole(role, "editor")) { res.status(403).json({ error: "Requires editor role or above" }); return; }
+
+  if (existing.status !== "approved") {
+    res.status(422).json({ error: "Campaign must be approved before it can be marked as published." });
+    return;
+  }
+
+  const { channels, notes } = req.body;
+  if (!channels || !Array.isArray(channels) || channels.length === 0) {
+    res.status(400).json({ error: "At least one channel is required." });
+    return;
+  }
+
+  const publishedBy = actor(req);
+  const [c] = await db.update(campaignsTable).set({
+    status: "active",
+    publishedAt: new Date(),
+    publishedBy,
+    publishedChannels: JSON.stringify(channels),
+  }).where(eq(campaignsTable.id, id)).returning();
+
+  if (!c) { res.status(404).json({ error: "Not found" }); return; }
+
+  await db.insert(auditLogsTable).values({
+    workspaceId: c.workspaceId,
+    action: "campaign_published",
+    entityType: "campaign",
+    entityId: c.id,
+    actor: publishedBy,
+    details: `Campaign "${c.name}" manually published to [${channels.join(", ")}]${notes ? ` — notes: ${notes}` : ""}`,
+  });
+
+  req.log.info({ campaignId: id, channels, actor: publishedBy }, "Campaign manually published");
   res.json(serializeCampaign(c));
 });
 

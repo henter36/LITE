@@ -86,6 +86,9 @@ export interface Campaign {
   channels: string[];
   landingUrl: string;
   status: CampaignStatus;
+  publishedAt?: string | null;
+  publishedBy?: string | null;
+  publishedChannels?: string[] | null;
   createdAt: string;
 }
 
@@ -142,6 +145,13 @@ export interface GeneratedAsset {
   videoScript: string;
   storyboardOutline: string;
   status: GeneratedAssetStatus;
+  imageBrief?: string | null;
+  videoBrief?: string | null;
+  assetReference?: string | null;
+  aiProvider?: string | null;
+  aiModel?: string | null;
+  promptVersion?: string | null;
+  aiFallbackUsed?: boolean | null;
   createdAt: string;
 }
 
@@ -157,6 +167,17 @@ export interface ChannelVariant {
 
 export interface GenerateAssetsBody {
   campaignId: number;
+}
+
+export interface ManualPublishBody {
+  channels: string[];
+  notes?: string;
+}
+
+export interface UpdateAssetBriefBody {
+  imageBrief?: string;
+  videoBrief?: string;
+  assetReference?: string;
 }
 
 export type ApprovalDecisionDecision =

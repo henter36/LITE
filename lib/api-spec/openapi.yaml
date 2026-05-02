@@ -424,6 +424,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
 
+  /campaigns/{id}/manual-publish:
+    post:
+      operationId: manualPublishCampaign
+      tags: [campaigns]
+      summary: Mark a campaign as manually published (demo only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManualPublishBody"
+      responses:
+        "200":
+          description: Campaign marked as published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
   /campaigns/summary:
     get:
       operationId: getCampaignSummary
@@ -500,6 +525,29 @@ paths:
       responses:
         "200":
           description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedAsset"
+    patch:
+      operationId: updateAssetBrief
+      tags: [assets]
+      summary: Update creative brief fields on a generated asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAssetBriefBody"
+      responses:
+        "200":
+          description: Updated asset
           content:
             application/json:
               schema:
@@ -1071,6 +1119,17 @@ components:
         status:
           type: string
           enum: [draft, active, paused, completed, approved]
+        publishedAt:
+          type: string
+          nullable: true
+        publishedBy:
+          type: string
+          nullable: true
+        publishedChannels:
+          type: array
+          nullable: true
+          items:
+            type: string
         createdAt:
           type: string
       required: [id, workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl, status, createdAt]
@@ -1146,6 +1205,27 @@ components:
         status:
           type: string
           enum: [draft, reviewed, approved, rejected]
+        imageBrief:
+          type: string
+          nullable: true
+        videoBrief:
+          type: string
+          nullable: true
+        assetReference:
+          type: string
+          nullable: true
+        aiProvider:
+          type: string
+          nullable: true
+        aiModel:
+          type: string
+          nullable: true
+        promptVersion:
+          type: string
+          nullable: true
+        aiFallbackUsed:
+          type: boolean
+          nullable: true
         createdAt:
           type: string
       required: [id, campaignId, headline, shortCaption, longCaption, cta, hashtags, videoScript, storyboardOutline, status, createdAt]
@@ -1177,6 +1257,27 @@ components:
         campaignId:
           type: integer
       required: [campaignId]
+
+    ManualPublishBody:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+      required: [channels]
+
+    UpdateAssetBriefBody:
+      type: object
+      properties:
+        imageBrief:
+          type: string
+        videoBrief:
+          type: string
+        assetReference:
+          type: string
 
     ApprovalDecision:
       type: object
