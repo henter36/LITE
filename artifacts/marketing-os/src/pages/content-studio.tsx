@@ -425,7 +425,19 @@ export default function ContentStudio() {
               <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-1">
                 Generating ad content for
               </p>
-              <h1 className="text-4xl font-bold tracking-tight">{selectedCampaign.name}</h1>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-4xl font-bold tracking-tight">{selectedCampaign.name}</h1>
+                <Badge
+                  variant={
+                    selectedCampaign.status === "active" || selectedCampaign.status === "approved"
+                      ? "default"
+                      : "secondary"
+                  }
+                  className="capitalize"
+                >
+                  {selectedCampaign.status}
+                </Badge>
+              </div>
               <p className="text-muted-foreground mt-2 text-base capitalize">
                 {selectedCampaign.objective} campaign · {selectedCampaign.channels.join(", ")}
               </p>

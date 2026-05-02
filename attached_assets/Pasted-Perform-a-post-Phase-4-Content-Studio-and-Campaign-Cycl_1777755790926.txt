@@ -1,0 +1,86 @@
+Perform a post-Phase 4 Content Studio and Campaign Cycle integration review.
+
+Do not add new features unless fixing verified defects.
+Do not connect new APIs.
+Do not implement real live publishing.
+Do not implement payments, budget changes, or autonomous optimization.
+Do not weaken auth, workspace isolation, roles, audit logs, AI fallback, Meta read-only, or safety guards.
+
+Objective:
+Verify whether Content Studio is now fully integrated into the campaign execution cycle after Phase 4.
+
+Review and verify:
+
+1. Campaign context in Content Studio
+- Content Studio loads with campaign context from URL.
+- It clearly shows campaign name and status.
+- It shows asset status for every generated ad.
+- It shows whether the asset has image/video brief or reference.
+
+2. Approval and readiness
+- Approving an ad updates asset status visibly.
+- Campaign Detail reflects approved ad count.
+- Campaign readiness requirements are clear.
+- Publish checklist is blocked until:
+  - ad content exists
+  - at least one ad is approved
+  - campaign is marked ready
+
+3. Creative brief completion
+- Image brief can be added and persists.
+- Video brief can be added and persists.
+- Asset reference can be added and persists.
+- Creative brief status is visible on asset cards and campaign detail.
+
+4. Manual publish workflow
+- Publish tab appears in Campaign Detail.
+- Manual publish is only available after readiness conditions pass.
+- Manual publish stores:
+  - published status
+  - published_at
+  - published_by
+  - selected channels
+  - notes
+- Audit log records manual publish.
+- UI clearly says no real ads were published.
+
+5. Channel variants
+- Platform variants are visible in Content Studio.
+- TikTok variant is visible.
+- Switching tabs does not regenerate content.
+- Variants remain tied to the selected campaign.
+
+6. Role permissions
+- Viewer cannot approve ads.
+- Viewer cannot edit creative briefs.
+- Viewer cannot manually publish.
+- Editor can perform campaign execution actions.
+- Admin/owner can manage account settings.
+
+7. Safety and language
+- No wording implies real external publishing.
+- No real ad APIs are called.
+- Safety guards still block live publishing, budget changes, payments, and autonomous optimization.
+
+8. Regression
+- TypeScript passes with zero errors.
+- Auth works.
+- Workspace isolation works.
+- AI generation still works.
+- Meta read-only still works.
+- Tracking links still work.
+- Reports still work.
+- Settings still work.
+
+Create:
+docs/post_phase_4_campaign_cycle_review.md
+
+Final output:
+- changed files, if fixes were needed
+- verification results
+- issues found and fixed
+- remaining UX or product gaps
+- readiness decision:
+  - accepted
+  - accepted with warnings
+  - rejected

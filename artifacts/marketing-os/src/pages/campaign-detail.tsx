@@ -301,6 +301,8 @@ export default function CampaignDetail() {
         : TrendingDown;
 
   const hasAssets = !isAssetsLoading && (assets?.length ?? 0) > 0;
+  const approvedAdCount = assets?.filter((a) => a.status === "approved").length ?? 0;
+  const hasApprovedAd = approvedAdCount > 0;
   const isApproved = campaign.status === "approved" || campaign.status === "active";
   const isPublished = campaign.status === "active" && !!campaign.publishedAt;
 
@@ -593,7 +595,15 @@ export default function CampaignDetail() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between gap-4 flex-wrap">
-                <CardTitle>Ad Content</CardTitle>
+                <div>
+                  <CardTitle>Ad Content</CardTitle>
+                  {hasAssets && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {approvedAdCount} of {assets?.length ?? 0} ad
+                      {(assets?.length ?? 0) !== 1 ? "s" : ""} approved
+                    </p>
+                  )}
+                </div>
                 {!isViewer && (!assets || assets.length === 0) && (
                   <Link href={`/content-studio?campaignId=${campaignId}`}>
                     <Button size="sm">
@@ -791,6 +801,20 @@ export default function CampaignDetail() {
                       <p className="text-amber-700/80 dark:text-amber-400/80">
                         You need to mark the campaign as ready before publishing. Review and approve
                         individual ads in the Content page first, then click "Mark Campaign Ready".
+                      </p>
+                    </div>
+                  ) : !hasApprovedAd ? (
+                    <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
+                      <p className="font-medium mb-1">No individual ads approved yet</p>
+                      <p className="text-amber-700/80 dark:text-amber-400/80">
+                        Approve at least one ad in the{" "}
+                        <Link
+                          href={`/content-studio?campaignId=${campaignId}`}
+                          className="font-semibold underline underline-offset-2"
+                        >
+                          Content page
+                        </Link>{" "}
+                        before publishing.
                       </p>
                     </div>
                   ) : !isViewer ? (
