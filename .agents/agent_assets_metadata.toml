@@ -66,3 +66,9 @@ id = "-TVPxdpkkcKODIUtBq_b4"
 uri = "file://docs/meta_readonly_guardrails.md"
 type = "text"
 title = "Meta Read-only Guardrails"
+
+[[outputs]]
+id = "xeJ0iV4NqIQep9iyx1AWQ"
+uri = "file://docs/phase_3_stabilization_review.md"
+type = "text"
+title = "Phase 3 Stabilization Review"

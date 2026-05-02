@@ -96,11 +96,11 @@ router.post("/meta/sync", requireAuth, requireWorkspaceRole("editor"), async (re
       entityType: "meta_sync",
       entityId: null,
       actor: actor(req),
-      details: `Meta read-only sync completed — provider: ${mode}${fallbackUsed ? " [fallback: mock used]" : ""}, accounts: ${adAccounts.length}, campaigns: ${campaigns.length}, workspaceId: ${workspaceId}`,
+      details: `Meta read-only sync completed — provider: ${mode}${fallbackUsed ? " [fallback: mock used]" : ""}, accounts: ${adAccounts.length} [${adAccounts.map((a) => a.id).join(", ")}], campaigns: ${campaigns.length}, workspaceId: ${workspaceId}`,
     });
 
     req.log.info(
-      { workspaceId, mode, fallbackUsed, accounts: adAccounts.length, campaigns: campaigns.length },
+      { workspaceId, mode, fallbackUsed, accounts: adAccounts.length, accountIds: adAccounts.map((a) => a.id), campaigns: campaigns.length },
       "meta_readonly_sync_completed"
     );
 
