@@ -3,20 +3,40 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Marketing OS Lite API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: workspaces
+    description: Workspace management
+  - name: brand-profiles
+    description: Brand profile management
+  - name: campaigns
+    description: Campaign management
+  - name: assets
+    description: Generated content assets
+  - name: approvals
+    description: Approval workflow
+  - name: connections
+    description: Ad platform connections
+  - name: tracking
+    description: UTM tracking links
+  - name: metrics
+    description: Performance metrics
+  - name: recommendations
+    description: Rules-based recommendations
+  - name: audit
+    description: Audit log
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +44,716 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # Workspaces
+  /workspaces:
+    get:
+      operationId: listWorkspaces
+      tags: [workspaces]
+      summary: List all workspaces
+      responses:
+        "200":
+          description: List of workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Workspace"
+    post:
+      operationId: createWorkspace
+      tags: [workspaces]
+      summary: Create a workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkspaceBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+
+  /workspaces/{id}:
+    get:
+      operationId: getWorkspace
+      tags: [workspaces]
+      summary: Get a workspace
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+    put:
+      operationId: updateWorkspace
+      tags: [workspaces]
+      summary: Update a workspace
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkspaceBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+    delete:
+      operationId: deleteWorkspace
+      tags: [workspaces]
+      summary: Delete a workspace
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # Brand Profiles
+  /brand-profiles:
+    get:
+      operationId: listBrandProfiles
+      tags: [brand-profiles]
+      summary: List brand profiles
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of brand profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BrandProfile"
+    post:
+      operationId: createBrandProfile
+      tags: [brand-profiles]
+      summary: Create a brand profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBrandProfileBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandProfile"
+
+  /brand-profiles/{id}:
+    get:
+      operationId: getBrandProfile
+      tags: [brand-profiles]
+      summary: Get a brand profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Brand profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandProfile"
+    put:
+      operationId: updateBrandProfile
+      tags: [brand-profiles]
+      summary: Update a brand profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBrandProfileBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandProfile"
+
+  # Campaigns
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [campaigns]
+      summary: List campaigns
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+    post:
+      operationId: createCampaign
+      tags: [campaigns]
+      summary: Create a campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCampaignBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}:
+    get:
+      operationId: getCampaign
+      tags: [campaigns]
+      summary: Get a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    put:
+      operationId: updateCampaign
+      tags: [campaigns]
+      summary: Update a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCampaignBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    delete:
+      operationId: deleteCampaign
+      tags: [campaigns]
+      summary: Delete a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /campaigns/{id}/approve:
+    post:
+      operationId: approveCampaign
+      tags: [campaigns]
+      summary: Approve a campaign (mark as ready)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/summary:
+    get:
+      operationId: getCampaignSummary
+      tags: [campaigns]
+      summary: Dashboard campaign summary
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignSummary"
+
+  # Generated Assets
+  /assets:
+    get:
+      operationId: listAssets
+      tags: [assets]
+      summary: List generated assets
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeneratedAsset"
+    post:
+      operationId: generateAssets
+      tags: [assets]
+      summary: Generate content assets for a campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateAssetsBody"
+      responses:
+        "201":
+          description: Assets generated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeneratedAsset"
+
+  /assets/{id}:
+    get:
+      operationId: getAsset
+      tags: [assets]
+      summary: Get a generated asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedAsset"
+
+  /assets/{id}/variants:
+    get:
+      operationId: getAssetVariants
+      tags: [assets]
+      summary: Get channel variants for an asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channel variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChannelVariant"
+
+  # Approvals
+  /approvals:
+    get:
+      operationId: listApprovals
+      tags: [approvals]
+      summary: List approval decisions
+      parameters:
+        - name: assetId
+          in: query
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of approval decisions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApprovalDecision"
+    post:
+      operationId: createApproval
+      tags: [approvals]
+      summary: Submit an approval decision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApprovalBody"
+      responses:
+        "201":
+          description: Approval decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalDecision"
+
+  # Ad Platform Connections
+  /connections:
+    get:
+      operationId: listConnections
+      tags: [connections]
+      summary: List platform connections
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformConnection"
+    post:
+      operationId: createConnection
+      tags: [connections]
+      summary: Connect to a mock ad platform
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConnectionBody"
+      responses:
+        "201":
+          description: Connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformConnection"
+
+  /connections/{id}:
+    delete:
+      operationId: deleteConnection
+      tags: [connections]
+      summary: Disconnect a platform
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Disconnected
+
+  /connections/{id}/sync:
+    post:
+      operationId: syncConnection
+      tags: [connections]
+      summary: Trigger a mock data sync
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Sync triggered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncJob"
+
+  # Tracking Links
+  /tracking-links:
+    get:
+      operationId: listTrackingLinks
+      tags: [tracking]
+      summary: List tracking links
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of tracking links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrackingLink"
+    post:
+      operationId: createTrackingLink
+      tags: [tracking]
+      summary: Generate a UTM tracking link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTrackingLinkBody"
+      responses:
+        "201":
+          description: Tracking link created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingLink"
+
+  /tracking-links/{id}:
+    delete:
+      operationId: deleteTrackingLink
+      tags: [tracking]
+      summary: Delete a tracking link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # Metrics
+  /metrics:
+    get:
+      operationId: listMetrics
+      tags: [metrics]
+      summary: List daily ad metrics
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+        - name: platform
+          in: query
+          schema:
+            type: string
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+        - name: toDate
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Daily metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdMetricsDaily"
+
+  /metrics/dashboard:
+    get:
+      operationId: getDashboardMetrics
+      tags: [metrics]
+      summary: Aggregated dashboard KPIs
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dashboard KPIs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardMetrics"
+
+  /metrics/channel-comparison:
+    get:
+      operationId: getChannelComparison
+      tags: [metrics]
+      summary: Channel performance comparison
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channel comparison
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChannelMetricsSummary"
+
+  # Recommendations
+  /recommendations:
+    get:
+      operationId: listRecommendations
+      tags: [recommendations]
+      summary: List recommendations
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+
+  /recommendations/generate:
+    post:
+      operationId: generateRecommendations
+      tags: [recommendations]
+      summary: Run rules engine to generate recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId:
+                  type: integer
+              required: [workspaceId]
+      responses:
+        "200":
+          description: Generated recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+
+  # Audit Log
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: List audit log entries
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogPage"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +761,508 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        businessType:
+          type: string
+        country:
+          type: string
+        language:
+          type: string
+        defaultCurrency:
+          type: string
+        createdAt:
+          type: string
+      required: [id, name, businessType, country, language, defaultCurrency, createdAt]
+
+    CreateWorkspaceBody:
+      type: object
+      properties:
+        name:
+          type: string
+        businessType:
+          type: string
+        country:
+          type: string
+        language:
+          type: string
+        defaultCurrency:
+          type: string
+      required: [name, businessType, country, language, defaultCurrency]
+
+    BrandProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        brandName:
+          type: string
+        toneOfVoice:
+          type: string
+        targetAudience:
+          type: string
+        productsServices:
+          type: string
+        forbiddenClaims:
+          type: string
+        preferredChannels:
+          type: array
+          items:
+            type: string
+        visualNotes:
+          type: string
+        createdAt:
+          type: string
+      required: [id, workspaceId, brandName, toneOfVoice, targetAudience, productsServices, forbiddenClaims, preferredChannels, visualNotes, createdAt]
+
+    CreateBrandProfileBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        brandName:
+          type: string
+        toneOfVoice:
+          type: string
+        targetAudience:
+          type: string
+        productsServices:
+          type: string
+        forbiddenClaims:
+          type: string
+        preferredChannels:
+          type: array
+          items:
+            type: string
+        visualNotes:
+          type: string
+      required: [workspaceId, brandName, toneOfVoice, targetAudience, productsServices, forbiddenClaims, preferredChannels, visualNotes]
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        name:
+          type: string
+        objective:
+          type: string
+          enum: [awareness, traffic, leads, sales]
+        productService:
+          type: string
+        audience:
+          type: string
+        geography:
+          type: string
+        budgetSuggestion:
+          type: number
+        startDate:
+          type: string
+        endDate:
+          type: string
+        channels:
+          type: array
+          items:
+            type: string
+        landingUrl:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, paused, completed, approved]
+        createdAt:
+          type: string
+      required: [id, workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl, status, createdAt]
+
+    CreateCampaignBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        name:
+          type: string
+        objective:
+          type: string
+          enum: [awareness, traffic, leads, sales]
+        productService:
+          type: string
+        audience:
+          type: string
+        geography:
+          type: string
+        budgetSuggestion:
+          type: number
+        startDate:
+          type: string
+        endDate:
+          type: string
+        channels:
+          type: array
+          items:
+            type: string
+        landingUrl:
+          type: string
+      required: [workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl]
+
+    CampaignSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        draft:
+          type: integer
+        active:
+          type: integer
+        approved:
+          type: integer
+        completed:
+          type: integer
+      required: [total, draft, active, approved, completed]
+
+    GeneratedAsset:
+      type: object
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        headline:
+          type: string
+        shortCaption:
+          type: string
+        longCaption:
+          type: string
+        cta:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        videoScript:
+          type: string
+        storyboardOutline:
+          type: string
+        status:
+          type: string
+          enum: [draft, reviewed, approved, rejected]
+        createdAt:
+          type: string
+      required: [id, campaignId, headline, shortCaption, longCaption, cta, hashtags, videoScript, storyboardOutline, status, createdAt]
+
+    ChannelVariant:
+      type: object
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+        channel:
+          type: string
+        headline:
+          type: string
+        caption:
+          type: string
+        cta:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+      required: [id, assetId, channel, headline, caption, cta, hashtags]
+
+    GenerateAssetsBody:
+      type: object
+      properties:
+        campaignId:
+          type: integer
+      required: [campaignId]
+
+    ApprovalDecision:
+      type: object
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+        campaignId:
+          type: integer
+        actor:
+          type: string
+        decision:
+          type: string
+          enum: [approved, rejected, changes_requested]
+        reason:
+          type: string
+        createdAt:
+          type: string
+      required: [id, actor, decision, reason, createdAt]
+
+    CreateApprovalBody:
+      type: object
+      properties:
+        assetId:
+          type: integer
+        campaignId:
+          type: integer
+        actor:
+          type: string
+        decision:
+          type: string
+          enum: [approved, rejected, changes_requested]
+        reason:
+          type: string
+      required: [actor, decision, reason]
+
+    PlatformConnection:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        platform:
+          type: string
+          enum: [instagram, snapchat, youtube, x]
+        accountName:
+          type: string
+        accountId:
+          type: string
+        status:
+          type: string
+          enum: [connected, disconnected, error]
+        mockSpend:
+          type: number
+        mockImpressions:
+          type: integer
+        mockClicks:
+          type: integer
+        lastSyncAt:
+          type: string
+        createdAt:
+          type: string
+      required: [id, workspaceId, platform, accountName, accountId, status, mockSpend, mockImpressions, mockClicks, createdAt]
+
+    CreateConnectionBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        platform:
+          type: string
+          enum: [instagram, snapchat, youtube, x]
+        accountName:
+          type: string
+      required: [workspaceId, platform, accountName]
+
+    SyncJob:
+      type: object
+      properties:
+        id:
+          type: integer
+        connectionId:
+          type: integer
+        status:
+          type: string
+        startedAt:
+          type: string
+        completedAt:
+          type: string
+      required: [id, connectionId, status, startedAt]
+
+    TrackingLink:
+      type: object
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        channel:
+          type: string
+        source:
+          type: string
+        medium:
+          type: string
+        campaign:
+          type: string
+        content:
+          type: string
+        finalUrl:
+          type: string
+        generatedTrackingUrl:
+          type: string
+        createdAt:
+          type: string
+      required: [id, campaignId, channel, source, medium, campaign, content, finalUrl, generatedTrackingUrl, createdAt]
+
+    CreateTrackingLinkBody:
+      type: object
+      properties:
+        campaignId:
+          type: integer
+        channel:
+          type: string
+        source:
+          type: string
+        medium:
+          type: string
+        campaign:
+          type: string
+        content:
+          type: string
+        finalUrl:
+          type: string
+      required: [campaignId, channel, source, medium, campaign, content, finalUrl]
+
+    AdMetricsDaily:
+      type: object
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        platform:
+          type: string
+        date:
+          type: string
+        spend:
+          type: number
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+        ctr:
+          type: number
+        cpc:
+          type: number
+        conversions:
+          type: integer
+      required: [id, campaignId, platform, date, spend, impressions, clicks, ctr, cpc, conversions]
+
+    DashboardMetrics:
+      type: object
+      properties:
+        totalSpend:
+          type: number
+        totalImpressions:
+          type: integer
+        totalClicks:
+          type: integer
+        avgCtr:
+          type: number
+        avgCpc:
+          type: number
+        totalConversions:
+          type: integer
+        bestChannel:
+          type: string
+        worstChannel:
+          type: string
+        dailyTrend:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyTrendPoint"
+      required: [totalSpend, totalImpressions, totalClicks, avgCtr, avgCpc, totalConversions, bestChannel, worstChannel, dailyTrend]
+
+    DailyTrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        spend:
+          type: number
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+        conversions:
+          type: integer
+      required: [date, spend, impressions, clicks, conversions]
+
+    ChannelMetricsSummary:
+      type: object
+      properties:
+        platform:
+          type: string
+        spend:
+          type: number
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+        ctr:
+          type: number
+        cpc:
+          type: number
+        conversions:
+          type: integer
+      required: [platform, spend, impressions, clicks, ctr, cpc, conversions]
+
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        campaignId:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, workspaceId, type, title, description, priority, isRead, createdAt]
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: integer
+        actor:
+          type: string
+        details:
+          type: string
+        createdAt:
+          type: string
+      required: [id, workspaceId, action, actor, createdAt]
+
+    AuditLogPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+      required: [items, total, limit, offset]

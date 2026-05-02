@@ -1,0 +1,329 @@
+Build a lightweight MVP called Marketing OS Lite.
+
+Objective:
+Create a web platform that helps small businesses plan, generate, approve, and monitor marketing campaigns for Instagram, Snapchat, YouTube, and X/Twitter from one dashboard.
+
+Important scope:
+This is a Lite MVP for proof of concept.
+Do NOT implement real ad spending.
+Do NOT implement automatic budget changes.
+Do NOT publish live ads automatically.
+Do NOT connect real payment methods.
+Do NOT store platform passwords.
+Use simulated/mock ad platform integrations for now, but design the code so real APIs can be added later.
+
+Tech stack:
+- Frontend: React + TypeScript + Vite
+- Backend: Python FastAPI
+- Database: SQLite
+- Styling: Tailwind CSS
+- API documentation: OpenAPI from FastAPI
+- Run frontend and backend in Replit
+- Provide clear README with run instructions
+
+Core modules:
+
+1. Authentication-lite
+Create simple local user/workspace handling without production-grade auth.
+Tables:
+- users
+- workspaces
+- workspace_members
+
+2. Workspace
+Each customer has a workspace.
+Workspace fields:
+- id
+- name
+- business_type
+- country
+- language
+- default_currency
+- created_at
+
+3. Brand Profile
+Allow the user to define:
+- brand name
+- tone of voice
+- target audience
+- products/services
+- forbidden claims
+- preferred channels
+- visual notes
+
+Tables:
+- brand_profiles
+- brand_rules
+
+4. Campaign Planner
+Allow the user to create a campaign with:
+- campaign name
+- objective: awareness, traffic, leads, sales
+- product/service
+- audience
+- geography
+- budget suggestion only
+- start date
+- end date
+- channels: Instagram, Snapchat, YouTube, X
+- landing URL or WhatsApp link
+
+Important:
+Budget is only advisory in Lite MVP. Do not execute spending.
+
+Tables:
+- campaigns
+- campaign_channels
+
+5. AI Content Studio - mock generation
+Create a content generation screen that produces campaign assets.
+Use deterministic mock generation for now, not paid AI APIs unless environment variables are configured.
+Generate:
+- ad headline
+- short caption
+- long caption
+- CTA
+- hashtag suggestions
+- channel-specific variants
+- simple video script
+- storyboard outline
+
+Tables:
+- generated_assets
+- channel_variants
+
+Asset status:
+- draft
+- reviewed
+- approved
+- rejected
+
+6. Approval Workflow
+Before any campaign can be marked ready, require manual approval.
+Actions:
+- approve asset
+- reject asset
+- request changes
+- approve campaign
+
+Tables:
+- approval_decisions
+
+Every approval must capture:
+- actor
+- decision
+- reason
+- timestamp
+
+7. Ad Connectors Layer - mock only
+Create a connector architecture with interfaces/classes:
+- BaseAdConnector
+- MetaAdsConnector
+- SnapAdsConnector
+- GoogleAdsConnector
+- XAdsConnector
+
+For now, all connectors must be mock connectors.
+They should simulate:
+- connected ad account
+- campaigns
+- spend
+- impressions
+- clicks
+- CTR
+- CPC
+- conversions
+
+Do not call real external APIs.
+Design the connectors so real APIs can be added later.
+
+Tables:
+- platform_connections
+- ad_accounts
+- external_campaign_refs
+- sync_jobs
+
+8. Tracking Links
+Create UTM tracking links for each campaign/channel.
+Fields:
+- source
+- medium
+- campaign
+- content
+- final_url
+- generated_tracking_url
+
+Tables:
+- tracking_links
+
+9. Performance Dashboard
+Create a dashboard showing:
+- total spend simulated
+- impressions
+- clicks
+- CTR
+- CPC
+- conversions
+- best channel
+- worst channel
+- campaign performance table
+- daily performance chart
+- channel comparison chart
+
+Use mock data seeded into SQLite.
+
+Tables:
+- ad_metrics_daily
+
+10. Recommendations Engine - rules based
+Create a simple rules-based recommendation engine.
+Examples:
+- If CTR is low, suggest improving hook/headline.
+- If CPC is high, suggest narrowing audience or testing creative.
+- If conversions are low but clicks are high, suggest landing page review.
+- If one channel performs better, suggest increasing focus, but do not change budget automatically.
+
+Tables:
+- recommendations
+
+11. Audit Log
+Every important action must be logged:
+- workspace created
+- campaign created
+- content generated
+- asset approved/rejected
+- tracking link created
+- mock sync executed
+- recommendation generated
+
+Tables:
+- audit_logs
+
+12. Safety and Governance
+Add visible warnings:
+- This MVP does not spend real ad budget.
+- This MVP does not publish ads automatically.
+- Real ad API integration requires OAuth, approval workflow, budget guardrails, and platform review.
+- All publishing and budget actions are disabled in Lite MVP.
+
+Add backend guards:
+- Reject any API request trying to publish live ads.
+- Reject any API request trying to change live budget.
+- Reject any API request trying to connect payment methods.
+
+13. Screens
+Build these screens:
+
+A. Dashboard
+- KPIs
+- campaign summary
+- channel performance
+- recommendations
+
+B. Workspaces
+- create/edit workspace
+
+C. Brand Profile
+- create/edit brand rules
+
+D. Campaigns
+- campaign list
+- create campaign
+- campaign detail
+
+E. Content Studio
+- generate content
+- view variants by channel
+- approve/reject assets
+
+F. Tracking Links
+- generate and copy UTM links
+
+G. Ad Connections
+- show mock connections for Meta, Snapchat, Google/YouTube, X
+- connect/disconnect mock accounts
+- show connection status
+
+H. Reports
+- performance table
+- daily metrics
+- export CSV
+
+I. Audit Log
+- searchable action history
+
+14. Backend API endpoints
+Implement REST endpoints for:
+- workspaces
+- brand profiles
+- campaigns
+- generated assets
+- approvals
+- platform connections
+- tracking links
+- metrics
+- recommendations
+- audit logs
+
+15. Seed Data
+Add seed data:
+- 1 demo workspace
+- 1 brand profile
+- 3 campaigns
+- 4 connected mock ad platforms
+- 30 days of mock metrics
+- 10 recommendations
+- audit log entries
+
+16. Quality requirements
+- Clean folder structure
+- Type-safe frontend models
+- Pydantic schemas on backend
+- SQLite migrations or initialization script
+- Error handling
+- Loading states
+- Empty states
+- No hardcoded secrets
+- Environment variable support for future API keys
+- README explaining current mock scope and future real API path
+
+17. Forbidden implementation
+Do not implement:
+- real OAuth
+- real Meta API calls
+- real Snapchat API calls
+- real Google Ads API calls
+- real X Ads API calls
+- live campaign publishing
+- real ad budget changes
+- payment methods
+- auto optimization
+- autonomous campaign decisions
+
+18. Future-ready architecture
+Add a docs folder with:
+- ARCHITECTURE.md
+- API_INTEGRATION_PLAN.md
+- GOVERNANCE.md
+- ROADMAP.md
+
+In API_INTEGRATION_PLAN.md explain that future real integrations will require:
+- OAuth per platform
+- customer-owned ad accounts
+- permission scopes
+- approval workflow
+- budget guardrails
+- rate limit handling
+- error recovery
+- audit logs
+- platform compliance review
+
+Final deliverable:
+A working Replit app with:
+- React frontend
+- FastAPI backend
+- SQLite database
+- mock ad platform integrations
+- seeded demo data
+- clear README
+- no real ad spending or publishing capability
