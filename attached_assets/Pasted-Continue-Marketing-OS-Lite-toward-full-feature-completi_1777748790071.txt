@@ -1,0 +1,114 @@
+Continue Marketing OS Lite toward full feature completion based on the agreed roadmap.
+
+Do not start a new project.
+Do not rebuild from scratch.
+Preserve the existing UX reset, auth, workspace isolation, role checks, audit logs, mock connectors, safety guards, and current demo flow.
+
+Important restrictions:
+- Do not implement live ad publishing yet.
+- Do not implement budget changes yet.
+- Do not implement payments yet.
+- Do not implement autonomous optimization yet.
+- Do not connect all ad platforms at once.
+- Do not weaken existing security or safety controls.
+
+Objective:
+Complete the agreed Marketing OS Lite product capabilities in controlled phases while keeping the UI simple and usable.
+
+Phase 1 — Complete Remaining UX/Product Gaps
+Implement:
+1. Member management UI in Settings:
+   - list members
+   - invite/add member by email
+   - assign role: owner, admin, editor, viewer
+   - change role
+   - remove member
+   - only admin/owner can manage members
+
+2. Campaign creation clarity:
+   - either convert campaign creation into a true 2-step wizard
+   - or remove misleading “Step 1 of 4” wording
+   - separate required fields from optional fields
+
+3. Recommendation improvements:
+   - auto-generate recommendations when campaign is marked ready
+   - add dismiss/read state if schema supports it; otherwise document limitation
+   - show campaign-linked rationale
+   - add at least one rule for campaign ending soon
+
+4. Reports export:
+   - keep CSV export
+   - add PDF export if feasible without heavy complexity
+   - if PDF export is risky, document it as next phase
+
+5. Production hardening basics:
+   - auth rate limiting
+   - helmet security headers
+   - frontend error boundary
+   - request logging with workspace id where possible
+   - clearer production environment notes
+
+Phase 2 — Real AI Content Generation
+Implement a pluggable AI provider layer:
+- AIProvider interface
+- MockAIProvider fallback
+- OpenAIProvider or equivalent provider using environment variables
+- no API key in frontend
+- graceful fallback to mock generation if provider unavailable
+- store model name, prompt version, generated output, and provider used
+- keep human approval mandatory
+
+Guardrails:
+- brand profile must be included in prompt/context
+- forbidden claims must be filtered before and after generation
+- no unsupported performance promises
+- visual notes must influence storyboard/video guidance
+- audit log must record AI generation provider and approval status
+
+Phase 3 — Meta/Instagram Read-only Integration
+Implement read-only integration only:
+- OAuth/config placeholders if full app approval is unavailable
+- ads_read only
+- pull ad accounts/campaigns/metrics where credentials are configured
+- store external references per workspace
+- keep mock mode available
+- clearly separate real read-only data from demo data
+
+Strictly forbidden in this phase:
+- create campaigns
+- edit campaigns
+- change budgets
+- publish ads
+- connect payments
+- autonomous optimization
+
+Phase 4 — Completion Documentation
+Create or update:
+- docs/full_feature_completion_plan.md
+- docs/production_hardening_report.md
+- docs/ai_provider_governance.md
+- docs/meta_readonly_integration_report.md
+- docs/remaining_risks_and_deferred_items.md
+
+Verification:
+- TypeScript passes with zero errors.
+- Auth works.
+- Workspace isolation works.
+- Roles work in backend and frontend.
+- Viewer cannot write.
+- Editor cannot manage members.
+- Admin/owner can manage members.
+- Safety guards still block publishing, budget changes, payments, and autonomous optimization.
+- AI generation uses brand profile and guardrails.
+- Mock fallback works.
+- Real API data, if enabled, is clearly labeled and never mixed with demo data without disclosure.
+- No endpoint can spend money.
+- No endpoint can publish an ad.
+- No endpoint can modify external campaigns.
+
+Final output:
+- changed files
+- completed capabilities
+- verification results
+- remaining risks
+- next recommended phase
