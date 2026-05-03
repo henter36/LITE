@@ -1,10 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
-import { db } from "@workspace/db";
-import { workspaceMembersTable } from "@workspace/db";
+import { db, workspaceMembersTable, systemAdminUsersTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
 
 export type Role = "viewer" | "editor" | "admin" | "owner";
 export const ROLE_HIERARCHY: Role[] = ["viewer", "editor", "admin", "owner"];
+export type SystemRole = "system_admin" | "super_admin";
 
 export function hasMinRole(userRole: Role, minRole: Role): boolean {
   return ROLE_HIERARCHY.indexOf(userRole) >= ROLE_HIERARCHY.indexOf(minRole);
@@ -27,6 +27,15 @@ export async function getMemberRole(userId: number, workspaceId: number): Promis
       ),
     );
   return member ? (member.role as Role) : null;
+}
+
+export async function getSystemRole(userId: number): Promise<SystemRole | null> {
+  const [row] = await db
+    .select({ role: systemAdminUsersTable.role })
+    .from(systemAdminUsersTable)
+    .where(eq(systemAdminUsersTable.userId, userId));
+  if (!row) return null;
+  return row.role === "super_admin" ? "super_admin" : "system_admin";
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
@@ -81,6 +90,40 @@ export function requireWorkspaceRole(minRole: Role) {
       })
       .catch(() => res.status(500).json({ error: "Authorization check failed" }));
   };
+}
+
+export function requireSystemAdmin(req: Request, res: Response, next: NextFunction): void {
+  const userId = req.session.userId;
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  getSystemRole(userId)
+    .then((role) => {
+      if (!role) {
+        res.status(403).json({ error: "System admin access required" });
+        return;
+      }
+      next();
+    })
+    .catch(() => res.status(500).json({ error: "Authorization check failed" }));
+}
+
+export function requireSuperAdmin(req: Request, res: Response, next: NextFunction): void {
+  const userId = req.session.userId;
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  getSystemRole(userId)
+    .then((role) => {
+      if (role !== "super_admin") {
+        res.status(403).json({ error: "Super admin access required" });
+        return;
+      }
+      next();
+    })
+    .catch(() => res.status(500).json({ error: "Authorization check failed" }));
 }
 
 export function actor(req: Request): string {
