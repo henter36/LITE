@@ -1,0 +1,160 @@
+Campaign Arabic/RTL Polish Slice 3.1 only.
+
+The Campaign screens are technically working, but screenshots prove the visual QA is not acceptable yet. The UI still mixes English and Arabic, purple and green visual systems, and the AI Workflow tab is not Arabic-first.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- existing campaign list page file, if separate
+- artifacts/marketing-os/src/pages/campaign-detail.tsx
+- artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx
+- docs/ui_alignment_campaign_slice_report.md
+
+Objective:
+Make the Campaign list, Campaign Detail, and AI Workflow tab Arabic-first, RTL-polished, and visually consistent with the accepted Dashboard and Brand design direction, while preserving all existing behavior and guards.
+
+Critical visual issues to fix:
+
+1. Campaign list Arabic-first
+Replace visible English UI copy:
+- Campaigns → الحملات
+- Plan and manage your marketing campaigns → أدِر حملاتك التسويقية وجهّزها للنشر اليدوي
+- New Campaign → حملة جديدة
+- Open → فتح
+- Active → نشطة
+- Draft → مسودة
+- Approved → معتمدة
+- Traffic / Awareness / Leads → زيارات / وعي / عملاء محتملون where these are UI labels, not stored raw data
+
+Do not translate saved campaign names.
+
+2. Campaign list visual polish
+Make the campaign list match the green/teal RTL design family:
+- remove purple dominance
+- use emerald/teal active status badges
+- soft white cards
+- clearer Arabic metadata rows
+- better spacing
+- premium RTL layout
+- no clipping under the sidebar
+
+3. Campaign Detail Arabic cleanup
+Translate visible UI labels in Campaign Detail:
+- AI Workflow Status → حالة سير عمل الذكاء الاصطناعي
+- Approved ads → الإعلانات المعتمدة
+- Strategy context → سياق الاستراتيجية
+- Approved creative asset/reference → أصل/مرجع إبداعي معتمد
+- Campaign marked ready → الحملة معلّمة كجاهزة
+- Tracking link or landing URL → رابط تتبع أو صفحة هبوط
+- Selected channels → القنوات المحددة
+- Publish → النشر اليدوي
+- Approve → اعتماد
+- Generate Ads → توليد نصوص إعلانية
+- Create Campaign → إنشاء/تحديث الحملة
+- Performance → الأداء
+
+Keep real campaign names and user-entered data unchanged.
+
+4. AI Workflow tab Arabic-first
+Translate and polish the entire AI Workflow tab:
+- Step 1 — Client Intake → الخطوة 1 — مدخلات العميل
+- Step 2 — Strategy Brief → الخطوة 2 — موجز الاستراتيجية
+- Step 3 — Creative Brief → الخطوة 3 — الموجز الإبداعي
+- Step 4 — Text Suggestions → الخطوة 4 — اقتراحات النصوص
+- Step 5 — Image Prompt Specs → الخطوة 5 — مواصفات مطالبة الصورة
+- Step 6 — Video Script / Storyboard Specs → الخطوة 6 — نص الفيديو ولوحة المشاهد
+- Generate Strategy Brief → توليد موجز الاستراتيجية
+- Generate Creative Brief → توليد الموجز الإبداعي
+- Generate Text Suggestions → توليد اقتراحات النصوص
+- Generate Image Prompt Specs → توليد مواصفات الصورة
+- Generate Video Script Specs → توليد نص الفيديو
+
+Keep all AI outputs draft-only.
+Do not implement actual image/video generation.
+
+5. Visual consistency
+Use the same family as Dashboard/Brand:
+- light right-side shell unchanged
+- green/teal identity
+- white cards
+- soft borders
+- subtle shadows
+- Arabic badges
+- RTL spacing
+- no purple primary buttons unless there is no safe alternative
+
+6. Preserve all campaign logic
+Do not change:
+- readiness score logic
+- missing requirements list
+- publish checklist
+- manual publish guard at UI and handler level
+- viewer restrictions
+- tracking link dialog
+- publish dialog
+- approve/publish/create-link mutations
+- AI workflow auth/role/workspace scoping
+- draft-only AI behavior
+
+7. Unsupported features
+Do not add or imply:
+- upload
+- image generation
+- video generation
+- live publishing
+- autonomous optimization
+- payment/budget automation
+
+Manual publish remains external/manual only.
+
+Documentation:
+Update:
+docs/ui_alignment_campaign_slice_report.md
+
+Report must include:
+- changed files
+- Campaign list Arabic/RTL polish summary
+- Campaign Detail Arabic/RTL polish summary
+- AI Workflow tab Arabic/RTL polish summary
+- preserved guards and workflows
+- unsupported features still deferred
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard changes
+- no Brand changes
+- no Content/Review changes
+- no new pages
+- no upload/media/live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- Campaign Arabic/RTL polish completed
+- screenshot/visual evidence status
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision

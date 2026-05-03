@@ -161,15 +161,15 @@ function DraftBanner() {
   return (
     <div className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
       <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-      Draft only — requires human review before use. Do not approve or publish directly from AI output.
+      مسودة فقط — تتطلب مراجعة بشرية قبل الاستخدام. لا تعتمد أو تنشر مباشرةً من مخرجات الذكاء الاصطناعي.
     </div>
   );
 }
 
 function SectionList({ items }: { items: string[] }) {
-  if (!items.length) return <p className="text-xs text-muted-foreground">None returned.</p>;
+  if (!items.length) return <p className="text-xs text-muted-foreground">لا توجد عناصر.</p>;
   return (
-    <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
+    <ul className="space-y-1 text-sm text-muted-foreground list-disc pr-5">
       {items.map((item, i) => (
         <li key={i}>{item}</li>
       ))}
@@ -193,7 +193,7 @@ function CollapseCard({
     <div className="rounded-lg border">
       <button
         type="button"
-        className="w-full flex items-center justify-between p-4 text-left"
+        className="w-full flex items-center justify-between p-4 text-right"
         onClick={() => setOpen((v) => !v)}
       >
         <span className="flex items-center gap-2 font-medium text-sm">
@@ -301,7 +301,7 @@ function IntakeStep({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <ClipboardList className="h-4 w-4" />
-            Step 1 — Client Intake
+            الخطوة 1 — مدخلات العميل
           </CardTitle>
           {saved && (
             <Badge variant="outline" className="text-green-700 border-green-500/30 bg-green-500/5">
@@ -311,71 +311,71 @@ function IntakeStep({
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          Collect campaign context. This information feeds the strategy brief, creative brief, and text suggestions.
+            اجمع سياق الحملة. هذه المعلومات تغذي موجز الاستراتيجية والموجز الإبداعي واقتراحات النصوص.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {error && <ErrorBanner message={error} />}
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Business / Product Description</Label>
+            <Label>وصف النشاط أو المنتج</Label>
             <Textarea
               value={form.businessDescription}
               onChange={set("businessDescription")}
-              placeholder="What does the business offer? What problem does it solve?"
+              placeholder="ماذا يقدم النشاط؟ وما المشكلة التي يحلها؟"
               rows={2}
               className="resize-none"
               disabled={isViewer}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Campaign Objective</Label>
-            <Input value={form.campaignObjective} onChange={set("campaignObjective")} placeholder="e.g. leads, sales, brand awareness" disabled={isViewer} />
+            <Label>هدف الحملة</Label>
+            <Input value={form.campaignObjective} onChange={set("campaignObjective")} placeholder="مثال: عملاء محتملون، مبيعات، وعي بالعلامة" disabled={isViewer} />
           </div>
           <div className="space-y-1.5">
-            <Label>Target Audience</Label>
-            <Input value={form.targetAudience} onChange={set("targetAudience")} placeholder="e.g. 25–40 year old small business owners" disabled={isViewer} />
+            <Label>الجمهور المستهدف</Label>
+            <Input value={form.targetAudience} onChange={set("targetAudience")} placeholder="مثال: أصحاب المشاريع الصغيرة من 25 إلى 40 عاماً" disabled={isViewer} />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Offer / Value Proposition</Label>
-            <Input value={form.offerValueProposition} onChange={set("offerValueProposition")} placeholder="What specific offer or value is being communicated?" disabled={isViewer} />
+            <Label>العرض / القيمة المقترحة</Label>
+            <Input value={form.offerValueProposition} onChange={set("offerValueProposition")} placeholder="ما العرض أو القيمة التي تريد إيصالها؟" disabled={isViewer} />
           </div>
           <div className="space-y-1.5">
-            <Label>Brand Tone</Label>
-            <Input value={form.brandTone} onChange={set("brandTone")} placeholder="e.g. professional, bold, friendly" disabled={isViewer} />
+            <Label>نبرة العلامة</Label>
+            <Input value={form.brandTone} onChange={set("brandTone")} placeholder="مثال: احترافية، جريئة، ودودة" disabled={isViewer} />
           </div>
           <div className="space-y-1.5">
-            <Label>Landing URL / Tracking Link</Label>
+            <Label>رابط التتبع أو صفحة الهبوط</Label>
             <Input value={form.landingUrl} onChange={set("landingUrl")} placeholder="https://…" disabled={isViewer} />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Constraints / Forbidden Claims</Label>
+            <Label>القيود / الادعاءات الممنوعة</Label>
             <Textarea
               value={form.constraintsForbiddenClaims}
               onChange={set("constraintsForbiddenClaims")}
-              placeholder="e.g. Do not mention competitors. Avoid claims like 'guaranteed results'."
+              placeholder="مثال: لا تذكر المنافسين. تجنب عبارات مثل «نتائج مضمونة»."
               rows={2}
               className="resize-none"
               disabled={isViewer}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Available Creative Assets / References</Label>
+            <Label>الأصول الإبداعية / المراجع المتاحة</Label>
             <Textarea
               value={form.availableCreativeAssets}
               onChange={set("availableCreativeAssets")}
-              placeholder="e.g. product photos, brand guidelines URL, previous campaign references"
+              placeholder="مثال: صور المنتج، رابط دليل الهوية، مراجع حملات سابقة"
               rows={2}
               className="resize-none"
               disabled={isViewer}
             />
           </div>
           <div className="space-y-1.5">
-            <Label>Missing Information</Label>
+            <Label>المعلومات الناقصة</Label>
             <Textarea
               value={form.missingInformation}
               onChange={set("missingInformation")}
-              placeholder="What context is not yet available for this campaign?"
+              placeholder="ما السياق غير المتوفر بعد لهذه الحملة؟"
               rows={2}
               className="resize-none"
               disabled={isViewer}
@@ -385,7 +385,7 @@ function IntakeStep({
         {!isViewer && (
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={loading} size="sm">
-              {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Saving…</> : "Save Intake"}
+              {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />جارٍ الحفظ…</> : "حفظ المدخلات"}
             </Button>
           </div>
         )}
@@ -455,18 +455,18 @@ function StrategyBriefStep({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Target className="h-4 w-4" />
-            Step 2 — Strategy Brief
+            الخطوة 2 — موجز الاستراتيجية
           </CardTitle>
           <Button onClick={handleGenerate} disabled={loading || isViewer} size="sm">
-            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Generating…</> : brief ? "Regenerate" : "Generate Strategy Brief"}
+            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />جارٍ التوليد…</> : brief ? "إعادة التوليد" : "توليد موجز الاستراتيجية"}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          AI-generated campaign strategy draft. Save intake first for best results.
+          مسودة استراتيجية للحملة مولدة بالذكاء الاصطناعي. احفظ المدخلات أولاً للحصول على أفضل نتيجة.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {status === "unavailable" && <UnavailableBanner message="AI is unavailable until OPENAI_API_KEY is configured. Draft output shown below if available." />}
+        {status === "unavailable" && <UnavailableBanner message="الذكاء الاصطناعي غير متاح حتى يتم إعداد OPENAI_API_KEY. تظهر المسودة أدناه إن كانت متوفرة." />}
         {status === "error" && errMsg && <ErrorBanner message={errMsg} />}
         {brief ? (
           <>
@@ -576,18 +576,18 @@ function CreativeBriefStep({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <PenTool className="h-4 w-4" />
-            Step 3 — Creative Brief
+            الخطوة 3 — الموجز الإبداعي
           </CardTitle>
           <Button onClick={handleGenerate} disabled={loading || isViewer} size="sm">
-            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Generating…</> : brief ? "Regenerate" : "Generate Creative Brief"}
+            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />جارٍ التوليد…</> : brief ? "إعادة التوليد" : "توليد الموجز الإبداعي"}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Draft creative direction. Generate Strategy Brief first for best results.
+          موجز إبداعي مسودة. ولّد موجز الاستراتيجية أولاً للحصول على أفضل نتيجة.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {status === "unavailable" && <UnavailableBanner message="AI is unavailable until OPENAI_API_KEY is configured. Draft output shown below if available." />}
+        {status === "unavailable" && <UnavailableBanner message="الذكاء الاصطناعي غير متاح حتى يتم إعداد OPENAI_API_KEY. تظهر المسودة أدناه إن كانت متوفرة." />}
         {status === "error" && errMsg && <ErrorBanner message={errMsg} />}
         {brief ? (
           <>
@@ -689,14 +689,14 @@ function TextSuggestionsStep({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Sparkles className="h-4 w-4" />
-            Step 4 — Text Suggestions
+            الخطوة 4 — اقتراحات النصوص
           </CardTitle>
           <Button onClick={handleGenerate} disabled={loading || isViewer} size="sm">
-            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Generating…</> : result ? "Regenerate" : "Generate Text Suggestions"}
+            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />جارٍ التوليد…</> : result ? "إعادة التوليد" : "توليد اقتراحات النصوص"}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Draft hooks, ad copy, captions, and CTAs based on campaign context.
+          اقتراحات مسودة للخطافات والنصوص والتعليقات والنداءات إلى الإجراء بناءً على سياق الحملة.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -795,18 +795,18 @@ function ImagePromptSpecsStep({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Image className="h-4 w-4" />
-            Step 5 — Image Prompt Specs
+            الخطوة 5 — مواصفات مطالبة الصورة
           </CardTitle>
           <Button onClick={handleGenerate} disabled={loading || isViewer} size="sm">
-            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Generating…</> : spec ? "Regenerate" : "Generate Image Prompt Specs"}
+            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />جارٍ التوليد…</> : spec ? "إعادة التوليد" : "توليد مواصفات الصورة"}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Prompt text and specs for future image production. No images are generated.
+          نص المطالبة والمواصفات للإنتاج المستقبلي للصورة. لا يتم توليد أي صور.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {status === "unavailable" && <UnavailableBanner message="AI is unavailable until OPENAI_API_KEY is configured. Draft shown below if available." />}
+        {status === "unavailable" && <UnavailableBanner message="الذكاء الاصطناعي غير متاح حتى يتم إعداد OPENAI_API_KEY. تظهر المسودة أدناه إن كانت متوفرة." />}
         {status === "error" && errMsg && <ErrorBanner message={errMsg} />}
         {spec ? (
           <>
@@ -815,22 +815,22 @@ function ImagePromptSpecsStep({
               These are prompt specifications only. No images are generated or uploaded.
             </div>
             <div className="space-y-3">
-              <CollapseCard title="Image Prompts" icon={Image} defaultOpen>
+              <CollapseCard title="مطالبات الصورة" icon={Image} defaultOpen>
                 <SectionList items={spec.imagePrompts} />
               </CollapseCard>
-              <CollapseCard title="Composition Notes" icon={FileText}>
+              <CollapseCard title="ملاحظات التكوين" icon={FileText}>
                 <p className="text-sm text-muted-foreground">{spec.compositionNotes || "—"}</p>
               </CollapseCard>
-              <CollapseCard title="Style Direction" icon={PenTool}>
+              <CollapseCard title="اتجاه الأسلوب" icon={PenTool}>
                 <p className="text-sm text-muted-foreground">{spec.styleDirection || "—"}</p>
               </CollapseCard>
-              <CollapseCard title="Product / Scene Notes" icon={Target}>
+              <CollapseCard title="ملاحظات المنتج / المشهد" icon={Target}>
                 <p className="text-sm text-muted-foreground">{spec.productSceneNotes || "—"}</p>
               </CollapseCard>
-              <CollapseCard title="Channel Format Notes" icon={Target}>
+              <CollapseCard title="ملاحظات تنسيق القنوات" icon={Target}>
                 <SectionList items={spec.channelFormatNotes} />
               </CollapseCard>
-              <CollapseCard title="Usage Rights Reminders" icon={AlertTriangle}>
+              <CollapseCard title="تذكيرات حقوق الاستخدام" icon={AlertTriangle}>
                 <SectionList items={spec.usageRightsReminders} />
               </CollapseCard>
             </div>
@@ -906,18 +906,18 @@ function VideoScriptSpecsStep({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Video className="h-4 w-4" />
-            Step 6 — Video Script / Storyboard Specs
+            الخطوة 6 — نص الفيديو ولوحة المشاهد
           </CardTitle>
           <Button onClick={handleGenerate} disabled={loading || isViewer} size="sm">
-            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Generating…</> : spec ? "Regenerate" : "Generate Video Script Specs"}
+            {loading ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />جارٍ التوليد…</> : spec ? "إعادة التوليد" : "توليد نص الفيديو"}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Draft video concept, script, and storyboard. No video is generated or uploaded.
+          مسودة مفهوم الفيديو والنص ولوحة المشاهد. لا يتم توليد أو رفع أي فيديو.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {status === "unavailable" && <UnavailableBanner message="AI is unavailable until OPENAI_API_KEY is configured. Draft shown below if available." />}
+        {status === "unavailable" && <UnavailableBanner message="الذكاء الاصطناعي غير متاح حتى يتم إعداد OPENAI_API_KEY. تظهر المسودة أدناه إن كانت متوفرة." />}
         {status === "error" && errMsg && <ErrorBanner message={errMsg} />}
         {spec ? (
           <>
@@ -926,25 +926,25 @@ function VideoScriptSpecsStep({
               These are script and storyboard specs only. No video is generated or uploaded.
             </div>
             <div className="space-y-3">
-              <CollapseCard title="Video Concept" icon={Video} defaultOpen>
+              <CollapseCard title="مفهوم الفيديو" icon={Video} defaultOpen>
                 <p className="text-sm text-muted-foreground">{spec.videoConcept || "—"}</p>
               </CollapseCard>
-              <CollapseCard title="Short Script" icon={FileText}>
+              <CollapseCard title="النص المختصر" icon={FileText}>
                 <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">{spec.shortScript || "—"}</pre>
               </CollapseCard>
-              <CollapseCard title="Storyboard Outline" icon={ClipboardList}>
+              <CollapseCard title="مخطط لوحة المشاهد" icon={ClipboardList}>
                 <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">{spec.storyboardOutline || "—"}</pre>
               </CollapseCard>
-              <CollapseCard title="Scene List" icon={Target}>
+              <CollapseCard title="قائمة المشاهد" icon={Target}>
                 <SectionList items={spec.sceneList} />
               </CollapseCard>
-              <CollapseCard title="Voiceover Draft" icon={FileText}>
+              <CollapseCard title="مسودة التعليق الصوتي" icon={FileText}>
                 <p className="text-sm text-muted-foreground">{spec.voiceoverDraft || "—"}</p>
               </CollapseCard>
-              <CollapseCard title="Caption Draft" icon={FileText}>
+              <CollapseCard title="مسودة العنوان" icon={FileText}>
                 <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">{spec.captionDraft || "—"}</pre>
               </CollapseCard>
-              <CollapseCard title="Platform / Aspect Ratio Notes" icon={Target}>
+              <CollapseCard title="ملاحظات المنصة / نسبة الأبعاد" icon={Target}>
                 <SectionList items={spec.platformAspectRatioNotes} />
               </CollapseCard>
             </div>
@@ -1006,10 +1006,10 @@ export function CampaignWorkflowTab({
     <div className="space-y-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground rounded-lg border bg-muted/20 px-4 py-2.5">
         <Sparkles className="h-4 w-4 shrink-0" />
-        <span>
-          <span className="font-medium text-foreground">AI Workflow Foundation.</span>{" "}
-          All AI outputs are draft-only and require human review. No content is auto-approved, published, or committed.
-          {isViewer && " Viewer access — generation is disabled."}
+          <span>
+          <span className="font-medium text-foreground">أساس سير عمل الذكاء الاصطناعي.</span>{" "}
+          جميع المخرجات مسودات فقط وتتطلب مراجعة بشرية. لا يتم اعتماد أو نشر أو تثبيت أي محتوى تلقائياً.
+          {isViewer && " وضع العرض فقط — التوليد معطّل."}
         </span>
       </div>
 
@@ -1059,17 +1059,17 @@ export function CampaignWorkflowTab({
 
 export function WorkflowStatusPanel({ status }: { status: WorkflowStatusSummary }) {
   const steps: [string, keyof WorkflowStatusSummary][] = [
-    ["Client Intake", "intake"],
-    ["Strategy Brief", "strategyBrief"],
-    ["Creative Brief", "creativeBrief"],
-    ["Text Suggestions", "textSuggestions"],
-    ["Image Prompt Specs", "imagePromptSpecs"],
-    ["Video Script Specs", "videoScriptSpecs"],
+    ["مدخلات العميل", "intake"],
+    ["موجز الاستراتيجية", "strategyBrief"],
+    ["الموجز الإبداعي", "creativeBrief"],
+    ["اقتراحات النصوص", "textSuggestions"],
+    ["مواصفات الصورة", "imagePromptSpecs"],
+    ["نص الفيديو", "videoScriptSpecs"],
   ];
 
   return (
     <div className="rounded-lg border p-4 space-y-2">
-      <p className="text-sm font-medium">AI Workflow Status</p>
+      <p className="text-sm font-medium">حالة سير عمل الذكاء الاصطناعي</p>
       <div className="grid sm:grid-cols-2 gap-2">
         {steps.map(([label, key]) => {
           const s = status[key];
@@ -1085,7 +1085,7 @@ export function WorkflowStatusPanel({ status }: { status: WorkflowStatusSummary 
                       : "text-muted-foreground"
                 }
               >
-                {s === "generated" ? "Generated" : s === "saved" ? "Saved" : "Not started"}
+                {s === "generated" ? "تم التوليد" : s === "saved" ? "تم الحفظ" : "لم يبدأ"}
               </span>
             </div>
           );

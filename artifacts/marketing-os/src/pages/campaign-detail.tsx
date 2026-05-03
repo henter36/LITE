@@ -1126,10 +1126,10 @@ export default function CampaignDetail() {
             <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
-                    <ClipboardCheck className="h-5 w-5 text-emerald-600" />
-                    قائمة متطلبات النشر
-                  </CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
+                <ClipboardCheck className="h-5 w-5 text-emerald-600" />
+                قائمة متطلبات النشر
+              </CardTitle>
                   {isPublished && (
                     <Badge className="bg-green-600 text-white hover:bg-green-600">
                       <Check className="h-3.5 w-3.5 mr-1" />
@@ -1147,7 +1147,7 @@ export default function CampaignDetail() {
                           <Check className="h-5 w-5 text-green-600" />
                         </div>
                         <div>
-                          <p className="font-semibold text-green-800">الحملة مباشرة</p>
+                      <p className="font-semibold text-green-800">الحملة مباشرة</p>
                           <p className="text-sm text-muted-foreground">تم تعيين الحملة كمنشورة وهي الآن نشطة.</p>
                         </div>
                       </div>
@@ -1316,20 +1316,19 @@ export default function CampaignDetail() {
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2">
               <Rocket className="h-5 w-5" />
-              Publish Campaign
+              النشر اليدوي للحملة
             </DialogTitle>
             <DialogDescription>
-              Select which channels you're publishing to and confirm. This is a demo — no real ads
-              will be created on any ad platform.
+              اختر القنوات التي ستنشر عليها ثم أكّد. هذا عرض تجريبي — لن يتم إنشاء إعلانات حقيقية على أي منصة.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5">
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Channels <span className="text-destructive">*</span>
+                القنوات <span className="text-destructive">*</span>
               </Label>
               <div className="grid grid-cols-2 gap-2">
                 {PUBLISH_CHANNELS.map((ch) => (
@@ -1353,13 +1352,13 @@ export default function CampaignDetail() {
 
             <div className="space-y-2">
               <Label htmlFor="publish-notes" className="text-sm font-medium">
-                Publish notes (optional)
+                ملاحظات النشر (اختيارية)
               </Label>
               <Textarea
                 id="publish-notes"
                 value={publishNotes}
                 onChange={(e) => setPublishNotes(e.target.value)}
-                placeholder="e.g. Approved by client on 5 May, using assets variant A…"
+                placeholder="مثال: تمت الموافقة من العميل في 5 مايو، باستخدام النسخة A…"
                 rows={3}
                 className="resize-none"
               />
@@ -1368,22 +1367,21 @@ export default function CampaignDetail() {
             <div className="rounded-lg border bg-muted/10 p-3 text-xs text-muted-foreground flex items-start gap-2">
               <FlaskConical className="h-3.5 w-3.5 shrink-0 mt-0.5" />
               <span>
-                Demo only — this records the publish event for tracking purposes but does not
-                create real ads, spend any budget, or connect to any ad platform.
+                تجريبي فقط — هذا يسجل حدث النشر لأغراض التتبع لكنه لا ينشئ إعلانات حقيقية ولا ينفق ميزانية ولا يتصل بأي منصة إعلانية.
               </span>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
-              Cancel
+              <Button variant="outline" onClick={() => setPublishDialogOpen(false)}>
+              إلغاء
             </Button>
             <Button
               onClick={handleManualPublish}
               disabled={manualPublishCampaign.isPending || publishChannels.length === 0}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
-              {manualPublishCampaign.isPending ? "Publishing…" : "Confirm Publish"}
+              {manualPublishCampaign.isPending ? "جارٍ النشر…" : "تأكيد النشر"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1393,21 +1391,21 @@ export default function CampaignDetail() {
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Generate Tracking Link</DialogTitle>
+            <DialogTitle>توليد رابط التتبع</DialogTitle>
             <DialogDescription>
-              Create a UTM tracking link for this campaign. The campaign is pre-selected.
+              أنشئ رابط تتبع UTM لهذه الحملة. الحملة محددة مسبقاً.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Campaign</Label>
+              <Label>الحملة</Label>
               <Input value={campaign.name} disabled className="bg-muted/50" />
-              <p className="text-xs text-muted-foreground">This link will be tracked to the current campaign.</p>
+              <p className="text-xs text-muted-foreground">سيتم تتبع هذا الرابط على الحملة الحالية.</p>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="link-channel">Channel <span className="text-destructive">*</span></Label>
+              <Label htmlFor="link-channel">القناة <span className="text-destructive">*</span></Label>
               <Select value={linkChannel} onValueChange={(v) => { setLinkChannel(v); setLinkSource(v); }}>
                 <SelectTrigger id="link-channel"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1422,35 +1420,35 @@ export default function CampaignDetail() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="link-source">Source <span className="text-destructive">*</span></Label>
+              <Label htmlFor="link-source">المصدر <span className="text-destructive">*</span></Label>
                 <Input id="link-source" value={linkSource} onChange={(e) => setLinkSource(e.target.value)} placeholder="instagram" />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="link-medium">Medium <span className="text-destructive">*</span></Label>
+              <Label htmlFor="link-medium">الوسيط <span className="text-destructive">*</span></Label>
                 <Input id="link-medium" value={linkMedium} onChange={(e) => setLinkMedium(e.target.value)} placeholder="paid" />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="link-campaign">UTM Campaign Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="link-campaign">اسم حملة UTM <span className="text-destructive">*</span></Label>
               <Input id="link-campaign" value={linkCampaignName} onChange={(e) => setLinkCampaignName(e.target.value)} placeholder="summer-launch" />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="link-content">UTM Content (optional)</Label>
+              <Label htmlFor="link-content">محتوى UTM (اختياري)</Label>
               <Input id="link-content" value={linkContent} onChange={(e) => setLinkContent(e.target.value)} placeholder="variant-a" />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="link-url">Destination URL <span className="text-destructive">*</span></Label>
+              <Label htmlFor="link-url">رابط الوجهة <span className="text-destructive">*</span></Label>
               <Input id="link-url" value={linkFinalUrl} onChange={(e) => setLinkFinalUrl(e.target.value)} placeholder="https://example.com/landing" />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>إلغاء</Button>
             <Button onClick={handleCreateLink} disabled={createTrackingLink.isPending}>
-              {createTrackingLink.isPending ? "Creating…" : "Create Link"}
+              {createTrackingLink.isPending ? "جارٍ الإنشاء…" : "إنشاء الرابط"}
             </Button>
           </DialogFooter>
         </DialogContent>
