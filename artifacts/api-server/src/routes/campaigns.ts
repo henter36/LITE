@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { campaignsTable, auditLogsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { campaignsTable, auditLogsTable, generatedAssetsTable } from "@workspace/db";
+import { eq, and, count } from "drizzle-orm";
 import { requireAuth, requireWorkspaceAccess, requireWorkspaceRole, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 import { generateRecommendationsForWorkspace } from "../lib/generate-recommendations";
 
@@ -144,6 +144,16 @@ router.post("/campaigns/:id/manual-publish", requireAuth, async (req, res): Prom
 
   if (existing.status !== "approved") {
     res.status(422).json({ error: "Campaign must be approved before it can be marked as published." });
+    return;
+  }
+
+  const [{ approvedCount }] = await db
+    .select({ approvedCount: count() })
+    .from(generatedAssetsTable)
+    .where(and(eq(generatedAssetsTable.campaignId, id), eq(generatedAssetsTable.status, "approved")));
+
+  if (approvedCount === 0) {
+    res.status(409).json({ error: "At least one approved ad asset is required before manual publish." });
     return;
   }
 

@@ -9,7 +9,7 @@
 
 ## Summary
 
-Three defects were found and fixed during this review. No new features were added. All safety guards and regressions checks pass. The system is ready for controlled customer demos.
+Four defects were found and fixed during this review. No new features were added. All safety guards and regressions checks pass. The system is ready for controlled customer demos.
 
 **Readiness decision: ACCEPTED**
 
@@ -28,7 +28,9 @@ Three defects were found and fixed during this review. No new features were adde
 
 **Files changed:** `artifacts/marketing-os/src/pages/campaign-detail.tsx`
 
-**Note:** The backend `POST /campaigns/:id/manual-publish` does not enforce this requirement — it only requires `campaign.status === "approved"`. For this demo MVP, frontend enforcement is sufficient and intentional. Adding a backend check would require passing asset approval state into the publish route, which adds unnecessary coupling. If this product moves to production, add the backend check too.
+**Note:** Fixed in this review by adding backend enforcement too. `POST /campaigns/:id/manual-publish` now returns `409 Conflict` when no approved ad asset exists.
+
+**Files changed:** `artifacts/api-server/src/routes/campaigns.ts`
 
 ---
 
@@ -225,6 +227,7 @@ These are known limitations, not defects. No fixes applied.
 
 | File | Change |
 |---|---|
+| `artifacts/api-server/src/routes/campaigns.ts` | Added backend enforcement so `manual-publish` rejects campaigns with zero approved ads (`409 Conflict`) |
 | `artifacts/marketing-os/src/pages/campaign-detail.tsx` | Added `approvedAdCount` + `hasApprovedAd` computed values; added "X of Y ads approved" count in Ad Content header; added third checklist-gate state blocking Publish when zero ads approved |
 | `artifacts/marketing-os/src/pages/content-studio.tsx` | Added campaign status Badge to campaign-context header block |
 
@@ -234,4 +237,4 @@ These are known limitations, not defects. No fixes applied.
 
 **ACCEPTED**
 
-All 8 review areas pass. Three verified defects were fixed. Safety guards are intact. TypeScript is clean. No regressions. The system is ready for controlled customer demos with the demo account (`demo@marketingos.local` / `Demo12345!`).
+All 8 review areas pass. Four verified defects were fixed. Safety guards are intact. TypeScript is clean. No regressions. The system is ready for controlled customer demos with the demo account (`demo@marketingos.local` / `Demo12345!`).
