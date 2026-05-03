@@ -529,26 +529,40 @@ export default function CampaignDetail() {
 
   const hasAssets = !isAssetsLoading && (assets?.length ?? 0) > 0;
   const approvedAdCount = assets?.filter((a) => a.status === "approved").length ?? 0;
-  const hasApprovedAd = approvedAdCount > 0;
-  const isApproved = campaign.status === "approved" || campaign.status === "active";
-  const isPublished = campaign.status === "active" && !!campaign.publishedAt;
   const approvedCreativeAssetCount = 0;
-  const hasApprovedCreativeAsset = approvedCreativeAssetCount > 0;
-  const hasUsageRightsNotes = hasApprovedCreativeAsset;
-  const hasTrackingLink = (trackingLinks?.length ?? 0) > 0;
-  const hasSelectedChannels = (campaign.channels?.length ?? 0) > 0;
-  const strategySummary =
-    campaign.objective && campaign.audience && campaign.productService
-      ? `${campaign.objective} • ${campaign.audience} • ${campaign.productService}`
-      : "";
-  const hasStrategyContext = Boolean(strategySummary);
+  const completionState = {
+    strategySummary:
+      campaign.objective && campaign.audience && campaign.productService
+        ? `${campaign.objective} • ${campaign.audience} • ${campaign.productService}`
+        : "",
+    hasApprovedAd: approvedAdCount > 0,
+    isReady: campaign.status === "approved" || campaign.status === "active",
+    isPublished: campaign.status === "active" && !!campaign.publishedAt,
+    approvedCreativeAssetCount,
+    hasApprovedCreativeAsset: approvedCreativeAssetCount > 0,
+    hasUsageRightsNotes: approvedCreativeAssetCount > 0,
+    hasTrackingLink: (trackingLinks?.length ?? 0) > 0,
+    hasSelectedChannels: (campaign.channels?.length ?? 0) > 0,
+  };
+  const hasApprovedAd = completionState.hasApprovedAd;
+  const isApproved = completionState.isReady;
+  const isPublished = completionState.isPublished;
+  const strategySummary = completionState.strategySummary;
+  const hasStrategyContext = Boolean(completionState.strategySummary);
+  const hasApprovedCreativeAsset = completionState.hasApprovedCreativeAsset;
+  const hasTrackingLink = completionState.hasTrackingLink;
+  const hasSelectedChannels = completionState.hasSelectedChannels;
+  const hasUsageRightsNotes = completionState.hasUsageRightsNotes;
   const readinessRequirements = [
-    { label: "Strategy context", ok: hasStrategyContext },
-    { label: "Approved ads", ok: hasApprovedAd },
-    { label: "Campaign marked ready", ok: isApproved },
-    { label: "Approved creative asset/reference", ok: hasApprovedCreativeAsset && hasUsageRightsNotes },
-    { label: "Tracking link or landing URL", ok: hasTrackingLink || Boolean(campaign.landingUrl) },
-    { label: "Selected channels", ok: hasSelectedChannels },
+    { label: "Strategy context", ok: Boolean(completionState.strategySummary) },
+    { label: "Approved ads", ok: completionState.hasApprovedAd },
+    { label: "Campaign marked ready", ok: completionState.isReady },
+    {
+      label: "Approved creative asset/reference",
+      ok: completionState.hasApprovedCreativeAsset && completionState.hasUsageRightsNotes,
+    },
+    { label: "Tracking link or landing URL", ok: completionState.hasTrackingLink || Boolean(campaign.landingUrl) },
+    { label: "Selected channels", ok: completionState.hasSelectedChannels },
   ];
   const readinessScore = Math.round(
     (readinessRequirements.filter((item) => item.ok).length / readinessRequirements.length) * 100,
@@ -589,12 +603,13 @@ export default function CampaignDetail() {
 
   const activeStep = effectiveStep < FLOW_STEPS.length ? FLOW_STEPS[effectiveStep] : null;
   const manualPublishReady =
-    hasApprovedAd &&
-    isApproved &&
-    hasApprovedCreativeAsset &&
-    hasUsageRightsNotes &&
-    (hasTrackingLink || Boolean(campaign.landingUrl)) &&
-    hasSelectedChannels;
+    completionState.hasApprovedAd &&
+    completionState.isReady &&
+    completionState.hasApprovedCreativeAsset &&
+    completionState.hasUsageRightsNotes &&
+    (completionState.hasTrackingLink || Boolean(campaign.landingUrl)) &&
+    completionState.hasSelectedChannels &&
+    !isViewer;
 
   return (
     <SidebarLayout>

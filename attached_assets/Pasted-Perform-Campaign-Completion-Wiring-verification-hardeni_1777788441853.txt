@@ -1,0 +1,77 @@
+Perform Campaign Completion Wiring verification hardening only.
+
+Do not add pages.
+Do not add APIs.
+Do not add upload.
+Do not add media generation.
+Do not change OpenAPI or generated client.
+
+Review the current implementation in:
+- artifacts/marketing-os/src/pages/campaign-detail.tsx
+- docs/campaign_completion_wiring_report.md
+
+Objective:
+Confirm that the Campaign Completion wiring is not only visible in UI but safely blocks invalid manual publish actions.
+
+Check and fix only if needed:
+
+1. Manual publish guard
+Ensure manual publish is blocked in two places:
+- UI disabled state
+- click/submit handler guard
+
+The handler must not proceed when:
+- no approved ad exists
+- campaign is not marked ready
+- no approved creative asset/reference exists
+- approved creative asset/reference lacks usage rights notes
+- tracking link or landing URL is missing
+- selected channels are missing
+- current user is viewer
+
+2. Viewer role guard
+Verify viewer cannot:
+- publish
+- mark campaign ready
+- update assets
+- approve assets
+- alter publish checklist state
+
+Do not change viewer behavior beyond enforcing existing restrictions.
+
+3. Readiness consistency
+Ensure the readiness score, missing requirements list, completion panel, and publish checklist all use the same requirement logic.
+
+If the logic is duplicated inside campaign-detail.tsx, keep the change minimal:
+- either consolidate it into one local completion object inside the page
+- or extract a small frontend-only helper if there is an existing suitable utilities location
+
+Do not create backend APIs.
+
+4. Navigation safety
+Verify Strategy link and Creative Assets tab link point only to existing routes/tabs/anchors.
+Do not create new routes or pages.
+
+5. Documentation
+Update docs/campaign_completion_wiring_report.md with:
+- whether publish is guarded at handler level
+- whether viewer guard was verified
+- whether readiness/checklist/panel share the same logic
+- remaining gaps
+
+Verification:
+- TypeScript zero errors
+- Existing app builds
+- No OpenAPI/codegen changes
+- No new pages
+- No upload/media generation
+- No live publishing/API integration
+
+Final output:
+- changed files
+- what was verified
+- what was fixed
+- confirmation that manual publish is blocked at handler level
+- confirmation that viewer cannot publish/update assets
+- remaining gaps
+- readiness decision
