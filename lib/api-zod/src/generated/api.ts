@@ -608,6 +608,40 @@ export const GetAssetResponse = zod.object({
 });
 
 /**
+ * @summary Update creative brief fields on a generated asset
+ */
+export const UpdateAssetBriefParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateAssetBriefBody = zod.object({
+  imageBrief: zod.string().optional(),
+  videoBrief: zod.string().optional(),
+  assetReference: zod.string().optional(),
+});
+
+export const UpdateAssetBriefResponse = zod.object({
+  id: zod.number(),
+  campaignId: zod.number(),
+  headline: zod.string(),
+  shortCaption: zod.string(),
+  longCaption: zod.string(),
+  cta: zod.string(),
+  hashtags: zod.array(zod.string()),
+  videoScript: zod.string(),
+  storyboardOutline: zod.string(),
+  status: zod.enum(["draft", "reviewed", "approved", "rejected"]),
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+  aiProvider: zod.string().nullish(),
+  aiModel: zod.string().nullish(),
+  promptVersion: zod.string().nullish(),
+  aiFallbackUsed: zod.boolean().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
  * @summary List media asset references
  */
 export const ListMediaAssetsQueryParams = zod.object({

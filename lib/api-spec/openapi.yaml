@@ -643,6 +643,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GeneratedAsset"
+    patch:
+      operationId: updateAssetBrief
+      tags: [assets]
+      summary: Update creative brief fields on a generated asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAssetBriefBody"
+      responses:
+        "200":
+          description: Updated asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedAsset"
 
   /media-assets:
     get:
