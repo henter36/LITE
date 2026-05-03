@@ -1,12 +1,10 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import {
   useGetDashboardMetrics,
-  useGetChannelComparison,
   useListCampaigns,
   useListRecommendations,
   useUpdateRecommendation,
   getGetDashboardMetricsQueryKey,
-  getGetChannelComparisonQueryKey,
   getListRecommendationsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,15 +39,6 @@ export default function Dashboard() {
       query: {
         enabled: !!activeWorkspaceId,
         queryKey: getGetDashboardMetricsQueryKey({ workspaceId: activeWorkspaceId }),
-      },
-    },
-  );
-  const { data: channelData, isLoading: isChannelLoading } = useGetChannelComparison(
-    { workspaceId: activeWorkspaceId },
-    {
-      query: {
-        enabled: !!activeWorkspaceId,
-        queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }),
       },
     },
   );
@@ -209,52 +198,6 @@ export default function Dashboard() {
           </Card>
         </div>
       ) : null}
-
-      {/* Section 3 — Channel Comparison */}
-      <Card>
-        <CardHeader className="pb-2 pt-6 px-6">
-          <CardTitle className="text-lg">Channel Comparison</CardTitle>
-        </CardHeader>
-        <CardContent className="px-6 pb-6 h-[220px]">
-          {isChannelLoading ? (
-            <Skeleton className="h-full w-full" />
-          ) : !channelData || channelData.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-              No channel data yet.
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={channelData} barSize={32}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="platform"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)}
-                />
-                <YAxis
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-                />
-                <RechartsTooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    borderColor: "hsl(var(--border))",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                  }}
-                />
-                <Bar dataKey="clicks" name="Clicks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Section 4 — Top 3 Campaigns */}
       <div>

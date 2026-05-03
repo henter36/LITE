@@ -1,10 +1,8 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import {
   useListMetrics,
-  useGetChannelComparison,
   useListCampaigns,
   getListMetricsQueryKey,
-  getGetChannelComparisonQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,16 +40,6 @@ export default function Reports() {
       queryKey: getListMetricsQueryKey(metricsParams),
     },
   });
-
-  const { data: comparison, isLoading: isComparisonLoading } = useGetChannelComparison(
-    { workspaceId: activeWorkspaceId },
-    {
-      query: {
-        enabled: !!activeWorkspaceId,
-        queryKey: getGetChannelComparisonQueryKey({ workspaceId: activeWorkspaceId }),
-      },
-    }
-  );
 
   const handleExportPDF = () => {
     if (!metrics || metrics.length === 0) return;
@@ -148,63 +136,6 @@ export default function Reports() {
           </Button>
         </div>
       </div>
-
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle>Channel Comparison</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[320px]">
-          {isComparisonLoading ? (
-            <Skeleton className="h-full w-full" />
-          ) : !comparison || comparison.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-              No data available yet.
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={comparison} margin={{ top: 10, right: 20, left: 0, bottom: 0 }} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="platform"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)}
-                />
-                <YAxis
-                  yAxisId="left"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <RechartsTooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    borderColor: "hsl(var(--border))",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                  }}
-                  cursor={{ fill: "hsl(var(--muted))" }}
-                />
-                <Legend />
-                <Bar yAxisId="left" dataKey="impressions" name="Impressions" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="left" dataKey="clicks" name="Clicks" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                <Bar yAxisId="right" dataKey="conversions" name="Conversions" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader className="pb-4">
