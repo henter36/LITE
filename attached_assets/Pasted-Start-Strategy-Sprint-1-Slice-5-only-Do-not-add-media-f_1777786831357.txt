@@ -1,0 +1,66 @@
+Start Strategy Sprint 1 — Slice 5 only.
+
+Do not add media features.
+Do not modify OpenAPI broadly.
+Do not connect new APIs.
+Do not implement image/video generation.
+Do not implement live publishing, payments, budget changes, or autonomous optimization.
+Use NODE_OPTIONS=--max-old-space-size=8192 for any codegen run if needed.
+
+Objective:
+Improve recommendations so they use strategy context when available.
+
+Implement:
+
+1. Recommendation context enrichment
+When generating recommendations, include latest strategy intake/diagnosis if available:
+- growth goals
+- pain points
+- target customers
+- current channels
+- offer strength
+- channel readiness
+- funnel gaps
+- opportunities
+- risks
+
+2. Strategy-based rules
+Add rules:
+- If funnel gaps exist → recommend fixing landing/offer flow before scaling spend.
+- If channel readiness is weak → recommend focusing on one primary channel.
+- If audience clarity is weak → recommend refining target audience before generating more campaigns.
+- If offer strength is weak → recommend improving offer before publishing.
+- If growth goal and current channel mismatch → recommend channel adjustment.
+
+3. UI
+On Dashboard recommendation cards:
+- Show source label:
+  - performance
+  - strategy
+  - mixed
+- Show linked campaign or strategy where applicable.
+- Keep Today’s Action simple.
+
+4. Audit logs
+Record when recommendations are generated with strategy context.
+
+5. Documentation
+Create:
+docs/strategy_sprint_1_slice_5_report.md
+
+Verification:
+- TypeScript zero errors.
+- Codegen still clean if run.
+- Recommendation generation works with no strategy.
+- Recommendation generation works with strategy.
+- Dashboard displays strategy/mixed source labels.
+- Existing dismiss/read behavior still works.
+- Auth, workspace isolation, roles, campaign cycle, AI fallback, Meta read-only, and safety guards still work.
+- No wording implies guaranteed performance.
+
+Final output:
+- changed files
+- strategy recommendation rules
+- verification results
+- remaining gaps
+- Strategy Sprint 1 final decision
