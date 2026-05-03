@@ -119,6 +119,24 @@ To activate live Meta read-only: add `META_ACCESS_TOKEN` to Replit Secrets + set
 
 See `docs/phase_3_meta_readonly_report.md` and `docs/meta_readonly_guardrails.md` for full details.
 
+## AI Workflow Runtime + Persistence (completed)
+
+The 4-stage Campaign Launch Assistant AI Workflow (مساعد إطلاق الحملة) uses real server-side AI calls and database persistence.
+
+- **Provider:** `AI_PROVIDER=openai` + `OPENAI_API_KEY` (server-side only) → `OpenAIWorkflowProvider`. Default `mock` mode uses template builders.
+- **Stage 1 (فهم الحملة):** Intake form → upsert to `campaign_workflow_intakes`. No AI call.
+- **Stage 2 (بناء الاستراتيجية):** Calls `generateStrategyBrief()` + `generateCreativeBrief()` → persists to `campaign_strategy_briefs` / `campaign_creative_briefs`. Both reload on refresh (GET routes).
+- **Stage 3 (تجهيز المحتوى):** Calls `/api/strategy/text-assist` (OpenAI text provider) → transient (not persisted; gap documented).
+- **Stage 4 (المواصفات الإبداعية):** Calls `generateImagePromptSpecs()` + `generateVideoScriptSpecs()` → persists to `campaign_image_prompt_specs` / `campaign_video_script_specs`. Both reload on refresh.
+- **Missing-key:** All POST routes return 503 + `source: "unavailable"` + draft body. No mock output shown as success.
+- **All outputs draft-only.** No approval, no publish, no status change, no budget change via AI.
+- **Role guards:** Editor+ to generate; viewer read-only. Workspace scoping enforced on all routes.
+- **Audit log:** All generation events recorded with `source: "real" | "mock"`.
+
+See `docs/real_ai_workflow_runtime_persistence_report.md` for full details.
+
+To activate real AI: add `OPENAI_API_KEY` to Replit Secrets + set `AI_PROVIDER=openai` in shared env vars.
+
 ## Phase 2 AI Provider Layer (completed)
 
 - **`artifacts/api-server/src/lib/ai-provider.ts`** — `AIProvider` interface, `MockAIProvider`, `OpenAIProvider` (reads `OPENAI_API_KEY` server-side only), `getAIProvider()` factory with two-layer graceful fallback

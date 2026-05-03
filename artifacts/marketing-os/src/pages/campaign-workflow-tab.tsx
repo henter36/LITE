@@ -680,10 +680,12 @@ function Stage3Content({
   workspaceId,
   campaignId,
   isViewer,
+  onGenerated,
 }: {
   workspaceId: number;
   campaignId: number;
   isViewer: boolean;
+  onGenerated: () => void;
 }) {
   const [result, setResult] = useState<AITextAssistOutput | null>(null);
   const [loading, setLoading] = useState(false);
@@ -714,6 +716,7 @@ function Stage3Content({
     if (ok && typedBody.output) {
       setStatus("ready");
       setResult(typedBody.output);
+      onGenerated();
     } else {
       setStatus("error");
       setErrMsg(typedBody.error ?? "فشل توليد اقتراحات المحتوى.");
@@ -1149,6 +1152,11 @@ export function CampaignWorkflowTab({
             workspaceId={workspaceId}
             campaignId={campaignId}
             isViewer={isViewer}
+            onGenerated={() => {
+              updateStageStatus(2, "generated");
+              updateWfStatus("textSuggestions", "generated");
+              setActiveStage(3);
+            }}
           />
         </StageCard>
 

@@ -12,8 +12,7 @@ import {
 import { desc, eq, and } from "drizzle-orm";
 import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 import {
-  getAITextAssistProvider,
-  MockAITextAssistProvider,
+  getWorkflowAIProvider,
 } from "../lib/ai-provider";
 
 const router = Router();
@@ -187,27 +186,67 @@ router.post("/campaign-workflow/strategy-brief", requireAuth, async (req, res): 
     .where(and(eq(campaignWorkflowIntakesTable.campaignId, Number(campaignId)), eq(campaignWorkflowIntakesTable.workspaceId, Number(workspaceId))))
     .orderBy(desc(campaignWorkflowIntakesTable.updatedAt));
 
-  const { provider, keyMissing, selectedProvider } = getAITextAssistProvider();
+  const { provider, keyMissing, selectedProvider } = getWorkflowAIProvider();
+  const ctx = buildStrategyBriefMockInput(campaign, intake ?? null);
 
-  if (keyMissing || (selectedProvider === "mock" && process.env.NODE_ENV === "production")) {
-    const p = new MockAITextAssistProvider();
-    const mockInput = buildStrategyBriefMockInput(campaign, intake ?? null);
-    const brief = buildMockStrategyBrief(mockInput);
-    if (keyMissing) {
-      res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft: brief });
-      return;
-    }
-    const [saved] = await db.insert(campaignStrategyBriefsTable).values({ ...brief, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: "mock", aiModel: "mock-v1" }).returning();
-    await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "campaign_strategy_brief_generated", entityType: "campaign_strategy_brief", entityId: saved.id, actor: actor(req), details: `Strategy brief generated (mock) for campaign ${campaignId}` });
-    res.status(201).json({ ...saved, _draft: true });
+  if (keyMissing) {
+    const draft = buildMockStrategyBrief(ctx);
+    res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft, source: "unavailable" });
     return;
   }
 
-  void provider;
-  const brief = buildMockStrategyBrief(buildStrategyBriefMockInput(campaign, intake ?? null));
-  const [saved] = await db.insert(campaignStrategyBriefsTable).values({ ...brief, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel: "gpt-4o-mini" }).returning();
-  await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "campaign_strategy_brief_generated", entityType: "campaign_strategy_brief", entityId: saved.id, actor: actor(req), details: `Strategy brief generated for campaign ${campaignId}` });
-  res.status(201).json({ ...saved, _draft: true });
+  let briefRecord: ReturnType<typeof buildMockStrategyBrief>;
+  let aiModel = "mock-v1";
+  let source: "real" | "mock" = "mock";
+
+  if (provider) {
+    try {
+      const out = await provider.generateStrategyBrief({
+        name: ctx.name,
+        objective: ctx.objective,
+        audience: ctx.audience,
+        product: ctx.product,
+        channels: ctx.channels,
+        tone: ctx.tone,
+        offer: ctx.offer,
+        constraints: ctx.constraints,
+        businessDescription: intake?.businessDescription ?? "",
+      });
+      briefRecord = {
+        objective: out.objective,
+        targetAudience: out.targetAudience,
+        positioning: out.positioning,
+        keyMessage: out.keyMessage,
+        recommendedChannels: JSON.stringify(out.recommendedChannels),
+        contentAngles: JSON.stringify(out.contentAngles),
+        ctaDirection: out.ctaDirection,
+        requiredAssets: JSON.stringify(out.requiredAssets),
+        missingContextWarnings: JSON.stringify(out.missingContextWarnings),
+        risksSafetyNotes: JSON.stringify(out.risksSafetyNotes),
+        generatedAt: new Date(),
+      };
+      aiModel = "gpt-4o-mini";
+      source = "real";
+    } catch (err) {
+      req.log.error({ err }, "OpenAI strategy brief generation failed — falling back to mock");
+      briefRecord = buildMockStrategyBrief(ctx);
+    }
+  } else {
+    briefRecord = buildMockStrategyBrief(ctx);
+  }
+
+  const [saved] = await db.insert(campaignStrategyBriefsTable)
+    .values({ ...briefRecord, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel })
+    .returning();
+  await db.insert(auditLogsTable).values({
+    workspaceId: Number(workspaceId),
+    action: "campaign_strategy_brief_generated",
+    entityType: "campaign_strategy_brief",
+    entityId: saved.id,
+    actor: actor(req),
+    details: `Strategy brief generated (${source}) for campaign ${campaignId}`,
+  });
+  res.status(201).json({ ...saved, _draft: true, source });
 });
 
 // ── Creative Brief ───────────────────────────────────────────────────────────
@@ -255,21 +294,69 @@ router.post("/campaign-workflow/creative-brief", requireAuth, async (req, res): 
     .where(and(eq(campaignStrategyBriefsTable.campaignId, Number(campaignId)), eq(campaignStrategyBriefsTable.workspaceId, Number(workspaceId))))
     .orderBy(desc(campaignStrategyBriefsTable.createdAt));
 
-  const { keyMissing, selectedProvider } = getAITextAssistProvider();
-
-  const brief = buildMockCreativeBrief(campaign, stratBrief ?? null);
+  const { provider, keyMissing, selectedProvider } = getWorkflowAIProvider();
 
   if (keyMissing) {
-    res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft: brief });
+    const draft = buildMockCreativeBrief(campaign, stratBrief ?? null);
+    res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft, source: "unavailable" });
     return;
+  }
+
+  const channels = (() => { try { return JSON.parse(stratBrief?.recommendedChannels || campaign.channels || "[]") as string[]; } catch { return [] as string[]; } })();
+  const stratRisks = (() => { try { return JSON.parse(stratBrief?.risksSafetyNotes || "[]") as string[]; } catch { return [] as string[]; } })();
+
+  let briefRecord: ReturnType<typeof buildMockCreativeBrief>;
+  let aiModel = "mock-v1";
+  let source: "real" | "mock" = "mock";
+
+  if (provider) {
+    try {
+      const out = await provider.generateCreativeBrief({
+        name: campaign.name,
+        objective: campaign.objective,
+        audience: stratBrief?.targetAudience || campaign.audience,
+        product: campaign.productService,
+        channels,
+        constraints: "",
+        strategyKeyMessage: stratBrief?.keyMessage ?? undefined,
+        strategyTargetAudience: stratBrief?.targetAudience ?? undefined,
+        strategyRisks: stratRisks,
+      });
+      briefRecord = {
+        coreMessage: out.coreMessage,
+        audience: out.audience,
+        tone: out.tone,
+        textDirection: out.textDirection,
+        visualDirection: out.visualDirection,
+        videoDirection: out.videoDirection,
+        channelAdaptations: JSON.stringify(out.channelAdaptations),
+        usageRightsReminders: JSON.stringify(out.usageRightsReminders),
+        prohibitedElements: JSON.stringify(out.prohibitedElements),
+        generatedAt: new Date(),
+      };
+      aiModel = "gpt-4o-mini";
+      source = "real";
+    } catch (err) {
+      req.log.error({ err }, "OpenAI creative brief generation failed — falling back to mock");
+      briefRecord = buildMockCreativeBrief(campaign, stratBrief ?? null);
+    }
+  } else {
+    briefRecord = buildMockCreativeBrief(campaign, stratBrief ?? null);
   }
 
   const [saved] = await db
     .insert(campaignCreativeBriefsTable)
-    .values({ ...brief, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel: selectedProvider === "openai" ? "gpt-4o-mini" : "mock-v1" })
+    .values({ ...briefRecord, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel })
     .returning();
-  await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "campaign_creative_brief_generated", entityType: "campaign_creative_brief", entityId: saved.id, actor: actor(req), details: `Creative brief generated for campaign ${campaignId}` });
-  res.status(201).json({ ...saved, _draft: true });
+  await db.insert(auditLogsTable).values({
+    workspaceId: Number(workspaceId),
+    action: "campaign_creative_brief_generated",
+    entityType: "campaign_creative_brief",
+    entityId: saved.id,
+    actor: actor(req),
+    details: `Creative brief generated (${source}) for campaign ${campaignId}`,
+  });
+  res.status(201).json({ ...saved, _draft: true, source });
 });
 
 // ── Image Prompt Specs ───────────────────────────────────────────────────────
@@ -317,20 +404,63 @@ router.post("/campaign-workflow/image-prompt-specs", requireAuth, async (req, re
     .where(and(eq(campaignCreativeBriefsTable.campaignId, Number(campaignId)), eq(campaignCreativeBriefsTable.workspaceId, Number(workspaceId))))
     .orderBy(desc(campaignCreativeBriefsTable.createdAt));
 
-  const { keyMissing, selectedProvider } = getAITextAssistProvider();
-  const spec = buildMockImagePromptSpecs(campaign, creativeBrief ?? null);
+  const { provider, keyMissing, selectedProvider } = getWorkflowAIProvider();
 
   if (keyMissing) {
-    res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft: spec });
+    const draft = buildMockImagePromptSpecs(campaign, creativeBrief ?? null);
+    res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft, source: "unavailable" });
     return;
+  }
+
+  const imgChannels = (() => { try { return JSON.parse(campaign.channels || "[]") as string[]; } catch { return [] as string[]; } })();
+
+  let specRecord: ReturnType<typeof buildMockImagePromptSpecs>;
+  let aiModel = "mock-v1";
+  let source: "real" | "mock" = "mock";
+
+  if (provider) {
+    try {
+      const out = await provider.generateImagePromptSpecs({
+        name: campaign.name,
+        product: campaign.productService,
+        audience: campaign.audience,
+        channels: imgChannels,
+        constraints: "",
+        creativeBriefCoreMessage: creativeBrief?.coreMessage ?? undefined,
+        creativeBriefVisualDirection: creativeBrief?.visualDirection ?? undefined,
+      });
+      specRecord = {
+        imagePrompts: JSON.stringify(out.imagePrompts),
+        compositionNotes: out.compositionNotes,
+        styleDirection: out.styleDirection,
+        productSceneNotes: out.productSceneNotes,
+        channelFormatNotes: JSON.stringify(out.channelFormatNotes),
+        usageRightsReminders: JSON.stringify(out.usageRightsReminders),
+        generatedAt: new Date(),
+      };
+      aiModel = "gpt-4o-mini";
+      source = "real";
+    } catch (err) {
+      req.log.error({ err }, "OpenAI image prompt specs generation failed — falling back to mock");
+      specRecord = buildMockImagePromptSpecs(campaign, creativeBrief ?? null);
+    }
+  } else {
+    specRecord = buildMockImagePromptSpecs(campaign, creativeBrief ?? null);
   }
 
   const [saved] = await db
     .insert(campaignImagePromptSpecsTable)
-    .values({ ...spec, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel: selectedProvider === "openai" ? "gpt-4o-mini" : "mock-v1" })
+    .values({ ...specRecord, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel })
     .returning();
-  await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "campaign_image_prompt_specs_generated", entityType: "campaign_image_prompt_spec", entityId: saved.id, actor: actor(req), details: `Image prompt specs generated for campaign ${campaignId}` });
-  res.status(201).json({ ...saved, _draft: true });
+  await db.insert(auditLogsTable).values({
+    workspaceId: Number(workspaceId),
+    action: "campaign_image_prompt_specs_generated",
+    entityType: "campaign_image_prompt_spec",
+    entityId: saved.id,
+    actor: actor(req),
+    details: `Image prompt specs generated (${source}) for campaign ${campaignId}`,
+  });
+  res.status(201).json({ ...saved, _draft: true, source });
 });
 
 // ── Video Script / Storyboard Specs ─────────────────────────────────────────
@@ -378,20 +508,65 @@ router.post("/campaign-workflow/video-script-specs", requireAuth, async (req, re
     .where(and(eq(campaignCreativeBriefsTable.campaignId, Number(campaignId)), eq(campaignCreativeBriefsTable.workspaceId, Number(workspaceId))))
     .orderBy(desc(campaignCreativeBriefsTable.createdAt));
 
-  const { keyMissing, selectedProvider } = getAITextAssistProvider();
-  const spec = buildMockVideoScriptSpecs(campaign, creativeBrief ?? null);
+  const { provider, keyMissing, selectedProvider } = getWorkflowAIProvider();
 
   if (keyMissing) {
-    res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft: spec });
+    const draft = buildMockVideoScriptSpecs(campaign, creativeBrief ?? null);
+    res.status(503).json({ ...aiUnavailableBody("AI is unavailable until OPENAI_API_KEY is configured"), draft, source: "unavailable" });
     return;
+  }
+
+  const vidChannels = (() => { try { return JSON.parse(campaign.channels || "[]") as string[]; } catch { return [] as string[]; } })();
+
+  let specRecord: ReturnType<typeof buildMockVideoScriptSpecs>;
+  let aiModel = "mock-v1";
+  let source: "real" | "mock" = "mock";
+
+  if (provider) {
+    try {
+      const out = await provider.generateVideoScriptSpecs({
+        name: campaign.name,
+        objective: campaign.objective,
+        product: campaign.productService,
+        audience: campaign.audience,
+        channels: vidChannels,
+        constraints: "",
+        creativeBriefTone: creativeBrief?.tone ?? undefined,
+        creativeBriefVideoDirection: creativeBrief?.videoDirection ?? undefined,
+      });
+      specRecord = {
+        videoConcept: out.videoConcept,
+        shortScript: out.shortScript,
+        storyboardOutline: out.storyboardOutline,
+        sceneList: JSON.stringify(out.sceneList),
+        voiceoverDraft: out.voiceoverDraft,
+        captionDraft: out.captionDraft,
+        platformAspectRatioNotes: JSON.stringify(out.platformAspectRatioNotes),
+        generatedAt: new Date(),
+      };
+      aiModel = "gpt-4o-mini";
+      source = "real";
+    } catch (err) {
+      req.log.error({ err }, "OpenAI video script specs generation failed — falling back to mock");
+      specRecord = buildMockVideoScriptSpecs(campaign, creativeBrief ?? null);
+    }
+  } else {
+    specRecord = buildMockVideoScriptSpecs(campaign, creativeBrief ?? null);
   }
 
   const [saved] = await db
     .insert(campaignVideoScriptSpecsTable)
-    .values({ ...spec, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel: selectedProvider === "openai" ? "gpt-4o-mini" : "mock-v1" })
+    .values({ ...specRecord, workspaceId: Number(workspaceId), campaignId: Number(campaignId), aiProvider: selectedProvider, aiModel })
     .returning();
-  await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "campaign_video_script_specs_generated", entityType: "campaign_video_script_spec", entityId: saved.id, actor: actor(req), details: `Video script specs generated for campaign ${campaignId}` });
-  res.status(201).json({ ...saved, _draft: true });
+  await db.insert(auditLogsTable).values({
+    workspaceId: Number(workspaceId),
+    action: "campaign_video_script_specs_generated",
+    entityType: "campaign_video_script_spec",
+    entityId: saved.id,
+    actor: actor(req),
+    details: `Video script specs generated (${source}) for campaign ${campaignId}`,
+  });
+  res.status(201).json({ ...saved, _draft: true, source });
 });
 
 // ── Mock generators ──────────────────────────────────────────────────────────

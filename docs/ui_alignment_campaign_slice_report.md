@@ -112,3 +112,24 @@ Every generated section includes:
 
 ## Readiness decision
 AI Workflow redesign complete. 4-stage Arabic RTL Campaign Launch Assistant is ready for preview review.
+
+---
+
+## Update — Real AI Workflow Runtime + Persistence (2026-05-03)
+
+The redesigned AI Workflow now uses real server-side AI calls and database persistence for all 4 stages. See `docs/real_ai_workflow_runtime_persistence_report.md` for the full report.
+
+### Summary of changes
+
+- **`artifacts/api-server/src/lib/ai-provider.ts`**: Added `WorkflowAIProvider` interface, `OpenAIWorkflowProvider` class (4 real AI methods: `generateStrategyBrief`, `generateCreativeBrief`, `generateImagePromptSpecs`, `generateVideoScriptSpecs`), and `getWorkflowAIProvider()` factory.
+- **`artifacts/api-server/src/routes/campaignWorkflow.ts`**: Fixed all 4 POST handlers (strategy-brief, creative-brief, image-prompt-specs, video-script-specs) to call `OpenAIWorkflowProvider` when `AI_PROVIDER=openai` + key is present. Removed `void provider` bug. All responses now include `source: "real" | "mock" | "unavailable"`. Audit log `details` include source. Missing-key path returns 503 with draft body.
+- **`artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx`**: Added `onGenerated` prop to `Stage3Content`; wired callback on text-assist success; Stage 3 now updates accordion status to "generated" and advances to Stage 4.
+
+### Verification
+- API server build: ✅ zero errors
+- Frontend build (`PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`): ✅ zero errors
+- No `OPENAI_API_KEY` in frontend bundle: ✅ confirmed
+- Missing-key → 503 + `source: "unavailable"`: ✅ implemented
+- Real-key path → `OpenAIWorkflowProvider` called: ✅ implemented
+- Mock path → `buildMock*()` called + saved to DB: ✅ implemented
+- Stage 3 persistence gap: documented (transient, no DB table)

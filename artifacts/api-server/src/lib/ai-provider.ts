@@ -513,3 +513,324 @@ export function getAITextAssistProvider(): { provider: AITextAssistProvider; sel
 
   return { provider: new MockAITextAssistProvider(), selectedProvider: "mock", keyMissing: false };
 }
+
+// ---------------------------------------------------------------------------
+// Workflow AI interfaces — Strategy Brief, Creative Brief, Image Prompt Specs,
+// Video Script Specs. All outputs are draft-only text specs; no image/video
+// generation is performed.
+// ---------------------------------------------------------------------------
+
+export interface StrategyBriefInput {
+  name: string;
+  objective: string;
+  audience: string;
+  product: string;
+  channels: string[];
+  tone: string;
+  offer: string;
+  constraints: string;
+  businessDescription?: string;
+}
+
+export interface StrategyBriefOutput {
+  objective: string;
+  targetAudience: string;
+  positioning: string;
+  keyMessage: string;
+  recommendedChannels: string[];
+  contentAngles: string[];
+  ctaDirection: string;
+  requiredAssets: string[];
+  missingContextWarnings: string[];
+  risksSafetyNotes: string[];
+}
+
+export interface CreativeBriefInput {
+  name: string;
+  objective: string;
+  audience: string;
+  product: string;
+  channels: string[];
+  constraints: string;
+  strategyKeyMessage?: string;
+  strategyTargetAudience?: string;
+  strategyRisks?: string[];
+}
+
+export interface CreativeBriefOutput {
+  coreMessage: string;
+  audience: string;
+  tone: string;
+  textDirection: string;
+  visualDirection: string;
+  videoDirection: string;
+  channelAdaptations: string[];
+  usageRightsReminders: string[];
+  prohibitedElements: string[];
+}
+
+export interface ImagePromptSpecsInput {
+  name: string;
+  product: string;
+  audience: string;
+  channels: string[];
+  constraints: string;
+  creativeBriefCoreMessage?: string;
+  creativeBriefVisualDirection?: string;
+}
+
+export interface ImagePromptSpecsOutput {
+  imagePrompts: string[];
+  compositionNotes: string;
+  styleDirection: string;
+  productSceneNotes: string;
+  channelFormatNotes: string[];
+  usageRightsReminders: string[];
+}
+
+export interface VideoScriptSpecsInput {
+  name: string;
+  objective: string;
+  product: string;
+  audience: string;
+  channels: string[];
+  constraints: string;
+  creativeBriefTone?: string;
+  creativeBriefVideoDirection?: string;
+}
+
+export interface VideoScriptSpecsOutput {
+  videoConcept: string;
+  shortScript: string;
+  storyboardOutline: string;
+  sceneList: string[];
+  voiceoverDraft: string;
+  captionDraft: string;
+  platformAspectRatioNotes: string[];
+}
+
+export interface WorkflowAIProvider {
+  generateStrategyBrief(input: StrategyBriefInput): Promise<StrategyBriefOutput>;
+  generateCreativeBrief(input: CreativeBriefInput): Promise<CreativeBriefOutput>;
+  generateImagePromptSpecs(input: ImagePromptSpecsInput): Promise<ImagePromptSpecsOutput>;
+  generateVideoScriptSpecs(input: VideoScriptSpecsInput): Promise<VideoScriptSpecsOutput>;
+}
+
+// ---------------------------------------------------------------------------
+// OpenAI Workflow Provider — calls GPT with structured JSON output prompts
+// ---------------------------------------------------------------------------
+
+function safeList(value: unknown, filter: (t: string) => string): string[] {
+  return Array.isArray(value) ? value.map(String).map(filter) : [];
+}
+
+export class OpenAIWorkflowProvider implements WorkflowAIProvider {
+  private client: OpenAI;
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({ apiKey });
+  }
+
+  async generateStrategyBrief(input: StrategyBriefInput): Promise<StrategyBriefOutput> {
+    const filter = (t: string) => applyAllGuardrails(t, input.constraints);
+    const response = await this.client.chat.completions.create({
+      model: OPENAI_MODEL,
+      response_format: { type: "json_object" },
+      temperature: 0.4,
+      max_tokens: 1400,
+      messages: [
+        {
+          role: "system",
+          content: `You are a brand-safe campaign strategy expert. All outputs are draft-only for human review. Never approve, publish, or change campaign status. Never make unsupported performance claims. Return ONLY valid JSON with these exact keys: objective (string), targetAudience (string), positioning (string), keyMessage (string), recommendedChannels (string[]), contentAngles (string[]), ctaDirection (string), requiredAssets (string[]), missingContextWarnings (string[]), risksSafetyNotes (string[]).`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            campaignName: input.name,
+            campaignObjective: input.objective,
+            targetAudience: input.audience,
+            productService: input.product,
+            selectedChannels: input.channels,
+            brandTone: input.tone,
+            offerValueProposition: input.offer,
+            constraintsForbiddenClaims: input.constraints,
+            businessDescription: input.businessDescription ?? "",
+          }),
+        },
+      ],
+    });
+    const raw = response.choices[0]?.message?.content ?? "{}";
+    const p = JSON.parse(raw.trim()) as Record<string, unknown>;
+    return {
+      objective: filter(String(p.objective ?? "")),
+      targetAudience: filter(String(p.targetAudience ?? "")),
+      positioning: filter(String(p.positioning ?? "")),
+      keyMessage: filter(String(p.keyMessage ?? "")),
+      recommendedChannels: safeList(p.recommendedChannels, filter),
+      contentAngles: safeList(p.contentAngles, filter),
+      ctaDirection: filter(String(p.ctaDirection ?? "")),
+      requiredAssets: safeList(p.requiredAssets, filter),
+      missingContextWarnings: safeList(p.missingContextWarnings, filter),
+      risksSafetyNotes: [
+        ...safeList(p.risksSafetyNotes, filter),
+        "All outputs are draft-only. Do not approve or publish without human review.",
+      ],
+    };
+  }
+
+  async generateCreativeBrief(input: CreativeBriefInput): Promise<CreativeBriefOutput> {
+    const filter = (t: string) => applyAllGuardrails(t, input.constraints);
+    const response = await this.client.chat.completions.create({
+      model: OPENAI_MODEL,
+      response_format: { type: "json_object" },
+      temperature: 0.4,
+      max_tokens: 1200,
+      messages: [
+        {
+          role: "system",
+          content: `You are a brand-safe creative brief specialist. All outputs are draft-only for human review. Never approve, publish, or change campaign status. Return ONLY valid JSON with these exact keys: coreMessage (string), audience (string), tone (string), textDirection (string), visualDirection (string), videoDirection (string), channelAdaptations (string[]), usageRightsReminders (string[]), prohibitedElements (string[]).`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            campaignName: input.name,
+            campaignObjective: input.objective,
+            targetAudience: input.audience,
+            productService: input.product,
+            selectedChannels: input.channels,
+            constraintsForbiddenClaims: input.constraints,
+            strategyKeyMessage: input.strategyKeyMessage ?? "",
+            strategyTargetAudience: input.strategyTargetAudience ?? "",
+            strategyRisks: input.strategyRisks ?? [],
+          }),
+        },
+      ],
+    });
+    const raw = response.choices[0]?.message?.content ?? "{}";
+    const p = JSON.parse(raw.trim()) as Record<string, unknown>;
+    return {
+      coreMessage: filter(String(p.coreMessage ?? "")),
+      audience: filter(String(p.audience ?? "")),
+      tone: filter(String(p.tone ?? "")),
+      textDirection: filter(String(p.textDirection ?? "")),
+      visualDirection: filter(String(p.visualDirection ?? "")),
+      videoDirection: filter(String(p.videoDirection ?? "")),
+      channelAdaptations: safeList(p.channelAdaptations, filter),
+      usageRightsReminders: [
+        ...safeList(p.usageRightsReminders, filter),
+        "Confirm usage rights for all assets before production. Document in Asset Library before publish.",
+      ],
+      prohibitedElements: [
+        ...safeList(p.prohibitedElements, filter),
+        "No unsupported performance claims.",
+        "No fabricated statistics or testimonials.",
+      ],
+    };
+  }
+
+  async generateImagePromptSpecs(input: ImagePromptSpecsInput): Promise<ImagePromptSpecsOutput> {
+    const filter = (t: string) => applyAllGuardrails(t, input.constraints);
+    const response = await this.client.chat.completions.create({
+      model: OPENAI_MODEL,
+      response_format: { type: "json_object" },
+      temperature: 0.5,
+      max_tokens: 1200,
+      messages: [
+        {
+          role: "system",
+          content: `You are a brand-safe image prompt spec writer. These are TEXT SPECS ONLY — no images are generated. All outputs are draft-only for human review. Return ONLY valid JSON with these exact keys: imagePrompts (string[], 3 prompts), compositionNotes (string), styleDirection (string), productSceneNotes (string), channelFormatNotes (string[]), usageRightsReminders (string[]).`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            campaignName: input.name,
+            productService: input.product,
+            targetAudience: input.audience,
+            selectedChannels: input.channels,
+            constraintsForbiddenClaims: input.constraints,
+            creativeBriefCoreMessage: input.creativeBriefCoreMessage ?? "",
+            creativeBriefVisualDirection: input.creativeBriefVisualDirection ?? "",
+          }),
+        },
+      ],
+    });
+    const raw = response.choices[0]?.message?.content ?? "{}";
+    const p = JSON.parse(raw.trim()) as Record<string, unknown>;
+    return {
+      imagePrompts: safeList(p.imagePrompts, filter),
+      compositionNotes: filter(String(p.compositionNotes ?? "")),
+      styleDirection: filter(String(p.styleDirection ?? "")),
+      productSceneNotes: filter(String(p.productSceneNotes ?? "")),
+      channelFormatNotes: safeList(p.channelFormatNotes, filter),
+      usageRightsReminders: [
+        ...safeList(p.usageRightsReminders, filter),
+        "Do not generate actual images — these are prompt specs only.",
+        "Confirm usage rights for any reference imagery before commissioning.",
+      ],
+    };
+  }
+
+  async generateVideoScriptSpecs(input: VideoScriptSpecsInput): Promise<VideoScriptSpecsOutput> {
+    const filter = (t: string) => applyAllGuardrails(t, input.constraints);
+    const response = await this.client.chat.completions.create({
+      model: OPENAI_MODEL,
+      response_format: { type: "json_object" },
+      temperature: 0.5,
+      max_tokens: 1400,
+      messages: [
+        {
+          role: "system",
+          content: `You are a brand-safe video script spec writer. These are TEXT SPECS ONLY — no video is generated and no files are uploaded. All outputs are draft-only for human review. Return ONLY valid JSON with these exact keys: videoConcept (string), shortScript (string, use [SCENE N - Label] headings), storyboardOutline (string, 5 frames), sceneList (string[], 4 scenes with timecodes), voiceoverDraft (string), captionDraft (string), platformAspectRatioNotes (string[]).`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            campaignName: input.name,
+            campaignObjective: input.objective,
+            productService: input.product,
+            targetAudience: input.audience,
+            selectedChannels: input.channels,
+            constraintsForbiddenClaims: input.constraints,
+            creativeBriefTone: input.creativeBriefTone ?? "",
+            creativeBriefVideoDirection: input.creativeBriefVideoDirection ?? "",
+          }),
+        },
+      ],
+    });
+    const raw = response.choices[0]?.message?.content ?? "{}";
+    const p = JSON.parse(raw.trim()) as Record<string, unknown>;
+    return {
+      videoConcept: filter(String(p.videoConcept ?? "")),
+      shortScript: filter(String(p.shortScript ?? "")),
+      storyboardOutline: filter(String(p.storyboardOutline ?? "")),
+      sceneList: safeList(p.sceneList, filter),
+      voiceoverDraft: filter(String(p.voiceoverDraft ?? "")),
+      captionDraft: filter(String(p.captionDraft ?? "")),
+      platformAspectRatioNotes: safeList(p.platformAspectRatioNotes, filter),
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Factory — returns real OpenAI workflow provider when key is present,
+// null otherwise (caller falls back to mock builders).
+// ---------------------------------------------------------------------------
+
+export function getWorkflowAIProvider(): {
+  provider: WorkflowAIProvider | null;
+  selectedProvider: "mock" | "openai";
+  keyMissing: boolean;
+} {
+  const requested = (process.env.AI_PROVIDER ?? "mock").toLowerCase();
+
+  if (requested === "openai") {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      logger.warn("AI_PROVIDER=openai but OPENAI_API_KEY is not set — workflow AI unavailable");
+      return { provider: null, selectedProvider: "mock", keyMissing: true };
+    }
+    return { provider: new OpenAIWorkflowProvider(apiKey), selectedProvider: "openai", keyMissing: false };
+  }
+
+  return { provider: null, selectedProvider: "mock", keyMissing: false };
+}
