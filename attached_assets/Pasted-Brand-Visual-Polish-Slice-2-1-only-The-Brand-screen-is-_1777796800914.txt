@@ -1,0 +1,174 @@
+Brand Visual Polish Slice 2.1 only.
+
+The Brand screen is technically working but visually not acceptable yet. The screenshot shows mixed Arabic/English UI, weak reference parity, and guidance cards that look like placeholders.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/brand-profile.tsx
+- docs/ui_alignment_brand_slice_report.md
+
+Objective:
+Polish the Brand screen visually so it feels like the provided Arabic RTL Brand reference and belongs to the same design family as the improved Dashboard.
+
+Current issues to fix:
+- too much English UI copy
+- weak Arabic-first experience
+- side guidance cards look like placeholders
+- brand summary is not visually rich enough
+- form sections feel flat
+- spacing/hierarchy is not premium enough
+- preview/help area is weak
+- not close enough to the provided Brand reference
+
+Required visual fixes:
+
+1. Arabic-first copy
+Convert visible UI labels and guidance text to Arabic where possible.
+
+Keep real user-entered brand values unchanged if they are stored as English data.
+Do not translate saved data values automatically.
+Only translate UI labels, helper text, section titles, badges, and guidance copy.
+
+Examples:
+- "How this is used" → "كيف يُستخدم هذا؟"
+- "Language settings" → "إعدادات اللغة"
+- "Unsupported items" → "عناصر غير مفعّلة"
+- "Manual updates only" → "تحديث يدوي فقط"
+- "Brand system" → "نظام العلامة"
+
+2. Header polish
+Make the header closer to the reference:
+- title: "العلامة التجارية"
+- prominent, elegant Arabic heading
+- subtitle explaining brand voice and content consistency
+- small green badge such as "نظام العلامة"
+- no awkward empty space
+
+3. Profile completion card
+Improve the completion card:
+- visually stronger progress ring/bar
+- Arabic status text
+- clear next action
+- soft green/teal styling
+- no heavy or placeholder feel
+
+4. Brand summary card
+Make it closer to the reference:
+- title: "ملخص العلامة"
+- show brand name
+- short description
+- category/services
+- audience summary
+- selected channels as badges
+- use compact card layout
+- optional soft icon/placeholder image if already safe and local; do not add upload
+
+5. Brand identity section
+Group fields into a premium card:
+- اسم العلامة
+- الفئة / مجال العمل
+- وصف مختصر
+- الجمهور المستهدف
+- الخدمات / المنتجات
+
+Use clean inputs/textareas with consistent spacing.
+
+6. Voice and tone section
+Group:
+- نبرة الصوت
+- الكلمات المفتاحية
+- الكلمات الممنوعة
+- أسلوب الدعوة لاتخاذ إجراء
+- قيود الادعاءات
+
+Use chips/badges where appropriate.
+Avoid flat long text blocks.
+
+7. Audience / channels / CTA section
+Create a clean card:
+- الجمهور
+- القنوات المفضلة
+- CTA style
+- language guidance
+
+Use green/teal channel badges if existing data exists.
+No real integrations.
+
+8. Preview/help cards
+Improve the left/support column:
+- "معاينة صوت العلامة"
+- "نصائح سريعة"
+- "ضوابط الاستخدام"
+
+Make them look like polished helper cards, not placeholder instruction boxes.
+Use Arabic copy.
+
+9. Unsupported feature handling
+Keep unsupported items disabled/deferred:
+- upload
+- media generation
+- live publishing
+- autonomous publishing
+
+Do not implement them.
+Do not imply they work.
+
+10. Preserve behavior
+Do not change:
+- brand load
+- save/update
+- validation
+- existing fields
+- existing API calls
+- role behavior
+- routes
+
+Documentation:
+Update:
+docs/ui_alignment_brand_slice_report.md
+
+Add:
+- Brand Visual Polish 2.1 summary
+- Arabic-first copy changes
+- visual hierarchy changes
+- preserved behavior
+- unsupported features kept deferred
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard changes
+- no new pages
+- no upload/media/live publishing
+- provide screenshot or user-side visual review after polish
+
+Final output:
+- changed files
+- visual polish completed
+- Arabic-first improvements
+- preserved behavior
+- verification results
+- remaining gaps
+- readiness decision
