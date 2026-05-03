@@ -189,7 +189,7 @@ router.post("/strategy/text-assist", requireAuth, async (req, res): Promise<void
     visualNotes: "",
   };
 
-  const { provider, keyMissing } = getAITextAssistProvider();
+  const { provider, keyMissing, selectedProvider } = getAITextAssistProvider();
   if (keyMissing) {
     res.status(503).json({
       error: "AI text generation is unavailable until OPENAI_API_KEY is configured",
@@ -201,6 +201,23 @@ router.post("/strategy/text-assist", requireAuth, async (req, res): Promise<void
         ctas: [],
         improvementNotes: [],
         missingContextWarnings: ["OPENAI_API_KEY is missing."],
+        safetyNotes: ["Draft-only runtime unavailable."],
+      },
+    });
+    return;
+  }
+
+  if (selectedProvider === "mock" && process.env.NODE_ENV === "production") {
+    res.status(503).json({
+      error: "AI text generation is unavailable in production without OPENAI_API_KEY",
+      code: "AI_TEXT_UNAVAILABLE",
+      output: {
+        hooks: [],
+        adCopyVariants: [],
+        captions: [],
+        ctas: [],
+        improvementNotes: [],
+        missingContextWarnings: ["Mock fallback is disabled in production."],
         safetyNotes: ["Draft-only runtime unavailable."],
       },
     });

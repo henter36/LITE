@@ -17,6 +17,13 @@
   - missingContextWarnings
   - safetyNotes
 
+## 2b. Route security
+- Auth guard: yes, the route uses `requireAuth`.
+- Role guard: yes, the route requires `editor` or above via `getMemberRole()` + `hasMinRole(role, "editor")`.
+- Workspace/campaign scoping: yes, the route loads the campaign by id and rejects requests when `campaign.workspaceId !== workspaceId`.
+- Mock fallback behavior: mock is only used through the shared provider selector; the route blocks mock-as-success in production.
+- Production missing-key behavior: if `OPENAI_API_KEY` is missing, the route returns a safe structured `AI_TEXT_UNAVAILABLE` response instead of crashing or pretending success.
+
 ## 3. API key safety
 - `OPENAI_API_KEY` is read only from `process.env.OPENAI_API_KEY`
 - no API key is hardcoded

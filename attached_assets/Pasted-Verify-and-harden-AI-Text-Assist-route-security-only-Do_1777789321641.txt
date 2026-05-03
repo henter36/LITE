@@ -1,0 +1,71 @@
+Verify and harden AI Text Assist route security only.
+
+Do not modify Campaign Detail UI.
+Do not add pages.
+Do not implement image/video/upload/live publishing.
+Do not change OpenAPI or generated client unless strictly required.
+Do not change the AI output schema unless required to fix security.
+
+Current backend route:
+POST /api/strategy/text-assist
+
+Objective:
+Ensure the AI text-assist backend route is safe before it is connected to Campaign Detail.
+
+Verify and fix only if needed:
+
+1. Authentication
+Confirm the route requires an authenticated user using the existing API server auth pattern.
+If it is not authenticated, add the same auth guard used by comparable strategy/campaign routes.
+
+2. Authorization / role guard
+Confirm viewers cannot trigger text generation if existing policy treats AI generation as an action.
+Allowed roles should follow the existing campaign/strategy action permissions.
+Do not create a new role model.
+
+3. Workspace / campaign scope
+Confirm the route cannot generate suggestions for a campaign outside the user’s authorized workspace/context.
+Reuse existing campaign/strategy scoping patterns if present.
+
+4. Mock fallback behavior
+Confirm mock fallback cannot masquerade as successful real AI generation in production.
+If OPENAI_API_KEY is missing, the route must return the safe structured unavailable response.
+Mock output must be limited to existing test/dev patterns only, if used at all.
+
+5. Governance preservation
+Confirm the route cannot:
+- approve content
+- mark campaign ready
+- publish
+- modify budget
+- update assets
+- change readiness state
+- bypass manual publish guards
+
+6. Documentation
+Update:
+docs/ai_text_backend_runtime_report.md
+
+Add explicit notes for:
+- auth guard
+- role guard
+- workspace/campaign scoping
+- mock fallback behavior
+- production missing-key behavior
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- no frontend changes
+- no Campaign Detail changes
+- no OpenAPI/client changes unless explicitly listed
+- no image/video/upload/live publishing
+- no new pages
+
+Final output:
+- changed files
+- auth/role/scoping verification
+- mock fallback behavior
+- verification results
+- remaining gaps
+- readiness decision
