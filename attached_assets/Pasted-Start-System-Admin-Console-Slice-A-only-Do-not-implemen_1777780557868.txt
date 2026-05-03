@@ -1,0 +1,84 @@
+Start System Admin Console — Slice A only.
+
+Do not implement UI.
+Do not add navigation.
+Do not expose or edit provider secrets.
+Do not change workspace role behavior.
+Do not weaken auth, workspace isolation, audit logs, AI fallback, Meta read-only, decision scoring, or safety guards.
+
+Objective:
+Add platform-level role foundation and route protection for future System Admin Console.
+
+Implement:
+
+1. Platform role model
+Add support for:
+- system_admin
+- super_admin
+
+Do not mix these with workspace roles.
+Workspace roles remain:
+- owner
+- admin
+- editor
+- viewer
+
+2. Data model
+Add minimal table/schema if needed:
+- system_admin_users or global_roles
+Fields:
+- id
+- user_id
+- role: system_admin / super_admin
+- created_at
+- updated_at
+
+3. Auth middleware
+Add server-side guards:
+- requireSystemAdmin
+- requireSuperAdmin
+
+Rules:
+- system_admin can access platform admin read/protected routes.
+- super_admin can access all platform admin routes.
+- workspace admins cannot access system admin routes by default.
+
+4. Test/probe endpoint only
+Add one protected backend route:
+- GET /api/system-admin/status
+
+It should return:
+- status: ok
+- current user id/email
+- platform role
+- no secrets
+- no provider config
+
+5. Seed/development setup
+If safe, allow demo user to be assigned super_admin only in seed/dev mode.
+Do not assign platform role silently in production.
+
+6. Audit
+Log access to system-admin status endpoint if existing audit pattern supports it.
+If not, document as deferred.
+
+7. Documentation
+Create:
+docs/system_admin_slice_a_report.md
+
+Verification:
+- TypeScript zero errors.
+- normal workspace admin cannot access /api/system-admin/status unless granted platform role.
+- system_admin can access.
+- super_admin can access.
+- unauthenticated user gets 401.
+- endpoint returns no secrets.
+- existing workspace roles still work.
+- auth, workspace isolation, campaign cycle, AI fallback, Meta read-only, decision scoring, and safety guards still work.
+
+Final output:
+- changed files
+- implemented role model
+- verification results
+- remaining risks
+- next slice recommendation

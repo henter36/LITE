@@ -15,6 +15,7 @@ import membersRouter from "./members";
 import metaRouter from "./meta";
 import strategyRouter from "./strategy";
 import mediaAssetsRouter from "./mediaAssets";
+import systemAdminRouter from "./systemAdmin";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(membersRouter);
 router.use(metaRouter);
 router.use(strategyRouter);
 router.use(mediaAssetsRouter);
+router.use(systemAdminRouter);
 
 export default router;
