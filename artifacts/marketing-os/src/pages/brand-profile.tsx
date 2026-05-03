@@ -110,7 +110,7 @@ export default function BrandProfile() {
         {isLoading ? (
           <Card><CardContent className="p-6 space-y-4"><Skeleton className="h-20 w-full" /><Skeleton className="h-32 w-full" /><Skeleton className="h-32 w-full" /></CardContent></Card>
         ) : (
-          <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+          <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
             <div className="space-y-4">
               <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.35)]">
                 <CardContent className="flex items-center justify-between gap-5 p-5">
@@ -165,73 +165,92 @@ export default function BrandProfile() {
               <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.35)]">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-lg text-slate-900"><Megaphone className="h-4 w-4 text-emerald-600" />هوية العلامة</CardTitle>
+                  <CardDescription>ثبت اسم العلامة وطبيعة العمل لتبقى كل المسودات متسقة.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                      <FormField control={form.control} name="brandName" render={({ field }) => (
-                        <FormItem><FormLabel>اسم العلامة</FormLabel><FormControl><Input className="bg-white" placeholder="Acme Corp" {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <FormField control={form.control} name="toneOfVoice" render={({ field }) => (
-                          <FormItem><FormLabel>نبرة الصوت</FormLabel><FormControl><Textarea rows={4} className="resize-none bg-white" placeholder="Professional, friendly, slightly humorous..." {...field} /></FormControl><FormMessage /></FormItem>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+                        <FormField control={form.control} name="brandName" render={({ field }) => (
+                          <FormItem><FormLabel>اسم العلامة</FormLabel><FormControl><Input className="bg-white" placeholder="Acme Corp" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="targetAudience" render={({ field }) => (
-                          <FormItem><FormLabel>الفئة / مجال العمل</FormLabel><FormControl><Textarea rows={4} className="resize-none bg-white" placeholder="Small business owners, aged 25-45..." {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem><FormLabel>الفئة / مجال العمل</FormLabel><FormControl><Textarea rows={3} className="resize-none bg-white" placeholder="Small business owners, aged 25-45..." {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
-
                       <FormField control={form.control} name="productsServices" render={({ field }) => (
-                        <FormItem><FormLabel>وصف مختصر</FormLabel><FormControl><Textarea rows={4} className="resize-none bg-white" placeholder="We sell B2B SaaS for marketing automation..." {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>وصف مختصر</FormLabel><FormControl><Textarea rows={3} className="resize-none bg-white" placeholder="We sell B2B SaaS for marketing automation..." {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
 
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <FormField control={form.control} name="forbiddenClaims" render={({ field }) => (
-                          <FormItem><FormLabel>قيود الادعاءات</FormLabel><FormControl><Textarea rows={4} className="resize-none bg-white" placeholder="Do not guarantee 10x growth..." {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="visualNotes" render={({ field }) => (
-                          <FormItem><FormLabel>أسلوب الدعوة لاتخاذ إجراء</FormLabel><FormControl><Textarea rows={4} className="resize-none bg-white" placeholder="Prefer Arabic-first copy, action-oriented CTAs..." {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
+                      <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+                        <Card className="border-emerald-100 bg-emerald-50/30 shadow-none">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-slate-900">صوت العلامة</CardTitle>
+                            <CardDescription className="text-xs">نبرة واضحة، مختصرة، ومناسبة للجمهور.</CardDescription>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <FormField control={form.control} name="toneOfVoice" render={({ field }) => (
+                              <FormItem><FormControl><Textarea rows={4} className="resize-none bg-white" placeholder="Professional, friendly, slightly humorous..." {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
+                        <Card className="border-emerald-100 bg-white shadow-none">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-slate-900">اللغة والاستخدام</CardTitle>
+                            <CardDescription className="text-xs">القيود، أسلوب الدعوة، وإشارات النشر تبقى داخل المسودة.</CardDescription>
+                          </CardHeader>
+                          <CardContent className="pt-0 space-y-4">
+                            <FormField control={form.control} name="forbiddenClaims" render={({ field }) => (
+                              <FormItem><FormLabel>قيود الادعاءات</FormLabel><FormControl><Textarea rows={3} className="resize-none bg-white" placeholder="Do not guarantee 10x growth..." {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="visualNotes" render={({ field }) => (
+                              <FormItem><FormLabel>أسلوب الدعوة لاتخاذ إجراء</FormLabel><FormControl><Textarea rows={3} className="resize-none bg-white" placeholder="Prefer Arabic-first copy, action-oriented CTAs..." {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                          </CardContent>
+                        </Card>
                       </div>
 
-                      <FormField control={form.control} name="preferredChannels" render={() => (
-                        <FormItem>
-                          <div className="space-y-1 mb-2">
-                            <FormLabel className="text-base">القنوات المفضلة</FormLabel>
-                            <CardDescription>اختَر القنوات التي تستخدمها عادةً في الترويج.</CardDescription>
-                          </div>
-                          <div className="flex flex-wrap gap-3">
-                            {CHANNELS.map((channel) => (
-                              <FormField key={channel.id} control={form.control} name="preferredChannels" render={({ field }) => (
-                                <FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-2xl border border-emerald-100 bg-white px-4 py-3 hover:bg-emerald-50/30 cursor-pointer">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(channel.id)}
-                                      onCheckedChange={(checked) => {
-                                        field.onChange(
-                                          checked
-                                            ? [...(field.value || []), channel.id]
-                                            : field.value?.filter((value) => value !== channel.id),
-                                        );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal cursor-pointer text-slate-700">{channel.label}</FormLabel>
-                                </FormItem>
-                              )} />
-                            ))}
-                          </div>
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">الجمهور</Badge>
-                            <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">CTA</Badge>
-                            <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">اللغة</Badge>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                      <Card className="border-emerald-100 bg-white shadow-none">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm text-slate-900">الجمهور والقنوات</CardTitle>
+                          <CardDescription className="text-xs">اختر القنوات المستخدمة فعليًا في الترويج.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-0 space-y-3">
+                          <FormField control={form.control} name="preferredChannels" render={() => (
+                            <FormItem>
+                              <div className="flex flex-wrap gap-3">
+                                {CHANNELS.map((channel) => (
+                                  <FormField key={channel.id} control={form.control} name="preferredChannels" render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-2xl border border-emerald-100 bg-white px-4 py-3 hover:bg-emerald-50/30 cursor-pointer">
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(channel.id)}
+                                          onCheckedChange={(checked) => {
+                                            field.onChange(
+                                              checked
+                                                ? [...(field.value || []), channel.id]
+                                                : field.value?.filter((value) => value !== channel.id),
+                                            );
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormLabel className="font-normal cursor-pointer text-slate-700">{channel.label}</FormLabel>
+                                    </FormItem>
+                                  )} />
+                                ))}
+                              </div>
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">الجمهور</Badge>
+                                <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">CTA</Badge>
+                                <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">اللغة</Badge>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </CardContent>
+                      </Card>
 
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col gap-3 border-t border-emerald-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="text-xs text-muted-foreground">إعدادات اللغة ومعاينة النص تبقى ضمن المسودة فقط.</div>
                         <Button type="submit" size="lg" disabled={createProfile.isPending || updateProfile.isPending}>
                           {createProfile.isPending || updateProfile.isPending ? "جارٍ الحفظ..." : "حفظ ملف العلامة"}
@@ -249,12 +268,16 @@ export default function BrandProfile() {
                   <CardTitle className="flex items-center gap-2 text-lg text-slate-900"><Users className="h-4 w-4 text-emerald-600" />معاينة صوت العلامة</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
-                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3 py-3">
+                  <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/70 to-white px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-600">معاينة</p>
+                    <p className="mt-2 text-base leading-7 text-slate-900">أنشئ حملات تسويقية واثقة وواضحة تعكس شخصية {profile?.brandName || "العلامة"} وتخاطب أصحاب الأعمال الصغيرة.</p>
+                  </div>
+                  <div className="rounded-2xl border border-emerald-100 bg-white px-3 py-3">
                     <p className="font-medium mb-1">كيف يُستخدم هذا؟</p>
                     <p className="text-muted-foreground">يؤثر ملف العلامة في نبرة المسودات واتساق الرسائل عبر الحملات والمحتوى.</p>
                   </div>
                   <div className="rounded-2xl border border-emerald-100 bg-white px-3 py-3">
-                    <p className="font-medium mb-1">نصائح سريعة</p>
+                    <p className="font-medium mb-1">نصائح لتحسين الملف</p>
                     <p className="text-muted-foreground">اجعل النبرة والجمهور والقنوات متوافقة قبل حفظ الملف.</p>
                   </div>
                   <div className="rounded-2xl border border-emerald-100 bg-white px-3 py-3">

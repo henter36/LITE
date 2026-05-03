@@ -1,0 +1,147 @@
+Brand Layout Polish Slice 2.2 only.
+
+The Brand screen is improved but still not visually acceptable compared with the provided Arabic RTL Brand reference. It still feels like an admin form, not a premium Brand cockpit.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/brand-profile.tsx
+- docs/ui_alignment_brand_slice_report.md
+
+Objective:
+Improve the Brand screen layout and visual hierarchy so it feels like a premium Arabic RTL Brand cockpit, closer to the reference, while preserving all current fields and save/update behavior.
+
+Current issues:
+- still feels like a form/admin page
+- side guidance column is too heavy
+- main content hierarchy is not strong enough
+- preview/help experience is weak
+- large empty areas reduce polish
+- cards are not organized like a premium brand setup page
+
+Required improvements:
+
+1. Use a stronger Brand cockpit layout
+Inside the existing page, organize content into:
+- top header
+- completion + brand summary row
+- main brand setup grid
+- side insights/preview stack
+
+Do not create a new page.
+
+2. Top row redesign
+Make the top row feel closer to the reference:
+- completion card compact and prominent
+- brand summary card richer and wider
+- show brand name, category/services, audience, channels
+- use badges/chips for channels
+- keep data live from existing state
+
+3. Main setup sections
+Group form fields into clear cards:
+- هوية العلامة
+- صوت العلامة
+- الجمهور والقنوات
+- إعدادات اللغة والاستخدام
+
+Each section should have:
+- icon
+- title
+- short Arabic helper text
+- grouped fields
+- consistent spacing
+
+4. Side insights column
+Reduce the heavy side guidance feel.
+Replace placeholder-like cards with polished cards:
+- معاينة صوت العلامة
+- نصائح لتحسين الملف
+- ضوابط الاستخدام
+
+These should look like executive helper cards, not instructional placeholders.
+
+5. Brand voice preview
+Add a stronger preview card using existing data only:
+- sample Arabic marketing sentence generated locally from existing brand fields
+- clearly labeled as "معاينة"
+- no backend AI call
+- no new AI runtime
+- no auto generation
+
+Example:
+"أنشئ حملات تسويقية واثقة وواضحة تعكس شخصية Bright & Bold وتخاطب أصحاب الأعمال الصغيرة."
+
+6. Reduce empty space and improve density
+- make cards more compact
+- reduce unnecessary vertical gaps
+- keep page balanced
+- no huge blank side areas
+- no awkward isolated cards
+
+7. Preserve behavior
+Do not change:
+- brand load
+- save/update
+- validation
+- existing fields
+- existing API calls
+- role behavior
+- routes
+
+8. Unsupported features
+Keep disabled/deferred:
+- upload
+- image/video generation
+- live publishing
+- autonomous publishing
+
+Do not imply they work.
+
+Documentation:
+Update:
+docs/ui_alignment_brand_slice_report.md
+
+Add:
+- Brand Layout Polish 2.2 summary
+- layout hierarchy improvements
+- brand voice preview approach
+- preserved behavior
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard changes
+- no new pages
+- no upload/media/live publishing
+- provide screenshot or user-side visual review after polish
+
+Final output:
+- changed files
+- layout polish completed
+- screenshot/visual evidence status
+- preserved behavior
+- verification results
+- remaining gaps
+- readiness decision
