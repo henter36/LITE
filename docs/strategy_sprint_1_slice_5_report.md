@@ -19,3 +19,4 @@
 
 ## Final status
 - Phase 5 scope is complete for the requested slice.
+- Phase 5 has a dedicated report in `docs/phase_5_decision_intelligence_report.md`.
