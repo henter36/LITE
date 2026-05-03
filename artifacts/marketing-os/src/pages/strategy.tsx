@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useCreateStrategyIntake,
+  useCreateCampaignFromStrategy,
   useGenerateStrategyDiagnosis,
   useGetLatestStrategyDiagnosis,
   useGetStrategyIntake,
   useUpdateStrategyIntake,
+  getCreateCampaignFromStrategyMutationOptions,
   getGetLatestStrategyDiagnosisQueryKey,
   getGetStrategyIntakeQueryKey,
+  getListCampaignsQueryKey,
 } from "@workspace/api-client-react";
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,6 +51,7 @@ export default function StrategyPage() {
   const createIntake = useCreateStrategyIntake();
   const updateIntake = useUpdateStrategyIntake();
   const generateDiagnosis = useGenerateStrategyDiagnosis();
+  const createCampaignFromStrategy = useCreateCampaignFromStrategy();
 
   useEffect(() => {
     if (latestIntake) {
@@ -79,6 +83,14 @@ export default function StrategyPage() {
     };
   }, [latestDiagnosis]);
 
+  const campaignPreview = useMemo(() => ({
+    campaignName: `${latestIntake?.businessCategory || "Strategy"} Campaign`,
+    objective: latestIntake?.primaryGoal || latestDiagnosis?.summary || "leads",
+    audience: latestDiagnosis?.audienceSummary || latestIntake?.targetAudience || "",
+    channels: (latestIntake?.availableAssets || "").split(",").map((s) => s.trim()).filter(Boolean),
+    offer: latestIntake?.currentOffer || "",
+  }), [latestDiagnosis, latestIntake]);
+
   const saveIntake = async () => {
     const payload = {
       workspaceId: activeWorkspaceId,
@@ -104,6 +116,12 @@ export default function StrategyPage() {
   const runDiagnosis = async () => {
     await generateDiagnosis.mutateAsync({ data: { workspaceId: activeWorkspaceId } });
     await queryClient.invalidateQueries({ queryKey: getGetLatestStrategyDiagnosisQueryKey({ workspaceId: activeWorkspaceId }) });
+  };
+
+  const createCampaign = async () => {
+    const campaign = await createCampaignFromStrategy.mutateAsync({ data: { workspaceId: activeWorkspaceId } });
+    await queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey({ workspaceId: activeWorkspaceId }) });
+    window.location.assign(`/campaigns/${campaign.id}`);
   };
 
   return (
@@ -201,6 +219,40 @@ export default function StrategyPage() {
           ) : (
             <p className="text-sm text-muted-foreground">Generate a diagnosis to view the draft.</p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Create Campaign from Strategy</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-lg border p-4">
+              <p className="text-sm font-medium">Campaign name</p>
+              <p className="text-sm text-muted-foreground mt-1">{campaignPreview.campaignName}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm font-medium">Objective</p>
+              <p className="text-sm text-muted-foreground mt-1">{campaignPreview.objective}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm font-medium">Audience</p>
+              <p className="text-sm text-muted-foreground mt-1">{campaignPreview.audience}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm font-medium">Channels</p>
+              <p className="text-sm text-muted-foreground mt-1">{campaignPreview.channels.join(", ") || "Not set"}</p>
+            </div>
+            <div className="rounded-lg border p-4 md:col-span-2">
+              <p className="text-sm font-medium">Offer / product</p>
+              <p className="text-sm text-muted-foreground mt-1">{campaignPreview.offer || "Not set"}</p>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">Strategy suggestions are advisory. Human approval is still required before campaign execution.</p>
+          <Button onClick={createCampaign} disabled={!canEdit || createCampaignFromStrategy.isPending}>
+            Create Campaign from Strategy
+          </Button>
         </CardContent>
       </Card>
     </SidebarLayout>

@@ -572,6 +572,10 @@ export interface GenerateStrategyDiagnosisBody {
   workspaceId: number;
 }
 
+export interface CreateCampaignFromStrategyBody {
+  workspaceId: number;
+}
+
 export type ListBrandProfilesParams = {
   workspaceId?: number;
 };

@@ -29,6 +29,7 @@ import type {
   CreateApprovalBody,
   CreateBrandProfileBody,
   CreateCampaignBody,
+  CreateCampaignFromStrategyBody,
   CreateConnectionBody,
   CreateStrategyIntakeBody,
   CreateTrackingLinkBody,
@@ -2454,6 +2455,93 @@ export function useGetLatestStrategyDiagnosis<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Create a campaign draft from the latest strategy diagnosis
+ */
+export const getCreateCampaignFromStrategyUrl = () => {
+  return `/api/strategy/create-campaign`;
+};
+
+export const createCampaignFromStrategy = async (
+  createCampaignFromStrategyBody: CreateCampaignFromStrategyBody,
+  options?: RequestInit,
+): Promise<Campaign> => {
+  return customFetch<Campaign>(getCreateCampaignFromStrategyUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCampaignFromStrategyBody),
+  });
+};
+
+export const getCreateCampaignFromStrategyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCampaignFromStrategy>>,
+    TError,
+    { data: BodyType<CreateCampaignFromStrategyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCampaignFromStrategy>>,
+  TError,
+  { data: BodyType<CreateCampaignFromStrategyBody> },
+  TContext
+> => {
+  const mutationKey = ["createCampaignFromStrategy"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCampaignFromStrategy>>,
+    { data: BodyType<CreateCampaignFromStrategyBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCampaignFromStrategy(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCampaignFromStrategyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCampaignFromStrategy>>
+>;
+export type CreateCampaignFromStrategyMutationBody =
+  BodyType<CreateCampaignFromStrategyBody>;
+export type CreateCampaignFromStrategyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a campaign draft from the latest strategy diagnosis
+ */
+export const useCreateCampaignFromStrategy = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCampaignFromStrategy>>,
+    TError,
+    { data: BodyType<CreateCampaignFromStrategyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCampaignFromStrategy>>,
+  TError,
+  { data: BodyType<CreateCampaignFromStrategyBody> },
+  TContext
+> => {
+  return useMutation(getCreateCampaignFromStrategyMutationOptions(options));
+};
 
 /**
  * @summary List generated assets

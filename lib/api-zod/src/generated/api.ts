@@ -536,6 +536,13 @@ export const GetLatestStrategyDiagnosisResponse = zod.object({
 });
 
 /**
+ * @summary Create a campaign draft from the latest strategy diagnosis
+ */
+export const CreateCampaignFromStrategyBody = zod.object({
+  workspaceId: zod.number(),
+});
+
+/**
  * @summary List generated assets
  */
 export const ListAssetsQueryParams = zod.object({

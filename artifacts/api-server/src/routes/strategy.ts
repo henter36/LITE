@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { auditLogsTable, strategyIntakesTable, strategyDiagnosesTable } from "@workspace/db";
+import { auditLogsTable, strategyIntakesTable, strategyDiagnosesTable, campaignsTable } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 import { getAIProvider, MockAIProvider } from "../lib/ai-provider";
@@ -165,6 +165,58 @@ router.get("/strategy/diagnosis/latest", requireAuth, async (req, res): Promise<
     return;
   }
   res.json(diagnosis);
+});
+
+router.post("/strategy/create-campaign", requireAuth, async (req, res): Promise<void> => {
+  const { workspaceId } = req.body ?? {};
+  if (!workspaceId) {
+    res.status(400).json({ error: "workspaceId is required" });
+    return;
+  }
+
+  const role = await getMemberRole(req.session.userId!, Number(workspaceId));
+  if (!role) {
+    res.status(403).json({ error: "Access denied" });
+    return;
+  }
+  if (!hasMinRole(role, "editor")) {
+    res.status(403).json({ error: "Requires editor role or above" });
+    return;
+  }
+
+  const [intake] = await db.select().from(strategyIntakesTable).where(eq(strategyIntakesTable.workspaceId, Number(workspaceId))).orderBy(desc(strategyIntakesTable.updatedAt));
+  const [diagnosis] = await db.select().from(strategyDiagnosesTable).where(eq(strategyDiagnosesTable.workspaceId, Number(workspaceId))).orderBy(desc(strategyDiagnosesTable.createdAt));
+  if (!intake || !diagnosis) {
+    res.status(404).json({ error: "Strategy intake and diagnosis are required" });
+    return;
+  }
+
+  const name = `${intake.businessCategory || "Strategy"} Campaign`;
+  const [campaign] = await db.insert(campaignsTable).values({
+    workspaceId: Number(workspaceId),
+    name,
+    objective: intake.primaryGoal || "leads",
+    productService: intake.currentOffer || "",
+    audience: diagnosis.audienceSummary || intake.targetAudience || "",
+    geography: intake.geography || "",
+    budgetSuggestion: 0,
+    startDate: new Date().toISOString().slice(0, 10),
+    endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString().slice(0, 10),
+    channels: JSON.stringify((intake.availableAssets || "").split(",").map((s) => s.trim()).filter(Boolean)),
+    landingUrl: "",
+    status: "draft",
+  }).returning();
+
+  await db.insert(auditLogsTable).values({
+    workspaceId: Number(workspaceId),
+    action: "campaign_created_from_strategy",
+    entityType: "campaign",
+    entityId: campaign.id,
+    actor: actor(req),
+    details: `Campaign created from strategy for workspace ${workspaceId}`,
+  });
+
+  res.status(201).json(campaign);
 });
 
 export default router;

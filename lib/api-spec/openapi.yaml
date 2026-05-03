@@ -560,6 +560,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/StrategyDiagnosis"
 
+  /strategy/create-campaign:
+    post:
+      operationId: createCampaignFromStrategy
+      tags: [strategy]
+      summary: Create a campaign draft from the latest strategy diagnosis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCampaignFromStrategyBody"
+      responses:
+        "201":
+          description: Campaign created from strategy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
   # Generated Assets
   /assets:
     get:
@@ -1894,6 +1913,13 @@ components:
       required: [id, workspaceId, intakeId, summary, whatIsMissing, whatToTestFirst, likelyCreativeDirection, audienceSummary, offerSummary, topObjections, suggestedCTA, createdAt]
 
     GenerateStrategyDiagnosisBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+      required: [workspaceId]
+
+    CreateCampaignFromStrategyBody:
       type: object
       properties:
         workspaceId:
