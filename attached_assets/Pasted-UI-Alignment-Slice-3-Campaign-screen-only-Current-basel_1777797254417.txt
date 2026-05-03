@@ -1,0 +1,172 @@
+UI Alignment Slice 3: Campaign screen only.
+
+Current baseline:
+- Dashboard is accepted for now.
+- Brand is accepted for now.
+- Do not modify Dashboard or Brand in this slice.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail unless it is the existing campaign screen being aligned.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- the existing Campaign screen/page file(s)
+- docs/ui_alignment_campaign_slice_report.md
+
+Objective:
+Align only the existing Campaign screen/workflow to the provided Arabic RTL campaign reference while preserving current campaign behavior, completion wiring, AI workflow foundation, and manual publish model.
+
+Target visual direction:
+- Arabic RTL-first
+- same light right-side shell
+- green/teal identity
+- premium white cards
+- multi-step campaign creation/detail feel
+- campaign summary side card
+- AI helper card
+- clear form sections
+- similar to the provided campaign reference screenshot
+
+Required Campaign screen structure:
+
+1. Header
+- Arabic title such as "موجز الحملة" or "إعداد الحملة"
+- subtitle explaining campaign setup/content generation
+- back to campaigns action if already present
+- clean spacing and hierarchy
+
+2. Stepper / section flow
+Use a clear multi-step or sectioned structure:
+- تفاصيل الحملة
+- الجمهور
+- الرسالة
+- القنوات
+- المراجعة
+
+Do not create new routes.
+Do not break existing campaign workflow.
+
+3. Campaign summary card
+Show a side/summary card:
+- campaign name
+- objective
+- audience
+- offer
+- channels
+- dates
+- status/readiness if available
+
+Use existing data only.
+
+4. AI helper card
+Show an AI guidance/helper card only if it uses existing safe behavior:
+- "مساعد الذكاء الاصطناعي"
+- suggestions/guidance
+- no new AI runtime
+- no media generation
+- no auto-publish
+- no auto-approve
+
+5. Campaign form sections
+Polish existing form fields:
+- campaign name
+- objective
+- audience
+- offer
+- key message
+- channels
+- CTA
+- content angle
+- dates
+- budget level if already supported
+- landing URL / tracking link if already supported
+
+Do not add unsupported backend behavior.
+
+6. Upload handling
+If the reference shows upload:
+- do not implement upload backend
+- do not add working upload
+- either remove it, disable it, or show it as "غير مفعّل حاليًا"
+- do not imply it works
+
+7. Publish handling
+If reference implies publishing:
+- keep manual/external publish model
+- use wording like "جاهزية النشر اليدوي"
+- do not implement live publishing
+- do not bypass publish checklist
+
+8. Preserve existing logic
+Do not weaken:
+- Campaign Completion panel
+- readiness score
+- missing requirements list
+- publish checklist
+- manual publish guard at UI and handler level
+- viewer restrictions
+- AI workflow route auth/role/workspace scoping
+- draft-only AI outputs
+
+9. Visual polish
+Improve:
+- spacing
+- cards
+- badges
+- disabled state explanations
+- RTL alignment
+- green/teal status styling
+- helper panels
+- empty states
+
+Documentation:
+Create:
+docs/ui_alignment_campaign_slice_report.md
+
+Report must include:
+- changed files
+- campaign visual alignment summary
+- what matches the reference
+- what was adapted or deferred
+- upload/media/live publishing handling
+- preserved behavior
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard changes
+- no Brand changes
+- no new pages
+- no upload backend
+- no image/video generation
+- no live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- Campaign alignment completed
+- screenshot/visual evidence status
+- preserved behavior
+- verification results
+- remaining gaps
+- readiness decision
