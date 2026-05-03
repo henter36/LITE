@@ -41,7 +41,9 @@
 
 ## Verification results
 - TypeScript check: passed
-- App build: backend build passed; frontend build requires `PORT` in this environment
+- Exact frontend build command: `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`
+- App build: backend build passed; frontend build passed with `PORT` set
+- `PORT` was required by the Vite config in this environment
 - No OpenAPI/generated client change
 - No image generation
 - No video generation

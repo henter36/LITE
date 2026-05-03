@@ -1,0 +1,140 @@
+Perform AI Assist integration security and build verification hardening only.
+
+Do not add new features.
+Do not add pages.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement upload.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget changes.
+Do not implement autonomous optimization.
+Do not redesign the UI.
+Do not change OpenAPI or generated client unless strictly required to fix a verified break.
+
+Current state:
+- Backend route exists: POST /api/strategy/text-assist
+- Campaign Detail AI Assist card has been added
+- AI output must remain draft-only
+- Campaign Completion Wiring must remain intact
+
+Objective:
+Verify and harden the AI Assist integration so it is safe, role-aware, and build-clean before moving to the next product workflow.
+
+Tasks:
+
+1. Backend route security
+
+Verify and fix if needed:
+
+- POST /api/strategy/text-assist requires authenticated user
+- route follows existing API server auth pattern
+- route follows existing role/permission pattern
+- viewer cannot trigger AI generation if generation is treated as an action
+- route cannot be used for unauthorized workspace/campaign context
+- route cannot approve content
+- route cannot mark campaign ready
+- route cannot publish
+- route cannot modify budget
+- route cannot update assets
+- route cannot change readiness state
+- route cannot bypass manual publish guards
+
+2. Frontend role behavior
+
+Verify and fix if needed inside Campaign Detail only:
+
+- viewer cannot trigger Generate text suggestions if policy treats AI generation as an action
+- viewer can only view AI suggestions if existing policy allows viewing
+- allowed roles can trigger generation
+- AI suggestions remain draft-only
+- no AI suggestion changes campaign readiness
+- no AI suggestion auto-approves content
+- no AI suggestion updates assets
+
+3. API key safety
+
+Verify:
+
+- OPENAI_API_KEY is read only server-side from process.env.OPENAI_API_KEY
+- no key appears in frontend code
+- no frontend/browser AI provider call exists
+- no key is logged
+- no key is committed
+
+4. Missing-key and mock fallback
+
+Verify and fix if needed:
+
+- if OPENAI_API_KEY is missing, route returns safe structured unavailable response
+- app does not crash
+- UI shows safe unavailable/error state
+- mock fallback must not masquerade as real AI success in production
+- mock output, if any, must be limited to existing dev/test-safe behavior
+
+5. Build verification
+
+Resolve the shell PORT issue properly.
+
+Run the existing frontend verification command with the required PORT/env configuration.
+
+Report separately:
+- TypeScript result
+- API server build result
+- Marketing OS frontend build result
+- whether PORT was required
+- exact command used
+
+Do not claim frontend build passed if it was blocked by missing PORT.
+
+6. Completion wiring preservation
+
+Verify existing Campaign Detail completion remains intact:
+
+- unified completion panel still renders
+- readiness score still works
+- missing requirements list still works
+- publish checklist still works
+- manual publish guard still blocks at UI and handler level
+- viewer restrictions still work
+- external/manual-only publishing model unchanged
+
+7. Documentation
+
+Update:
+docs/ai_text_backend_runtime_report.md
+docs/ai_text_campaign_detail_integration_report.md
+
+Add explicit notes for:
+- backend auth guard
+- role guard
+- workspace/campaign scoping
+- missing-key behavior
+- mock fallback behavior
+- frontend build status with PORT handling
+- draft-only governance
+- completion wiring preservation
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- Marketing OS frontend build passes or failure is explicitly reported
+- no API key in frontend code
+- no frontend AI provider call
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no new standalone pages
+- Campaign Completion Wiring still works
+
+Final output:
+- changed files
+- security hardening performed
+- auth/role/scoping verification
+- build/typecheck verification with exact command/result
+- API key safety verification
+- missing-key/mock fallback behavior
+- completion wiring verification
+- remaining gaps
+- readiness decision
