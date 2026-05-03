@@ -12,9 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, Globe, Megaphone, Sparkles, ShieldAlert, Users, MessageCircleMore } from "lucide-react";
 
 const CHANNELS = [
   { id: "instagram", label: "Instagram" },
@@ -36,11 +38,9 @@ const brandProfileSchema = z.object({
 export default function BrandProfile() {
   const { activeWorkspaceId } = useAuth();
   const { data: profiles, isLoading } = useListBrandProfiles({ workspaceId: activeWorkspaceId });
-  const profile = profiles?.[0]; // Assume 1 profile per workspace for MVP
-  
+  const profile = profiles?.[0];
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   const createProfile = useCreateBrandProfile();
   const updateProfile = useUpdateBrandProfile();
 
@@ -72,193 +72,190 @@ export default function BrandProfile() {
   }, [profile, form]);
 
   const onSubmit = (data: z.infer<typeof brandProfileSchema>) => {
+    const payload = { ...data, workspaceId: activeWorkspaceId, visualNotes: data.visualNotes || "" };
     if (profile) {
-      updateProfile.mutate({ id: profile.id, data: { ...data, workspaceId: activeWorkspaceId, visualNotes: data.visualNotes || "" } }, {
+      updateProfile.mutate({ id: profile.id, data: payload }, {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: activeWorkspaceId }) });
           toast({ title: "Brand profile updated successfully" });
-        }
+        },
       });
-    } else {
-      createProfile.mutate({ data: { ...data, workspaceId: activeWorkspaceId, visualNotes: data.visualNotes || "" } }, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: activeWorkspaceId }) });
-          toast({ title: "Brand profile created successfully" });
-        }
-      });
+      return;
     }
+    createProfile.mutate({ data: payload }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListBrandProfilesQueryKey({ workspaceId: activeWorkspaceId }) });
+        toast({ title: "Brand profile created successfully" });
+      },
+    });
   };
 
   return (
     <SidebarLayout>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Brand Profile</h1>
-          <p className="text-muted-foreground mt-1">Configure your brand guidelines for AI content generation.</p>
+      <div className="space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Brand</h1>
+            <p className="text-muted-foreground mt-1">Manage brand voice, audience, and content guardrails.</p>
+          </div>
+          <div className="rounded-full border px-3 py-1 text-xs text-muted-foreground">
+            Manual updates only
+          </div>
         </div>
-      </div>
 
-      {isLoading ? (
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Brand Guidelines</CardTitle>
-            <CardDescription>
-              These settings instruct the AI on how to write content for your campaigns.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="brandName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Brand Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Acme Corp" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="toneOfVoice"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tone of Voice</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Professional, friendly, slightly humorous..." className="resize-none" rows={3} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="targetAudience"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Target Audience</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Small business owners, aged 25-45, looking for growth tools..." className="resize-none" rows={3} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+        {isLoading ? (
+          <Card><CardContent className="p-6 space-y-4"><Skeleton className="h-20 w-full" /><Skeleton className="h-32 w-full" /><Skeleton className="h-32 w-full" /></CardContent></Card>
+        ) : (
+          <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+            <div className="space-y-4">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="p-5 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Profile Completion</p>
+                    <p className="text-lg font-semibold">{profile ? "Profile in progress" : "No brand profile yet"}</p>
+                    <p className="text-sm text-muted-foreground">Keep this current so drafts stay on-brand.</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-primary/15 flex items-center justify-center text-primary">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                </CardContent>
+              </Card>
 
-                <FormField
-                  control={form.control}
-                  name="productsServices"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Products & Services Overview</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="We sell B2B SaaS for marketing automation..." className="resize-none" rows={3} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4" />Brand Summary</CardTitle>
+                  <CardDescription>High-level guidance used across campaign drafts.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3 md:grid-cols-2 text-sm">
+                  <div className="rounded-lg border px-3 py-2"><p className="text-muted-foreground text-xs mb-1">Brand name</p><p className="font-medium">{profile?.brandName || "Not set"}</p></div>
+                  <div className="rounded-lg border px-3 py-2"><p className="text-muted-foreground text-xs mb-1">Audience</p><p className="font-medium">{profile?.targetAudience || "Not set"}</p></div>
+                  <div className="rounded-lg border px-3 py-2 md:col-span-2"><p className="text-muted-foreground text-xs mb-1">Products & services</p><p className="font-medium">{profile?.productsServices || "Not set"}</p></div>
+                </CardContent>
+              </Card>
 
-                <FormField
-                  control={form.control}
-                  name="forbiddenClaims"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Forbidden Claims (Things to never say)</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Do not guarantee 10x growth, do not mention competitors..." className="resize-none" rows={2} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2"><Megaphone className="h-4 w-4" />Brand Identity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                      <FormField control={form.control} name="brandName" render={({ field }) => (
+                        <FormItem><FormLabel>Brand Name</FormLabel><FormControl><Input placeholder="Acme Corp" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
 
-                <FormField
-                  control={form.control}
-                  name="preferredChannels"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">Preferred Channels</FormLabel>
-                        <CardDescription>Select the platforms where you typically advertise.</CardDescription>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField control={form.control} name="toneOfVoice" render={({ field }) => (
+                          <FormItem><FormLabel>Voice / Tone</FormLabel><FormControl><Textarea rows={4} className="resize-none" placeholder="Professional, friendly, slightly humorous..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="targetAudience" render={({ field }) => (
+                          <FormItem><FormLabel>Audience</FormLabel><FormControl><Textarea rows={4} className="resize-none" placeholder="Small business owners, aged 25-45..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
                       </div>
-                      <div className="flex flex-wrap gap-4">
-                        {CHANNELS.map((channel) => (
-                          <FormField
-                            key={channel.id}
-                            control={form.control}
-                            name="preferredChannels"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={channel.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 hover:bg-muted/50 cursor-pointer"
-                                >
+
+                      <FormField control={form.control} name="productsServices" render={({ field }) => (
+                        <FormItem><FormLabel>Brand Summary</FormLabel><FormControl><Textarea rows={4} className="resize-none" placeholder="We sell B2B SaaS for marketing automation..." {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField control={form.control} name="forbiddenClaims" render={({ field }) => (
+                          <FormItem><FormLabel>Keywords / Banned Words</FormLabel><FormControl><Textarea rows={4} className="resize-none" placeholder="Do not guarantee 10x growth..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="visualNotes" render={({ field }) => (
+                          <FormItem><FormLabel>Language / CTA Style</FormLabel><FormControl><Textarea rows={4} className="resize-none" placeholder="Prefer Arabic-first copy, action-oriented CTAs..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                      </div>
+
+                      <FormField control={form.control} name="preferredChannels" render={() => (
+                        <FormItem>
+                          <div className="space-y-1 mb-2">
+                            <FormLabel className="text-base">Audience / Channels / CTA Style</FormLabel>
+                            <CardDescription>Select the platforms you typically advertise on.</CardDescription>
+                          </div>
+                          <div className="flex flex-wrap gap-3">
+                            {CHANNELS.map((channel) => (
+                              <FormField key={channel.id} control={form.control} name="preferredChannels" render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border px-4 py-3 hover:bg-muted/40 cursor-pointer">
                                   <FormControl>
                                     <Checkbox
                                       checked={field.value?.includes(channel.id)}
                                       onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...(field.value || []), channel.id])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== channel.id
-                                              )
-                                            )
+                                        field.onChange(
+                                          checked
+                                            ? [...(field.value || []), channel.id]
+                                            : field.value?.filter((value) => value !== channel.id),
+                                        );
                                       }}
                                     />
                                   </FormControl>
-                                  <FormLabel className="font-normal cursor-pointer">
-                                    {channel.label}
-                                  </FormLabel>
+                                  <FormLabel className="font-normal cursor-pointer">{channel.label}</FormLabel>
                                 </FormItem>
-                              )
-                            }}
-                          />
-                        ))}
+                              )} />
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-xs text-muted-foreground">Language settings and preview guidance stay draft-only.</div>
+                        <Button type="submit" size="lg" disabled={createProfile.isPending || updateProfile.isPending}>
+                          {createProfile.isPending || updateProfile.isPending ? "Saving..." : "Save Brand Profile"}
+                        </Button>
                       </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </div>
 
-                <FormField
-                  control={form.control}
-                  name="visualNotes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Visual Notes (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Always use our primary purple #845EF7, prefer high contrast photography..." className="resize-none" rows={2} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <div className="space-y-4">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2"><Users className="h-4 w-4" />Preview / Help</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div className="rounded-lg border bg-background px-3 py-3">
+                    <p className="font-medium mb-1">How this is used</p>
+                    <p className="text-muted-foreground">The brand profile shapes AI drafts across campaigns and content.</p>
+                  </div>
+                  <div className="rounded-lg border bg-background px-3 py-3">
+                    <p className="font-medium mb-1">Language settings</p>
+                    <p className="text-muted-foreground">Use the language and CTA guidance area to keep messaging consistent.</p>
+                  </div>
+                  <div className="rounded-lg border bg-background px-3 py-3">
+                    <p className="font-medium mb-1">Unsupported items</p>
+                    <p className="text-muted-foreground">Upload, live publishing, and media generation remain disabled.</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <Button type="submit" size="lg" disabled={createProfile.isPending || updateProfile.isPending}>
-                  {createProfile.isPending || updateProfile.isPending ? "Saving..." : "Save Brand Profile"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      )}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2"><Globe className="h-4 w-4" />Language Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div className="rounded-lg border px-3 py-2 flex items-center justify-between"><span>Primary language</span><Badge variant="outline">Managed in text fields</Badge></div>
+                  <div className="rounded-lg border px-3 py-2 flex items-center justify-between"><span>RTL guidance</span><Badge variant="outline">Supported</Badge></div>
+                  <div className="rounded-lg border px-3 py-2 flex items-center justify-between"><span>CTA style</span><Badge variant="outline">Draft-only</Badge></div>
+                  <div className="rounded-lg border px-3 py-2 flex items-center justify-between"><span>Keywords / bans</span><Badge variant="outline">Editable</Badge></div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-4 w-4" />Guardrails</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <p>Brand changes affect only future drafts.</p>
+                  <p>Save/update behavior remains unchanged.</p>
+                  <p>No new unsupported actions were added.</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
     </SidebarLayout>
   );
 }
