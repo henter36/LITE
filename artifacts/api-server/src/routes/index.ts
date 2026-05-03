@@ -13,7 +13,6 @@ import recommendationsRouter from "./recommendations";
 import auditLogsRouter from "./auditLogs";
 import membersRouter from "./members";
 import metaRouter from "./meta";
-import strategyRouter from "./strategy";
 
 const router: IRouter = Router();
 
@@ -31,6 +30,5 @@ router.use(recommendationsRouter);
 router.use(auditLogsRouter);
 router.use(membersRouter);
 router.use(metaRouter);
-router.use(strategyRouter);
 
 export default router;
