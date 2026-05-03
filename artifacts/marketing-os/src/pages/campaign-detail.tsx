@@ -66,9 +66,236 @@ import {
   Rocket,
   Send,
   ClipboardCheck,
+  Image,
+  Video,
+  FileText,
+  File,
+  ExternalLink,
+  Library,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+
+// ── Creative Assets section (campaign-linked media assets) ─────────────────
+
+type AssetType = "image" | "video" | "document" | "link" | "other";
+type SourceType = "uploaded" | "external_url" | "generated_later";
+type AssetStatus = "draft" | "needs_review" | "approved" | "rejected";
+
+interface MediaAsset {
+  id: number;
+  workspaceId: number;
+  campaignId: number | null;
+  title: string;
+  type: AssetType;
+  sourceType: SourceType;
+  urlOrReference: string;
+  description: string;
+  channel: string | null;
+  status: AssetStatus;
+  usageRightsNotes: string;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const ASSET_TYPE_ICONS: Record<AssetType, React.ElementType> = {
+  image: Image,
+  video: Video,
+  document: FileText,
+  link: Link as React.ElementType,
+  other: File,
+};
+
+const ASSET_STATUS_COLORS: Record<AssetStatus, string> = {
+  draft: "bg-muted text-muted-foreground",
+  needs_review: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  approved: "bg-green-500/10 text-green-700 border-green-500/20",
+  rejected: "bg-red-500/10 text-red-700 border-red-500/20",
+};
+
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+async function mediaAssetFetch(path: string, init?: RequestInit) {
+  const res = await fetch(`${BASE_PATH}${path}`, {
+    ...init,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error ?? res.statusText);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function CampaignCreativeAssets({
+  campaignId,
+  isViewer,
+}: {
+  campaignId: number;
+  isViewer: boolean;
+}) {
+  const { toast } = useToast();
+  const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaLoaded, setMediaLoaded] = useState(false);
+
+  if (!mediaLoaded) {
+    setMediaLoaded(true);
+    setMediaLoading(true);
+    mediaAssetFetch(`/api/media-assets?campaignId=${campaignId}`)
+      .then((data: MediaAsset[]) => setMediaAssets(data ?? []))
+      .catch(() => setMediaAssets([]))
+      .finally(() => setMediaLoading(false));
+  }
+
+  const handleStatusChange = async (asset: MediaAsset, newStatus: AssetStatus) => {
+    if (newStatus === "approved" && !asset.usageRightsNotes.trim()) {
+      toast({
+        title: "Usage rights notes required",
+        description: "Edit this asset in the Asset Library to add usage rights notes before approving.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      const updated: MediaAsset = await mediaAssetFetch(`/api/media-assets/${asset.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setMediaAssets((prev) => prev.map((a) => (a.id === asset.id ? updated : a)));
+      toast({ title: `Asset ${newStatus}` });
+    } catch (e) {
+      toast({
+        title: "Failed to update status",
+        description: e instanceof Error ? e.message : "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Library className="h-4 w-4" />
+              Creative Assets
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Asset references linked to this campaign.
+            </p>
+          </div>
+          <Link href="/asset-library">
+            <Button size="sm" variant="outline">
+              <Library className="mr-2 h-3.5 w-3.5" />
+              Manage in Asset Library
+            </Button>
+          </Link>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {mediaLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+          </div>
+        ) : mediaAssets.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-lg">
+            <Library className="h-8 w-8 text-muted-foreground/30 mb-3" />
+            <p className="font-medium mb-1">No creative assets linked</p>
+            <p className="text-muted-foreground text-sm mb-4">
+              {isViewer
+                ? "No creative assets have been linked to this campaign."
+                : "Add and link assets from the Asset Library, then attach them to this campaign."}
+            </p>
+            {!isViewer && (
+              <Link href="/asset-library">
+                <Button variant="outline" size="sm">
+                  <Library className="mr-2 h-4 w-4" />
+                  Go to Asset Library
+                </Button>
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {mediaAssets.map((asset) => {
+              const TypeIcon = ASSET_TYPE_ICONS[asset.type] ?? File;
+              return (
+                <div
+                  key={asset.id}
+                  className="border rounded-lg p-4 flex items-start gap-3"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    <TypeIcon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <p className="font-medium text-sm leading-tight">{asset.title}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${ASSET_STATUS_COLORS[asset.status]}`}
+                        >
+                          {asset.status.replace("_", " ")}
+                        </Badge>
+                        {!isViewer && asset.status !== "approved" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs text-green-700 border-green-500/30 hover:bg-green-500/10"
+                            onClick={() => handleStatusChange(asset, "approved")}
+                          >
+                            Approve
+                          </Button>
+                        )}
+                        {!isViewer && asset.status === "approved" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => handleStatusChange(asset, "needs_review")}
+                          >
+                            Revoke
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    {asset.description && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        {asset.description}
+                      </p>
+                    )}
+                    <a
+                      href={asset.urlOrReference.startsWith("http") ? asset.urlOrReference : undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary flex items-center gap-1 hover:underline mt-1 max-w-xs truncate"
+                    >
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{asset.urlOrReference}</span>
+                    </a>
+                    {asset.usageRightsNotes && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Rights: {asset.usageRightsNotes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── End Creative Assets section ────────────────────────────────────────────
 
 function computeBudgetPacing(budgetSuggestion: number, startDate: string, endDate: string) {
   const today = new Date();
@@ -589,6 +816,7 @@ export default function CampaignDetail() {
           <TabsTrigger value="assets">Ad Content</TabsTrigger>
           <TabsTrigger value="publish">Publish</TabsTrigger>
           <TabsTrigger value="links">Tracking Links</TabsTrigger>
+          <TabsTrigger value="creative-assets">Creative Assets</TabsTrigger>
         </TabsList>
 
         <TabsContent value="assets" className="mt-4">
@@ -841,6 +1069,10 @@ export default function CampaignDetail() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="creative-assets" className="mt-4">
+          <CampaignCreativeAssets campaignId={campaignId} isViewer={isViewer} />
         </TabsContent>
 
         <TabsContent value="links" className="mt-4">

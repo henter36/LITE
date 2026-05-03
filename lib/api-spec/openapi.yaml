@@ -36,6 +36,8 @@ tags:
     description: AI-driven recommendations
   - name: strategy
     description: Strategy intake and diagnosis
+  - name: media-assets
+    description: Creative asset library
 
 paths:
   /healthz:
@@ -1054,6 +1056,90 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
 
+  # Media Assets (creative asset library)
+  /media-assets:
+    get:
+      operationId: listMediaAssets
+      tags: [media-assets]
+      summary: List media assets by workspace or campaign
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of media assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MediaAsset"
+    post:
+      operationId: createMediaAsset
+      tags: [media-assets]
+      summary: Create a media asset reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMediaAssetBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaAsset"
+
+  /media-assets/{id}:
+    patch:
+      operationId: updateMediaAsset
+      tags: [media-assets]
+      summary: Update a media asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMediaAssetBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaAsset"
+    delete:
+      operationId: deleteMediaAsset
+      tags: [media-assets]
+      summary: Delete a media asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
 components:
   schemas:
     HealthCheckResponse:
@@ -1871,3 +1957,98 @@ components:
         createdAt:
           type: string
       required: [id, workspaceId, intakeId, createdAt]
+
+    MediaAsset:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        campaignId:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        type:
+          type: string
+          enum: [image, video, document, link, other]
+        sourceType:
+          type: string
+          enum: [uploaded, external_url, generated_later]
+        urlOrReference:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, needs_review, approved, rejected]
+        usageRightsNotes:
+          type: string
+        createdBy:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, workspaceId, title, type, sourceType, urlOrReference, description, status, usageRightsNotes, createdBy, createdAt, updatedAt]
+
+    CreateMediaAssetBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        campaignId:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        type:
+          type: string
+          enum: [image, video, document, link, other]
+        sourceType:
+          type: string
+          enum: [uploaded, external_url, generated_later]
+        urlOrReference:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, needs_review, approved, rejected]
+        usageRightsNotes:
+          type: string
+      required: [workspaceId, title, type, urlOrReference]
+
+    UpdateMediaAssetBody:
+      type: object
+      properties:
+        campaignId:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        type:
+          type: string
+          enum: [image, video, document, link, other]
+        sourceType:
+          type: string
+          enum: [uploaded, external_url, generated_later]
+        urlOrReference:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, needs_review, approved, rejected]
+        usageRightsNotes:
+          type: string

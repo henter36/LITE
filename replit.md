@@ -68,6 +68,19 @@ Tables: `workspaces`, `brand_profiles`, `campaigns`, `generated_assets`, `channe
 
 1 demo workspace, 1 brand profile, 3 campaigns, 4 mock platform connections, 30 days of mock metrics, 10 recommendations, 15 audit log entries.
 
+## Asset Library Foundation — Slice 1 (completed)
+
+- **`lib/db/src/schema/media-assets.ts`** — `mediaAssetsTable` extended with `sourceType` (uploaded/external_url/generated_later) and `usageRightsNotes` (required for approved assets). New columns added via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`.
+- **`artifacts/api-server/src/routes/mediaAssets.ts`** — `GET/POST /media-assets`, `PATCH/DELETE /media-assets/:id`. Workspace isolation, role enforcement (editor to create/update, admin to delete), approved-asset deletion blocked, usage rights notes required for approved status. Full audit log.
+- **`lib/api-spec/openapi.yaml`** — Added `media-assets` tag, paths (`/media-assets`, `/media-assets/{id}`), schemas (`MediaAsset`, `CreateMediaAssetBody`, `UpdateMediaAssetBody`). Codegen re-run clean with `NODE_OPTIONS=--max-old-space-size=8192`.
+- **`artifacts/marketing-os/src/pages/asset-library.tsx`** — Full Asset Library UI page at `/asset-library`: asset cards with type/source/status badges, create/edit/approve/reject/delete actions, campaign link picker, usage rights notes field (required to approve).
+- **`artifacts/marketing-os/src/pages/campaign-detail.tsx`** — New "Creative Assets" tab: shows all media assets linked to the campaign, inline approve/revoke actions, link to Asset Library.
+- **`artifacts/marketing-os/src/App.tsx`** — Route `/asset-library` added.
+- **`artifacts/marketing-os/src/components/layout/sidebar-layout.tsx`** — "Asset Library" nav item added (Library icon, between Strategy and Performance).
+- No binary upload, no AI generation, no auto-publishing, no media AI API calls.
+
+See `docs/asset_library_foundation_slice_1_report.md` for full details.
+
 ## Phase 4 Campaign Publish Cycle (completed)
 
 Full Create → Generate Creative → Approve → Manual Publish → Performance loop.

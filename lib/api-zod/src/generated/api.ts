@@ -974,3 +974,97 @@ export const GetLatestStrategyDiagnosisResponse = zod.object({
 export const CreateCampaignFromStrategyBody = zod.object({
   workspaceId: zod.number(),
 });
+
+/**
+ * @summary List media assets by workspace or campaign
+ */
+export const ListMediaAssetsQueryParams = zod.object({
+  workspaceId: zod.coerce.number().optional(),
+  campaignId: zod.coerce.number().optional(),
+  status: zod.coerce.string().optional(),
+});
+
+export const ListMediaAssetsResponseItem = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  campaignId: zod.number().nullish(),
+  title: zod.string(),
+  type: zod.enum(["image", "video", "document", "link", "other"]),
+  sourceType: zod.enum(["uploaded", "external_url", "generated_later"]),
+  urlOrReference: zod.string(),
+  description: zod.string(),
+  channel: zod.string().nullish(),
+  status: zod.enum(["draft", "needs_review", "approved", "rejected"]),
+  usageRightsNotes: zod.string(),
+  createdBy: zod.number(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+export const ListMediaAssetsResponse = zod.array(ListMediaAssetsResponseItem);
+
+/**
+ * @summary Create a media asset reference
+ */
+export const CreateMediaAssetBody = zod.object({
+  workspaceId: zod.number(),
+  campaignId: zod.number().nullish(),
+  title: zod.string(),
+  type: zod.enum(["image", "video", "document", "link", "other"]),
+  sourceType: zod
+    .enum(["uploaded", "external_url", "generated_later"])
+    .optional(),
+  urlOrReference: zod.string(),
+  description: zod.string().optional(),
+  channel: zod.string().nullish(),
+  status: zod
+    .enum(["draft", "needs_review", "approved", "rejected"])
+    .optional(),
+  usageRightsNotes: zod.string().optional(),
+});
+
+/**
+ * @summary Update a media asset
+ */
+export const UpdateMediaAssetParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateMediaAssetBody = zod.object({
+  campaignId: zod.number().nullish(),
+  title: zod.string().optional(),
+  type: zod.enum(["image", "video", "document", "link", "other"]).optional(),
+  sourceType: zod
+    .enum(["uploaded", "external_url", "generated_later"])
+    .optional(),
+  urlOrReference: zod.string().optional(),
+  description: zod.string().optional(),
+  channel: zod.string().nullish(),
+  status: zod
+    .enum(["draft", "needs_review", "approved", "rejected"])
+    .optional(),
+  usageRightsNotes: zod.string().optional(),
+});
+
+export const UpdateMediaAssetResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  campaignId: zod.number().nullish(),
+  title: zod.string(),
+  type: zod.enum(["image", "video", "document", "link", "other"]),
+  sourceType: zod.enum(["uploaded", "external_url", "generated_later"]),
+  urlOrReference: zod.string(),
+  description: zod.string(),
+  channel: zod.string().nullish(),
+  status: zod.enum(["draft", "needs_review", "approved", "rejected"]),
+  usageRightsNotes: zod.string(),
+  createdBy: zod.number(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Delete a media asset
+ */
+export const DeleteMediaAssetParams = zod.object({
+  id: zod.coerce.number(),
+});

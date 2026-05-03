@@ -444,6 +444,138 @@ export interface StrategyDiagnosis {
   createdAt: string;
 }
 
+export type MediaAssetType =
+  (typeof MediaAssetType)[keyof typeof MediaAssetType];
+
+export const MediaAssetType = {
+  image: "image",
+  video: "video",
+  document: "document",
+  link: "link",
+  other: "other",
+} as const;
+
+export type MediaAssetSourceType =
+  (typeof MediaAssetSourceType)[keyof typeof MediaAssetSourceType];
+
+export const MediaAssetSourceType = {
+  uploaded: "uploaded",
+  external_url: "external_url",
+  generated_later: "generated_later",
+} as const;
+
+export type MediaAssetStatus =
+  (typeof MediaAssetStatus)[keyof typeof MediaAssetStatus];
+
+export const MediaAssetStatus = {
+  draft: "draft",
+  needs_review: "needs_review",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface MediaAsset {
+  id: number;
+  workspaceId: number;
+  campaignId?: number | null;
+  title: string;
+  type: MediaAssetType;
+  sourceType: MediaAssetSourceType;
+  urlOrReference: string;
+  description: string;
+  channel?: string | null;
+  status: MediaAssetStatus;
+  usageRightsNotes: string;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateMediaAssetBodyType =
+  (typeof CreateMediaAssetBodyType)[keyof typeof CreateMediaAssetBodyType];
+
+export const CreateMediaAssetBodyType = {
+  image: "image",
+  video: "video",
+  document: "document",
+  link: "link",
+  other: "other",
+} as const;
+
+export type CreateMediaAssetBodySourceType =
+  (typeof CreateMediaAssetBodySourceType)[keyof typeof CreateMediaAssetBodySourceType];
+
+export const CreateMediaAssetBodySourceType = {
+  uploaded: "uploaded",
+  external_url: "external_url",
+  generated_later: "generated_later",
+} as const;
+
+export type CreateMediaAssetBodyStatus =
+  (typeof CreateMediaAssetBodyStatus)[keyof typeof CreateMediaAssetBodyStatus];
+
+export const CreateMediaAssetBodyStatus = {
+  draft: "draft",
+  needs_review: "needs_review",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface CreateMediaAssetBody {
+  workspaceId: number;
+  campaignId?: number | null;
+  title: string;
+  type: CreateMediaAssetBodyType;
+  sourceType?: CreateMediaAssetBodySourceType;
+  urlOrReference: string;
+  description?: string;
+  channel?: string | null;
+  status?: CreateMediaAssetBodyStatus;
+  usageRightsNotes?: string;
+}
+
+export type UpdateMediaAssetBodyType =
+  (typeof UpdateMediaAssetBodyType)[keyof typeof UpdateMediaAssetBodyType];
+
+export const UpdateMediaAssetBodyType = {
+  image: "image",
+  video: "video",
+  document: "document",
+  link: "link",
+  other: "other",
+} as const;
+
+export type UpdateMediaAssetBodySourceType =
+  (typeof UpdateMediaAssetBodySourceType)[keyof typeof UpdateMediaAssetBodySourceType];
+
+export const UpdateMediaAssetBodySourceType = {
+  uploaded: "uploaded",
+  external_url: "external_url",
+  generated_later: "generated_later",
+} as const;
+
+export type UpdateMediaAssetBodyStatus =
+  (typeof UpdateMediaAssetBodyStatus)[keyof typeof UpdateMediaAssetBodyStatus];
+
+export const UpdateMediaAssetBodyStatus = {
+  draft: "draft",
+  needs_review: "needs_review",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface UpdateMediaAssetBody {
+  campaignId?: number | null;
+  title?: string;
+  type?: UpdateMediaAssetBodyType;
+  sourceType?: UpdateMediaAssetBodySourceType;
+  urlOrReference?: string;
+  description?: string;
+  channel?: string | null;
+  status?: UpdateMediaAssetBodyStatus;
+  usageRightsNotes?: string;
+}
+
 export type ListBrandProfilesParams = {
   workspaceId?: number;
 };
@@ -519,4 +651,10 @@ export type GetLatestStrategyDiagnosisParams = {
 
 export type CreateCampaignFromStrategyBody = {
   workspaceId: number;
+};
+
+export type ListMediaAssetsParams = {
+  workspaceId?: number;
+  campaignId?: number;
+  status?: string;
 };

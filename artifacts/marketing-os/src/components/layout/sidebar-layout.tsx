@@ -20,6 +20,7 @@ import {
   LogOut,
   User,
   FlaskConical,
+  Library,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,12 +28,13 @@ import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 
 const navItems = [
-  { title: "Dashboard",   url: "/",              icon: LayoutDashboard },
-  { title: "Campaigns",   url: "/campaigns",     icon: Megaphone },
-  { title: "Content",     url: "/content-studio",icon: PenTool },
-  { title: "Strategy",    url: "/strategy",      icon: Lightbulb },
-  { title: "Performance", url: "/reports",       icon: BarChart3 },
-  { title: "Settings",    url: "/settings",      icon: Settings },
+  { title: "Dashboard",      url: "/",               icon: LayoutDashboard },
+  { title: "Campaigns",      url: "/campaigns",      icon: Megaphone },
+  { title: "Content",        url: "/content-studio", icon: PenTool },
+  { title: "Strategy",       url: "/strategy",       icon: Lightbulb },
+  { title: "Asset Library",  url: "/asset-library",  icon: Library },
+  { title: "Performance",    url: "/reports",        icon: BarChart3 },
+  { title: "Settings",       url: "/settings",       icon: Settings },
 ];
 
 export function AppSidebar() {

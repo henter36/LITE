@@ -12,7 +12,8 @@ import {
 
 const router = Router();
 
-const VALID_TYPES = ["image", "video", "document", "other"] as const;
+const VALID_TYPES = ["image", "video", "document", "link", "other"] as const;
+const VALID_SOURCE_TYPES = ["uploaded", "external_url", "generated_later"] as const;
 const VALID_STATUSES = ["draft", "needs_review", "approved", "rejected"] as const;
 
 function serializeAsset(a: typeof mediaAssetsTable.$inferSelect) {
@@ -22,10 +23,12 @@ function serializeAsset(a: typeof mediaAssetsTable.$inferSelect) {
     campaignId: a.campaignId ?? null,
     title: a.title,
     type: a.type,
+    sourceType: a.sourceType,
     urlOrReference: a.urlOrReference,
     description: a.description,
     channel: a.channel ?? null,
     status: a.status,
+    usageRightsNotes: a.usageRightsNotes,
     createdBy: a.createdBy,
     createdAt: a.createdAt.toISOString(),
     updatedAt: a.updatedAt.toISOString(),
@@ -47,7 +50,6 @@ router.get(
       const conditions = [];
 
       if (workspaceId) {
-        // Verify caller is a member of the requested workspace
         const role = await getMemberRole(req.session.userId!, Number(workspaceId));
         if (!role) {
           res.status(403).json({ error: "Access denied" });
@@ -68,7 +70,6 @@ router.get(
           return;
         }
 
-        // Verify caller is a member of the campaign's workspace
         const role = await getMemberRole(req.session.userId!, campaign.workspaceId);
         if (!role) {
           res.status(403).json({ error: "Access denied" });
@@ -105,13 +106,11 @@ router.post(
   requireAuth,
   requireWorkspaceRole("editor"),
   async (req, res): Promise<void> => {
-    const { workspaceId, campaignId, title, type, urlOrReference, description, channel, status } =
+    const { workspaceId, campaignId, title, type, sourceType, urlOrReference, description, channel, status, usageRightsNotes } =
       req.body;
 
     if (!workspaceId || !title || !type || !urlOrReference) {
-      res
-        .status(400)
-        .json({ error: "Missing required fields: workspaceId, title, type, urlOrReference" });
+      res.status(400).json({ error: "Missing required fields: workspaceId, title, type, urlOrReference" });
       return;
     }
 
@@ -120,11 +119,20 @@ router.post(
       return;
     }
 
+    const resolvedSourceType = sourceType ?? "external_url";
+    if (!VALID_SOURCE_TYPES.includes(resolvedSourceType as (typeof VALID_SOURCE_TYPES)[number])) {
+      res.status(400).json({ error: `Invalid sourceType. Must be one of: ${VALID_SOURCE_TYPES.join(", ")}` });
+      return;
+    }
+
     const resolvedStatus = status ?? "draft";
     if (!VALID_STATUSES.includes(resolvedStatus as (typeof VALID_STATUSES)[number])) {
-      res
-        .status(400)
-        .json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` });
+      res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` });
+      return;
+    }
+
+    if (resolvedStatus === "approved" && !usageRightsNotes?.trim()) {
+      res.status(400).json({ error: "Usage rights notes are required when approving an asset" });
       return;
     }
 
@@ -153,10 +161,12 @@ router.post(
           campaignId: campaignId ? Number(campaignId) : null,
           title,
           type,
+          sourceType: resolvedSourceType,
           urlOrReference,
           description: description ?? "",
           channel: channel ?? null,
           status: resolvedStatus,
+          usageRightsNotes: usageRightsNotes ?? "",
           createdBy: req.session.userId!,
         })
         .returning();
@@ -167,7 +177,7 @@ router.post(
         entityType: "media_asset",
         entityId: asset.id,
         actor: actor(req),
-        details: `Media asset "${title}" (${type}) created`,
+        details: `Media asset "${title}" (${type}, source: ${resolvedSourceType}) created`,
       });
 
       res.status(201).json(serializeAsset(asset));
@@ -203,17 +213,27 @@ router.patch(
       return;
     }
 
-    const { title, type, urlOrReference, description, channel, status, campaignId } = req.body;
+    const { title, type, sourceType, urlOrReference, description, channel, status, campaignId, usageRightsNotes } = req.body;
 
     if (type !== undefined && !VALID_TYPES.includes(type as (typeof VALID_TYPES)[number])) {
       res.status(400).json({ error: `Invalid type. Must be one of: ${VALID_TYPES.join(", ")}` });
       return;
     }
 
+    if (sourceType !== undefined && !VALID_SOURCE_TYPES.includes(sourceType as (typeof VALID_SOURCE_TYPES)[number])) {
+      res.status(400).json({ error: `Invalid sourceType. Must be one of: ${VALID_SOURCE_TYPES.join(", ")}` });
+      return;
+    }
+
     if (status !== undefined && !VALID_STATUSES.includes(status as (typeof VALID_STATUSES)[number])) {
-      res
-        .status(400)
-        .json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` });
+      res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` });
+      return;
+    }
+
+    const effectiveUsageRightsNotes = usageRightsNotes !== undefined ? usageRightsNotes : existing.usageRightsNotes;
+    const effectiveStatus = status !== undefined ? status : existing.status;
+    if (effectiveStatus === "approved" && !effectiveUsageRightsNotes?.trim()) {
+      res.status(400).json({ error: "Usage rights notes are required when approving an asset" });
       return;
     }
 
@@ -237,10 +257,12 @@ router.patch(
     const updates: Partial<typeof mediaAssetsTable.$inferInsert> = { updatedAt: new Date() };
     if (title !== undefined) updates.title = title;
     if (type !== undefined) updates.type = type;
+    if (sourceType !== undefined) updates.sourceType = sourceType;
     if (urlOrReference !== undefined) updates.urlOrReference = urlOrReference;
     if (description !== undefined) updates.description = description;
     if (channel !== undefined) updates.channel = channel;
     if (status !== undefined) updates.status = status;
+    if (usageRightsNotes !== undefined) updates.usageRightsNotes = usageRightsNotes;
     if (campaignId !== undefined) updates.campaignId = campaignId === null ? null : Number(campaignId);
 
     try {
@@ -302,9 +324,7 @@ router.delete(
     }
 
     if (existing.status === "approved") {
-      res
-        .status(409)
-        .json({ error: "Cannot delete an approved asset. Change status first." });
+      res.status(409).json({ error: "Cannot delete an approved asset. Change status first." });
       return;
     }
 
