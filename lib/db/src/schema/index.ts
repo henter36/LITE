@@ -12,3 +12,4 @@ export * from "./recommendations";
 export * from "./auditLogs";
 export * from "./strategyIntakes";
 export * from "./strategyDiagnoses";
+export * from "./media-assets";
