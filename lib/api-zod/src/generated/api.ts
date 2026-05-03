@@ -1068,11 +1068,11 @@ export const GetMetaAccountsResponse = zod.array(GetMetaAccountsResponseItem);
  * Fetches ad accounts, campaigns, and metrics from Meta (or mock). Logs the sync to the audit trail. Read-only — no Meta data is modified.
  * @summary Trigger a read-only Meta sync
  */
-export const PostMetaSyncBody = zod.object({
+export const SyncMetaBody = zod.object({
   workspaceId: zod.number(),
 });
 
-export const PostMetaSyncResponse = zod.object({
+export const SyncMetaResponse = zod.object({
   adAccounts: zod.array(
     zod.object({
       id: zod.string(),

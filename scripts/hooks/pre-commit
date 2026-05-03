@@ -1,0 +1,57 @@
+#!/bin/sh
+# Large-file shrinkage guard
+# Aborts a commit if any critical frontend page shrinks by more than 30%.
+# This catches accidental truncations before they are committed.
+# To bypass intentionally: git commit --no-verify
+
+THRESHOLD=30
+
+CRITICAL_FILES="
+artifacts/marketing-os/src/pages/content-studio.tsx
+artifacts/marketing-os/src/pages/campaign-detail.tsx
+artifacts/marketing-os/src/pages/dashboard.tsx
+"
+
+FAILED=0
+
+for FILE in $CRITICAL_FILES; do
+  FILE=$(echo "$FILE" | tr -d '[:space:]')
+  [ -z "$FILE" ] && continue
+
+  # Skip if the file has no HEAD version yet (new file)
+  if ! git --no-optional-locks show HEAD:"$FILE" > /dev/null 2>&1; then
+    continue
+  fi
+
+  # Skip if the file is not staged
+  if ! git --no-optional-locks show :"$FILE" > /dev/null 2>&1; then
+    continue
+  fi
+
+  HEAD_LINES=$(git --no-optional-locks show HEAD:"$FILE" | wc -l | tr -d ' ')
+  STAGED_LINES=$(git --no-optional-locks show :"$FILE" | wc -l | tr -d ' ')
+
+  if [ "$HEAD_LINES" -le 0 ]; then
+    continue
+  fi
+
+  SHRINK=$(( (HEAD_LINES - STAGED_LINES) * 100 / HEAD_LINES ))
+
+  if [ "$SHRINK" -gt "$THRESHOLD" ]; then
+    echo ""
+    echo "  PRE-COMMIT GUARD: $FILE"
+    echo "    shrank by ${SHRINK}%  (${HEAD_LINES} lines → ${STAGED_LINES} lines)"
+    echo "    This may be an accidental truncation."
+    echo "    Verify the file is complete before committing."
+    echo "    To bypass: git commit --no-verify"
+    FAILED=1
+  fi
+done
+
+if [ "$FAILED" -eq 1 ]; then
+  echo ""
+  echo "Pre-commit aborted due to large-file shrinkage. See messages above."
+  exit 1
+fi
+
+exit 0

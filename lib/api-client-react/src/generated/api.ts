@@ -4995,15 +4995,15 @@ export function useGetMetaAccounts<
  * Fetches ad accounts, campaigns, and metrics from Meta (or mock). Logs the sync to the audit trail. Read-only — no Meta data is modified.
  * @summary Trigger a read-only Meta sync
  */
-export const getPostMetaSyncUrl = () => {
+export const getSyncMetaUrl = () => {
   return `/api/meta/sync`;
 };
 
-export const postMetaSync = async (
+export const syncMeta = async (
   metaSyncRequest: MetaSyncRequest,
   options?: RequestInit,
 ): Promise<MetaSyncResult> => {
-  return customFetch<MetaSyncResult>(getPostMetaSyncUrl(), {
+  return customFetch<MetaSyncResult>(getSyncMetaUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -5011,24 +5011,24 @@ export const postMetaSync = async (
   });
 };
 
-export const getPostMetaSyncMutationOptions = <
+export const getSyncMetaMutationOptions = <
   TError = ErrorType<void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postMetaSync>>,
+    Awaited<ReturnType<typeof syncMeta>>,
     TError,
     { data: BodyType<MetaSyncRequest> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof postMetaSync>>,
+  Awaited<ReturnType<typeof syncMeta>>,
   TError,
   { data: BodyType<MetaSyncRequest> },
   TContext
 > => {
-  const mutationKey = ["postMetaSync"];
+  const mutationKey = ["syncMeta"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -5038,42 +5038,42 @@ export const getPostMetaSyncMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postMetaSync>>,
+    Awaited<ReturnType<typeof syncMeta>>,
     { data: BodyType<MetaSyncRequest> }
   > = (props) => {
     const { data } = props ?? {};
 
-    return postMetaSync(data, requestOptions);
+    return syncMeta(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type PostMetaSyncMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postMetaSync>>
+export type SyncMetaMutationResult = NonNullable<
+  Awaited<ReturnType<typeof syncMeta>>
 >;
-export type PostMetaSyncMutationBody = BodyType<MetaSyncRequest>;
-export type PostMetaSyncMutationError = ErrorType<void>;
+export type SyncMetaMutationBody = BodyType<MetaSyncRequest>;
+export type SyncMetaMutationError = ErrorType<void>;
 
 /**
  * @summary Trigger a read-only Meta sync
  */
-export const usePostMetaSync = <
+export const useSyncMeta = <
   TError = ErrorType<void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postMetaSync>>,
+    Awaited<ReturnType<typeof syncMeta>>,
     TError,
     { data: BodyType<MetaSyncRequest> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
-  Awaited<ReturnType<typeof postMetaSync>>,
+  Awaited<ReturnType<typeof syncMeta>>,
   TError,
   { data: BodyType<MetaSyncRequest> },
   TContext
 > => {
-  return useMutation(getPostMetaSyncMutationOptions(options));
+  return useMutation(getSyncMetaMutationOptions(options));
 };

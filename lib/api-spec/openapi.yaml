@@ -1117,6 +1117,7 @@ paths:
 
   /meta/status:
     get:
+      operationId: getMetaStatus
       tags: [Meta]
       summary: Get Meta provider status
       description: Returns whether Meta is in mock/demo mode or read-only live mode, and whether credentials are configured.
@@ -1140,6 +1141,7 @@ paths:
 
   /meta/accounts:
     get:
+      operationId: getMetaAccounts
       tags: [Meta]
       summary: List Meta ad accounts (read-only)
       description: Returns ad accounts from Meta (or mock data if credentials are not configured).
@@ -1165,6 +1167,7 @@ paths:
 
   /meta/sync:
     post:
+      operationId: syncMeta
       tags: [Meta]
       summary: Trigger a read-only Meta sync
       description: Fetches ad accounts, campaigns, and metrics from Meta (or mock). Logs the sync to the audit trail. Read-only — no Meta data is modified.

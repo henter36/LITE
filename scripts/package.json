@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "check-openapi-parity": "tsx ./src/check-openapi-parity.ts",
+    "check-codegen-fresh": "tsx ./src/check-codegen-fresh.ts",
+    "install-hooks": "tsx ./src/install-hooks.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

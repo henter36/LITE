@@ -44,7 +44,7 @@ import {
   getListWorkspaceMembersQueryKey,
   useGetMetaStatus,
   getGetMetaStatusQueryKey,
-  usePostMetaSync,
+  useSyncMeta,
   type MetaSyncResult,
 } from "@workspace/api-client-react";
 
@@ -461,7 +461,7 @@ function MetaReadonlyPanel() {
     { query: { enabled: !!activeWorkspaceId, queryKey: getGetMetaStatusQueryKey({ workspaceId: activeWorkspaceId }) } }
   );
 
-  const syncMeta = usePostMetaSync({
+  const syncMeta = useSyncMeta({
     mutation: {
       onSuccess: (data) => {
         setSyncResult(data);
