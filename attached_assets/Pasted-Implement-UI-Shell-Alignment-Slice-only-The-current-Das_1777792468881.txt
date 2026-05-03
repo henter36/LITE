@@ -1,0 +1,136 @@
+Implement UI Shell Alignment Slice only.
+
+The current Dashboard improved slightly, but it still does not match the provided Arabic RTL reference because the global shell/navigation is still wrong.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not change Campaign Completion logic.
+Do not change Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not change OpenAPI or generated client.
+
+Objective:
+Align the app shell visually with the provided Arabic RTL reference so Dashboard and future screens can match the target design.
+
+Scope:
+Only modify the shared layout/navigation/header components required for visual shell alignment.
+If the app does not have shared layout components, modify the minimal files that control:
+- sidebar/navigation
+- top header
+- workspace selector area
+- page container direction/spacing
+- global visual tokens if currently centralized
+
+Do not modify page business logic.
+
+Target shell direction:
+- Arabic RTL-first layout
+- light right-side navigation
+- Marketing OS Lite branding
+- green/teal identity
+- clean white/light background
+- soft active navigation state
+- large comfortable spacing
+- premium SaaS look
+- no dark left sidebar
+
+Required shell changes:
+
+1. Sidebar/navigation
+Replace or restyle the current dark left sidebar into a light right-side navigation matching the reference.
+
+Navigation labels in Arabic:
+- لوحة التحكم
+- العلامة التجارية
+- الحملات
+- المحتوى
+- المراجعة
+- سجل النشاط
+
+Use green/teal active state.
+Use light background.
+Use soft rounded active item.
+Keep existing routes unchanged.
+Do not add new routes.
+
+2. Branding
+Use:
+Marketing OS Lite
+
+Visual style:
+- clean logo/icon area
+- green/teal accent
+- similar placement to the reference
+
+3. Header
+Align the top header visually:
+- user/avatar area
+- notification/help icons
+- workspace selector
+- Arabic/RTL spacing
+- light border/shadow
+- no heavy dark shell
+
+4. Page container
+Set dashboard/main content shell to support RTL:
+- content flows correctly from right to left
+- spacing matches reference
+- no huge awkward empty area
+- cards align cleanly
+- page width feels like the reference
+
+5. Preservation
+Do not change:
+- route paths
+- auth behavior
+- role behavior
+- AI behavior
+- Campaign Completion
+- workflow data
+- backend calls
+
+6. Dashboard quick check
+After shell alignment, only adjust Dashboard if necessary to prevent obvious visual break caused by the shell change.
+Do not redesign Dashboard again in this slice.
+
+7. Documentation
+Create:
+docs/ui_shell_alignment_report.md
+
+Report must include:
+- changed files
+- shell components modified
+- navigation/sidebar changes
+- header changes
+- RTL changes
+- what remains different from reference
+- preserved logic/governance
+- verification results
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+- existing routes still work
+- Dashboard still renders
+
+Final output:
+- changed files
+- shell alignment completed
+- Dashboard visual impact
+- verification results
+- remaining gaps
+- readiness decision

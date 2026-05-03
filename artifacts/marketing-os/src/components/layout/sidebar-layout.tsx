@@ -14,27 +14,26 @@ import {
   LayoutDashboard,
   Megaphone,
   PenTool,
-  Lightbulb,
-  BarChart3,
-  Settings,
-  LogOut,
+  ShieldCheck,
+  Activity,
   User,
+  LogOut,
   FlaskConical,
-  Library,
+  PanelRight,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
-  { title: "Dashboard",      url: "/",               icon: LayoutDashboard },
-  { title: "Campaigns",      url: "/campaigns",      icon: Megaphone },
-  { title: "Content",        url: "/content-studio", icon: PenTool },
-  { title: "Strategy",       url: "/strategy",       icon: Lightbulb },
-  { title: "Asset Library",  url: "/asset-library",  icon: Library },
-  { title: "Performance",    url: "/reports",        icon: BarChart3 },
-  { title: "Settings",       url: "/settings",       icon: Settings },
+  { title: "لوحة التحكم", url: "/", icon: LayoutDashboard },
+  { title: "العلامة التجارية", url: "/brand-profile", icon: PanelRight },
+  { title: "الحملات", url: "/campaigns", icon: Megaphone },
+  { title: "المحتوى", url: "/content-studio", icon: PenTool },
+  { title: "المراجعة", url: "/audit-log", icon: ShieldCheck },
+  { title: "سجل النشاط", url: "/activity", icon: Activity },
 ];
 
 export function AppSidebar() {
@@ -49,18 +48,23 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="h-16 flex items-center px-5 border-b">
-        <div className="flex items-center gap-2.5 font-bold text-lg tracking-tight text-primary">
-          <Megaphone className="h-5 w-5" />
-          <span>Marketing OS</span>
+    <Sidebar side="right" className="border-l border-r-0 bg-white">
+      <SidebarHeader className="h-20 flex items-center px-5 border-b bg-white">
+        <div className="flex items-center gap-3 font-bold text-lg tracking-tight text-foreground">
+          <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+            <Megaphone className="h-5 w-5" />
+          </div>
+          <div>
+            <div>Marketing OS Lite</div>
+            <div className="text-xs font-normal text-muted-foreground">RTL shell</div>
+          </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="pt-2">
+      <SidebarContent className="pt-3 bg-white">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1 px-2">
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
@@ -69,9 +73,9 @@ export function AppSidebar() {
                       location === item.url ||
                       (item.url !== "/" && location.startsWith(item.url))
                     }
-                    className="h-10 text-base"
+                    className="h-11 rounded-2xl text-sm font-medium text-muted-foreground data-[active=true]:bg-emerald-500/10 data-[active=true]:text-emerald-700 data-[active=true]:shadow-sm"
                   >
-                    <Link href={item.url}>
+                    <Link href={item.url} className="justify-start gap-3">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
@@ -83,12 +87,12 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-3 space-y-2">
+      <SidebarFooter className="border-t bg-white p-4 space-y-3">
         {user && (
-          <div className="flex items-center gap-2 px-2 py-1 rounded-md">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <User className="h-4 w-4 text-primary" />
-            </div>
+          <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 px-3 py-3">
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-emerald-500/10 text-emerald-700">{user.name?.slice(0, 1) || "U"}</AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-xs text-muted-foreground truncate capitalize">{user.role ?? "member"}</p>
@@ -98,11 +102,11 @@ export function AppSidebar() {
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-muted-foreground hover:text-destructive"
+          className="w-full justify-start rounded-2xl text-muted-foreground hover:text-foreground"
           onClick={handleLogout}
         >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
+          <LogOut className="h-4 w-4 ml-2" />
+          تسجيل الخروج
         </Button>
       </SidebarFooter>
     </Sidebar>
@@ -112,18 +116,20 @@ export function AppSidebar() {
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <main className="flex-1 flex flex-col min-w-0 bg-muted/20">
-        <div className="bg-muted/60 text-muted-foreground text-xs px-4 py-1.5 text-center border-b flex items-center justify-center gap-1.5">
-          <FlaskConical className="h-3 w-3" />
-          Demo mode · No real ads are running
-        </div>
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="mx-auto w-full max-w-5xl space-y-8">
-            {children}
+      <div dir="rtl" className="flex min-h-screen w-full bg-[#f6faf8]">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#f6faf8]">
+          <div className="bg-white text-muted-foreground text-xs px-4 py-1.5 text-center border-b flex items-center justify-center gap-1.5 shadow-sm">
+            <FlaskConical className="h-3 w-3" />
+            وضع تجريبي · لا توجد إعلانات حقيقية
           </div>
-        </div>
-      </main>
+          <div className="flex-1 px-6 py-6 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1440px] space-y-8">
+              {children}
+            </div>
+          </div>
+        </main>
+        <AppSidebar />
+      </div>
     </SidebarProvider>
   );
 }
