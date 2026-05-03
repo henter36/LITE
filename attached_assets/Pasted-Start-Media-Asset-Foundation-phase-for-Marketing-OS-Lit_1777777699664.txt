@@ -1,0 +1,84 @@
+Start Media & Asset Foundation phase for Marketing OS Lite.
+
+Do not implement real image generation yet.
+Do not implement real video generation yet.
+Do not call external media AI APIs.
+Do not implement live publishing, payments, budget changes, or autonomous optimization.
+Do not weaken auth, workspace isolation, roles, audit logs, AI fallback, Meta read-only, decision scoring, or safety guards.
+
+Objective:
+Prepare the platform for image/video creative workflows by adding asset library, media brief structure, review status, and campaign linkage without generating media yet.
+
+Implement:
+
+1. Asset Library
+- Add a Media/Assets section or Settings tab.
+- Support storing asset references, not binary upload unless already available.
+- Fields:
+  - title
+  - type: image / video / document / other
+  - url_or_reference
+  - description
+  - campaign_id optional
+  - channel optional
+  - status: draft / needs_review / approved / rejected
+  - created_by
+  - created_at
+
+2. Campaign linkage
+- In Campaign Detail, show linked media assets.
+- Allow adding an asset reference to a campaign.
+- Allow selecting approved media assets in Publish Checklist.
+
+3. Image creative brief
+For each campaign, allow:
+- image concept
+- product focus
+- visual style
+- text overlay
+- forbidden visual elements
+- platform size notes
+
+4. Video creative brief
+For each campaign, allow:
+- hook
+- script
+- storyboard
+- scenes
+- CTA
+- duration suggestion
+- platform format notes
+
+5. Review workflow
+- Editor/admin can mark asset approved/rejected.
+- Viewer read-only.
+- Audit log every review action.
+
+6. Guardrails
+- Label clearly:
+  “Media generation is not active yet.”
+  “Assets are references/manual uploads only.”
+- No copyright-infringing prompts.
+- No unsupported claims.
+- Human approval required before publish checklist.
+
+7. Documentation
+Create:
+docs/media_asset_foundation_report.md
+
+Verification:
+- TypeScript zero errors.
+- Asset reference can be created.
+- Asset can be linked to campaign.
+- Asset review status works.
+- Campaign publish checklist can show approved media references.
+- Viewer cannot modify assets.
+- Auth, workspace isolation, roles, campaign cycle, AI fallback, Meta read-only, decision scoring, and safety guards still work.
+- No wording implies real image/video generation.
+
+Final output:
+- changed files
+- implemented asset/media foundation
+- verification results
+- remaining risks
+- recommended next phase
