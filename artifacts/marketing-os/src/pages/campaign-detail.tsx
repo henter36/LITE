@@ -13,7 +13,7 @@ import {
   getListTrackingLinksQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -679,145 +679,53 @@ export default function CampaignDetail() {
 
   return (
     <SidebarLayout>
-      {/* Viewer read-only banner */}
-      {isViewer && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-4 py-2.5 bg-muted/20">
-          <EyeOff className="h-4 w-4 shrink-0" />
-          <span>
-            <span className="font-medium text-foreground">Read-only access.</span>{" "}
-            You can view campaign details but cannot make changes. Ask an Admin to take action.
-          </span>
-        </div>
-      )}
+      <div className="space-y-6 overflow-x-hidden" dir="rtl">
 
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5" />
-              Campaign Completion
-            </CardTitle>
-            <Badge variant="outline" className={manualPublishReady ? "bg-green-500/10 text-green-700" : ""}>
-              {manualPublishReady ? "Ready for manual publish" : "Not ready"}
-            </Badge>
+        {/* Read-only viewer banner */}
+        {isViewer && (
+          <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm text-emerald-800">
+            <EyeOff className="h-4 w-4 shrink-0" />
+            <span>عرض للقراءة فقط — يمكنك مراجعة تفاصيل الحملة لكن لا يمكنك تعديلها.</span>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {strategySummary && (
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Strategy summary:</span> {strategySummary}
-            </p>
-          )}
-          <div className="grid md:grid-cols-3 gap-3 text-sm">
-            <div className="rounded-lg border p-3">
-              <p className="text-muted-foreground">Strategy summary status</p>
-              <p className="font-medium">{hasStrategyContext ? "Present" : "Missing"}</p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-muted-foreground">Content approval status</p>
-              <p className="font-medium">{hasApprovedAd ? "Approved ads available" : "No approved ads yet"}</p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-muted-foreground">Creative asset approval status</p>
-              <p className="font-medium">
-                {hasApprovedCreativeAsset ? `${approvedCreativeAssetCount} approved` : "Missing approved asset/reference"}
-              </p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-muted-foreground">Tracking link status</p>
-              <p className="font-medium">{hasTrackingLink || campaign.landingUrl ? "Available" : "Missing"}</p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-muted-foreground">Campaign ready status</p>
-              <p className="font-medium">{isApproved ? "Ready" : "Not ready"}</p>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-muted-foreground">Manual publish status</p>
-              <p className="font-medium">{manualPublishReady ? "Allowed" : "Blocked"}</p>
-            </div>
-          </div>
-          <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-medium">Readiness score</p>
-              <Badge variant="outline">{readinessScore}%</Badge>
-            </div>
-            <Progress value={readinessScore} className="h-2" />
-            <div className="grid sm:grid-cols-2 gap-2 text-xs">
-              {readinessRequirements.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between rounded-md border bg-background px-3 py-2"
-                >
-                  <span>{item.label}</span>
-                  <span className={item.ok ? "text-green-600" : "text-red-600"}>
-                    {item.ok ? "Complete" : "Missing"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <WorkflowStatusPanel status={workflowStatus} />
-          <div className="flex flex-wrap gap-2">
-            <Link href="/strategy">
-              <Button variant="outline" size="sm">
-                Strategy page
-              </Button>
-            </Link>
-            <Link href="/campaigns">
-              <Button variant="outline" size="sm">
-                Creative Assets tab
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        )}
 
-      <div>
-        <Link href="/campaigns">
-          <Button variant="ghost" size="sm" className="text-muted-foreground mb-4 -ml-2">
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
-            Back to Campaigns
-          </Button>
-        </Link>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-4xl font-bold tracking-tight">{campaign.name}</h1>
+        {/* ── Hero header ── */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+              <Megaphone className="h-3.5 w-3.5" />
+              الحملات الإعلانية
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">{campaign.name}</h1>
+            <div className="flex flex-wrap items-center gap-2">
               <Badge
-                variant={
-                  campaign.status === "active" || campaign.status === "approved"
-                    ? "default"
-                    : "secondary"
-                }
+                variant={campaign.status === "active" || campaign.status === "approved" ? "default" : "secondary"}
                 className="capitalize"
               >
                 {campaign.status}
               </Badge>
+              <Badge variant="outline" className="capitalize text-emerald-700 border-emerald-200 bg-white">
+                {campaign.objective}
+              </Badge>
+              <Badge variant="outline" className={manualPublishReady ? "bg-green-500/10 text-green-700 border-green-500/20" : ""}>
+                {manualPublishReady ? "جاهزة للنشر اليدوي" : "غير جاهزة"}
+              </Badge>
             </div>
-            <p className="text-muted-foreground mt-2 text-base capitalize">
-              {campaign.objective} campaign
-            </p>
           </div>
 
-          <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             {!isViewer && !isApproved && (
-              <div className="flex flex-col items-end gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={handleApprove} disabled={approveCampaign.isPending}>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      {approveCampaign.isPending ? "Saving…" : "Mark Campaign Ready"}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-[240px] text-center">
-                    Confirms the whole campaign is reviewed and ready to run. Different from approving
-                    individual ads in the Content page.
-                  </TooltipContent>
-                </Tooltip>
-                <p className="text-xs text-muted-foreground text-right">
-                  Approve ads, creative assets, tracking, and channels before manual publish
-                </p>
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={handleApprove} disabled={approveCampaign.isPending}>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    {approveCampaign.isPending ? "جارٍ الحفظ…" : "تأكيد جاهزية الحملة"}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[240px] text-center">
+                  يؤكد أن الحملة تمت مراجعتها بالكامل وهي جاهزة للتنفيذ. مختلف عن اعتماد الإعلانات الفردية.
+                </TooltipContent>
+              </Tooltip>
             )}
             {isApproved && !isPublished && !isViewer && (
               <Button
@@ -826,606 +734,585 @@ export default function CampaignDetail() {
                 disabled={!manualPublishReady}
               >
                 <Rocket className="mr-2 h-4 w-4" />
-                Publish Campaign
+                النشر اليدوي
               </Button>
             )}
             {isPublished && (
-              <Badge
-                variant="outline"
-                className="bg-green-500/10 text-green-700 border-green-500/20 flex items-center gap-1.5 px-3 py-1.5"
-              >
+              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 flex items-center gap-1.5 px-3 py-1.5">
                 <Check className="h-3.5 w-3.5" />
-                Published
+                منشورة
               </Badge>
             )}
             {isApproved && !isPublished && (
-              <Badge
-                variant="outline"
-                className="bg-primary/5 text-primary border-primary/20 flex items-center gap-1.5 px-3 py-1.5"
-              >
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 flex items-center gap-1.5 px-3 py-1.5">
                 <Check className="h-3.5 w-3.5" />
-                Campaign Ready
+                جاهزة
               </Badge>
             )}
           </div>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              AI Assist
-            </CardTitle>
-            <Button onClick={handleGenerateTextAssist} disabled={aiAssistLoading || isViewer}>
-              {aiAssistLoading ? "Generating…" : "Generate text suggestions"}
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Draft-only suggestions for hooks, ad copy, captions, CTAs, and improvement notes.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {aiAssistStatus === "unavailable" && (
-            <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
-              AI suggestions are unavailable until server-side AI is configured.
-            </div>
-          )}
-          {aiAssistError && aiAssistStatus === "error" && (
-            <div className="rounded-lg border bg-red-500/5 border-red-500/20 p-4 text-sm text-red-700 dark:text-red-400">
-              {aiAssistError}
-            </div>
-          )}
-          {aiAssistResult ? (
-            <div className="grid gap-4 lg:grid-cols-2">
-              {[
-                ["Hooks", aiAssistResult.hooks],
-                ["Ad copy variants", aiAssistResult.adCopyVariants],
-                ["Captions", aiAssistResult.captions],
-                ["CTAs", aiAssistResult.ctas],
-                ["Improvement notes", aiAssistResult.improvementNotes],
-                ["Missing context", aiAssistResult.missingContextWarnings],
-                ["Safety notes", aiAssistResult.safetyNotes],
-              ].map(([label, items]) => (
-                <div key={String(label)} className="rounded-lg border p-4">
-                  <p className="font-medium mb-2">{label}</p>
-                  <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
-                    {(items as string[]).length > 0 ? (
-                      (items as string[]).map((item) => <li key={item}>{item}</li>)
-                    ) : (
-                      <li>No suggestions returned.</li>
-                    )}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Run AI Assist to get draft-only suggestions based on the current campaign context.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        {/* ── Top two-column grid: Completion card + AI Assist card ── */}
+        <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
 
-      {/* Clickable flow indicator */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-0 overflow-x-auto pb-1">
-          {FLOW_STEPS.map((step, i) => {
-            const done = i < effectiveStep;
-            const active = i === effectiveStep;
-            const Icon = step.icon;
-
-            const pill = (
-              <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors
-                  ${done ? "bg-primary/10 text-primary" : ""}
-                  ${active && step.href ? "bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90" : ""}
-                  ${active && !step.href ? "bg-primary text-primary-foreground" : ""}
-                  ${!done && !active ? "bg-muted text-muted-foreground" : ""}`}
-              >
-                {done ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
-                {step.label}
-                {active && step.href && <ArrowRight className="h-3 w-3 ml-0.5" />}
-              </div>
-            );
-
-            return (
-              <div key={step.label} className="flex items-center">
-                {active && step.href ? <Link href={step.href}>{pill}</Link> : pill}
-                {i < FLOW_STEPS.length - 1 && (
-                  <div className="w-6 h-px bg-border mx-1 shrink-0" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {effectiveStep < FLOW_STEPS.length && activeStep?.nextAction && (
-          <div className="flex items-center gap-2 text-sm">
-            {activeStep.href ? (
-              <Link
-                href={activeStep.href}
-                className="flex items-center gap-1.5 text-primary font-medium hover:underline"
-              >
-                <ArrowRight className="h-3.5 w-3.5" />
-                {activeStep.nextAction}
-              </Link>
-            ) : (
-              <p className="flex items-center gap-1.5 text-muted-foreground">
-                <Info className="h-3.5 w-3.5 shrink-0" />
-                {activeStep.nextAction}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Details + Budget */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2">
-          <CardHeader className="pb-4">
-            <CardTitle>Campaign Brief</CardTitle>
-          </CardHeader>
-          <CardContent className="grid sm:grid-cols-2 gap-y-6 gap-x-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-1">
-                <Target className="h-3.5 w-3.5" /> Objective
-              </p>
-              <p className="capitalize font-medium">{campaign.objective}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-1">
-                <Users className="h-3.5 w-3.5" /> Audience
-              </p>
-              <p className="font-medium">{campaign.audience}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-1">
-                <MapPin className="h-3.5 w-3.5" /> Location
-              </p>
-              <p className="font-medium">{campaign.geography}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2 mb-1">
-                <Calendar className="h-3.5 w-3.5" /> Duration
-              </p>
-              <p className="font-medium">
-                {campaign.startDate ? format(parseISO(campaign.startDate), "MMM d") : "—"} –{" "}
-                {campaign.endDate ? format(parseISO(campaign.endDate), "MMM d, yyyy") : "—"}
-              </p>
-            </div>
-            <div className="sm:col-span-2">
-              <p className="text-sm font-medium text-muted-foreground mb-1">What's being promoted</p>
-              <p>{campaign.productService}</p>
-            </div>
-            <div className="sm:col-span-2">
-              <p className="text-sm font-medium text-muted-foreground mb-2">Channels</p>
-              <div className="flex flex-wrap gap-2">
-                {campaign.channels.map((c) => (
-                  <Badge key={c} variant="outline" className="capitalize">
-                    {c}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle>Budget Pacing</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Budget Plan</p>
-              <p className="text-2xl font-bold">${(campaign.budgetSuggestion ?? 0).toLocaleString()}</p>
-            </div>
-
-            <div className="space-y-3 border rounded-lg p-4 bg-muted/20">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Pacing</p>
-                <Badge variant="outline" className={`text-xs font-medium ${verdictColor}`}>
-                  <VerdictIcon className="h-3 w-3 mr-1" />
-                  {pacing.verdict}
+          {/* Campaign Completion card */}
+          <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
+                  <ClipboardCheck className="h-5 w-5 text-emerald-600" />
+                  جاهزية الحملة
+                </CardTitle>
+                <Badge variant="outline" className={manualPublishReady ? "bg-green-500/10 text-green-700 border-green-500/20" : ""}>
+                  {readinessScore}%
                 </Badge>
               </div>
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>
-                    Day {pacing.daysElapsed} of {pacing.totalDays}
-                  </span>
-                  <span>{pacing.daysRemaining}d left</span>
-                </div>
-                <Progress value={pacing.progressPct * 100} className="h-2" />
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-background rounded p-2 border">
-                  <p className="text-muted-foreground mb-0.5">Demo Spend</p>
-                  <p className="font-semibold text-sm">
-                    ${pacing.simulatedSpend.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </p>
-                </div>
-                <div className="bg-background rounded p-2 border">
-                  <p className="text-muted-foreground mb-0.5">Expected</p>
-                  <p className="font-semibold text-sm">
-                    ${pacing.expectedSpend.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <FlaskConical className="h-3 w-3 shrink-0" />
-                Simulated pacing — demo data only
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs */}
-      <Tabs defaultValue="workflow">
-        <TabsList>
-          <TabsTrigger value="workflow">AI Workflow</TabsTrigger>
-          <TabsTrigger value="assets">Ad Content</TabsTrigger>
-          <TabsTrigger value="publish">Publish</TabsTrigger>
-          <TabsTrigger value="links">Tracking Links</TabsTrigger>
-          <TabsTrigger value="creative-assets">Creative Assets</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="workflow" className="mt-4">
-          <CampaignWorkflowTab
-            workspaceId={campaign.workspaceId}
-            campaignId={campaignId}
-            isViewer={isViewer}
-            onStatusChange={setWorkflowStatus}
-          />
-        </TabsContent>
-
-        <TabsContent value="assets" className="mt-4">
-          <Card>
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <CardTitle>Ad Content</CardTitle>
-                  {hasAssets && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {approvedAdCount} of {assets?.length ?? 0} ad
-                      {(assets?.length ?? 0) !== 1 ? "s" : ""} approved
-                    </p>
-                  )}
-                </div>
-                {!isViewer && (!assets || assets.length === 0) && (
-                  <Link href={`/content-studio?campaignId=${campaignId}`}>
-                    <Button size="sm">
-                      <Sparkles className="mr-2 h-3.5 w-3.5" />
-                      Generate Ads
-                    </Button>
-                  </Link>
-                )}
-                {assets && assets.length > 0 && (
-                  <Link href={`/content-studio?campaignId=${campaignId}`}>
-                    <Button size="sm" variant="outline">
-                      <PenTool className="mr-2 h-3.5 w-3.5" />
-                      {isViewer ? "View in Content Page" : "Review in Content Page"}
-                    </Button>
-                  </Link>
-                )}
-              </div>
             </CardHeader>
-            <CardContent>
-              {isAssetsLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-24 w-full" />
-                  <Skeleton className="h-24 w-full" />
+            <CardContent className="space-y-4">
+              {strategySummary && (
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">ملخص الاستراتيجية:</span> {strategySummary}
+                </p>
+              )}
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2 text-sm">
+                {[
+                  { label: "ملخص الاستراتيجية", value: hasStrategyContext ? "موجود" : "ناقص", ok: hasStrategyContext },
+                  { label: "اعتماد المحتوى", value: hasApprovedAd ? "إعلانات معتمدة" : "لا يوجد اعتماد بعد", ok: hasApprovedAd },
+                  { label: "اعتماد الأصول", value: hasApprovedCreativeAsset ? `${approvedCreativeAssetCount} معتمد` : "مرجع معتمد غير موجود", ok: hasApprovedCreativeAsset },
+                  { label: "الرابط / التتبع", value: hasTrackingLink || campaign.landingUrl ? "متاح" : "ناقص", ok: !!(hasTrackingLink || campaign.landingUrl) },
+                  { label: "الجاهزية", value: isApproved ? "جاهزة" : "غير جاهزة", ok: isApproved },
+                  { label: "النشر اليدوي", value: manualPublishReady ? "مسموح" : "محجوب", ok: manualPublishReady },
+                ].map(({ label, value, ok }) => (
+                  <div key={label} className={`rounded-xl border p-3 ${ok ? "border-emerald-100 bg-emerald-50/40" : "border-slate-100 bg-white"}`}>
+                    <p className="text-muted-foreground text-xs mb-1">{label}</p>
+                    <p className={`font-medium text-sm ${ok ? "text-emerald-700" : "text-slate-700"}`}>{value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 to-white p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium text-sm">مقياس الجاهزية</p>
+                  <Badge variant="outline">{readinessScore}%</Badge>
                 </div>
-              ) : !assets || assets.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-lg">
-                  <PenTool className="h-8 w-8 text-muted-foreground/40 mb-3" />
-                  <p className="font-medium mb-1">No ads generated yet</p>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    {isViewer
-                      ? "No ad content has been generated for this campaign."
-                      : `Click "Generate Ads" above — you'll land directly on the content page for this campaign.`}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {assets.slice(0, 3).map((asset) => (
-                    <div key={asset.id} className="border rounded-lg p-5">
-                      <div className="flex items-start justify-between mb-3">
-                        <h4 className="font-bold text-lg leading-snug flex-1 pr-4">
-                          {asset.headline}
-                        </h4>
-                        <Badge
-                          variant={
-                            asset.status === "approved"
-                              ? "default"
-                              : asset.status === "rejected"
-                                ? "destructive"
-                                : "secondary"
-                          }
-                          className="capitalize shrink-0"
-                        >
-                          {asset.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">{asset.shortCaption}</p>
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {asset.hashtags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="bg-primary/5 border border-primary/20 px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
-                        <span className="font-medium text-primary text-xs uppercase tracking-wide">
-                          CTA
-                        </span>
-                        {asset.cta}
-                      </div>
+                <Progress value={readinessScore} className="h-2" />
+                <div className="grid sm:grid-cols-2 gap-1.5 text-xs">
+                  {readinessRequirements.map((item) => (
+                    <div key={item.label} className="flex items-center justify-between rounded-lg border border-emerald-100 bg-white px-3 py-2">
+                      <span className="text-muted-foreground">{item.label}</span>
+                      <span className={item.ok ? "text-green-600 font-medium" : "text-red-500 font-medium"}>
+                        {item.ok ? "مكتمل" : "ناقص"}
+                      </span>
                     </div>
                   ))}
-                  <p className="text-xs text-muted-foreground text-center pt-1">
-                    To approve or request edits on individual ads, use the{" "}
-                    <Link
-                      href={`/content-studio?campaignId=${campaignId}`}
-                      className="text-primary hover:underline"
-                    >
-                      Content page
-                    </Link>
-                    .
+                </div>
+              </div>
+              <WorkflowStatusPanel status={workflowStatus} />
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Link href="/strategy">
+                  <Button variant="outline" size="sm">صفحة الاستراتيجية</Button>
+                </Link>
+                <Link href="/campaigns">
+                  <Button variant="outline" size="sm">مكتبة الأصول الإعلانية</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Assist card */}
+          <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
+                <Sparkles className="h-4 w-4 text-emerald-600" />
+                مساعد الذكاء الاصطناعي
+              </CardTitle>
+              <CardDescription>اقتراحات مسودة فقط — بدايات، نصوص إعلانية، CTAs.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button
+                onClick={handleGenerateTextAssist}
+                disabled={aiAssistLoading || isViewer}
+                className="w-full"
+              >
+                {aiAssistLoading ? "جارٍ التوليد…" : "توليد اقتراحات نصية"}
+              </Button>
+              {aiAssistStatus === "unavailable" && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-800">
+                  المساعد غير متاح حتى يتم تكوين الذكاء الاصطناعي على الخادم.
+                </div>
+              )}
+              {aiAssistError && aiAssistStatus === "error" && (
+                <div className="rounded-xl border border-red-200 bg-red-50/60 p-4 text-sm text-red-700">
+                  {aiAssistError}
+                </div>
+              )}
+              {aiAssistResult ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {[
+                    ["Hooks", aiAssistResult.hooks],
+                    ["Ad copy variants", aiAssistResult.adCopyVariants],
+                    ["Captions", aiAssistResult.captions],
+                    ["CTAs", aiAssistResult.ctas],
+                    ["Improvement notes", aiAssistResult.improvementNotes],
+                    ["Missing context", aiAssistResult.missingContextWarnings],
+                    ["Safety notes", aiAssistResult.safetyNotes],
+                  ].map(([label, items]) => (
+                    <div key={String(label)} className="rounded-xl border border-emerald-100 bg-white p-4">
+                      <p className="font-medium mb-2 text-sm">{label}</p>
+                      <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
+                        {(items as string[]).length > 0
+                          ? (items as string[]).map((item) => <li key={item}>{item}</li>)
+                          : <li>No suggestions returned.</li>}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 to-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600 mb-2">معاينة</p>
+                  <p className="text-base leading-7 text-slate-800">
+                    أنشئ رسائل إعلانية واثقة وواضحة تعكس شخصية <span className="font-semibold">{campaign.name}</span> وتخاطب {campaign.audience}.
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
 
-        {/* Publish tab */}
-        <TabsContent value="publish" className="mt-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardCheck className="h-5 w-5" />
-                  Publish Checklist
-                </CardTitle>
-                {isPublished && (
-                  <Badge className="bg-green-600 text-white hover:bg-green-600">
-                    <Check className="h-3.5 w-3.5 mr-1" />
-                    Published
-                  </Badge>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {isPublished ? (
+        {/* ── Flow indicator + next action ── */}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-100 bg-white px-4 py-3 shadow-sm">
+            {FLOW_STEPS.map((step, i) => {
+              const done = i < effectiveStep;
+              const active = i === effectiveStep;
+              const Icon = step.icon;
+              const pill = (
+                <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap ${
+                  done ? "bg-emerald-50 text-emerald-700" : active ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"
+                }`}>
+                  {done ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+                  {step.label}
+                  {active && step.href && <ArrowRight className="h-3 w-3 ml-0.5" />}
+                </div>
+              );
+              return (
+                <div key={step.label} className="flex items-center">
+                  {active && step.href ? <Link href={step.href}>{pill}</Link> : pill}
+                  {i < FLOW_STEPS.length - 1 && <div className="w-4 h-px bg-emerald-100 mx-2 shrink-0" />}
+                </div>
+              );
+            })}
+          </div>
+          {effectiveStep < FLOW_STEPS.length && activeStep?.nextAction && (
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-3 text-sm text-emerald-800">
+              {activeStep.href ? (
+                <Link href={activeStep.href} className="flex items-center gap-1.5 font-medium hover:underline">
+                  <ArrowRight className="h-3.5 w-3.5" />
+                  {activeStep.nextAction}
+                </Link>
+              ) : (
                 <>
-                  <div className="rounded-lg border bg-green-500/5 border-green-500/20 p-5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                        <Check className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-green-800 dark:text-green-400">
-                          Campaign is live
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          This campaign has been marked as published and is now active.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-green-500/10">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">Published at</p>
-                        <p className="text-sm font-medium">
-                          {campaign.publishedAt
-                            ? format(new Date(campaign.publishedAt), "MMM d, yyyy 'at' h:mm a")
-                            : "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">Published by</p>
-                        <p className="text-sm font-medium">{campaign.publishedBy ?? "—"}</p>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Channels</p>
-                        <div className="flex flex-wrap gap-2">
-                          {(campaign.publishedChannels ?? []).map((ch) => (
-                            <Badge key={ch} variant="outline" className="capitalize">
-                              {ch}
-                            </Badge>
+                  <Info className="h-3.5 w-3.5 shrink-0" />
+                  {activeStep.nextAction}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Campaign Brief + Budget Pacing ── */}
+        <div className="grid md:grid-cols-3 gap-4">
+          <Card className="md:col-span-2 border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
+                <Target className="h-4 w-4 text-emerald-600" />
+                تفاصيل الحملة
+              </CardTitle>
+              <CardDescription>الهدف، الجمهور، النطاق، والقنوات.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid sm:grid-cols-2 gap-y-5 gap-x-6">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                  <Target className="h-3 w-3" /> الهدف
+                </p>
+                <p className="capitalize font-medium">{campaign.objective}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                  <Users className="h-3 w-3" /> الجمهور المستهدف
+                </p>
+                <p className="font-medium">{campaign.audience}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="h-3 w-3" /> الموقع الجغرافي
+                </p>
+                <p className="font-medium">{campaign.geography}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                  <Calendar className="h-3 w-3" /> المدة
+                </p>
+                <p className="font-medium">
+                  {campaign.startDate ? format(parseISO(campaign.startDate), "MMM d") : "—"} –{" "}
+                  {campaign.endDate ? format(parseISO(campaign.endDate), "MMM d, yyyy") : "—"}
+                </p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">ما يتم الترويج له</p>
+                <p className="text-sm leading-relaxed">{campaign.productService}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs font-medium text-muted-foreground mb-2">القنوات</p>
+                <div className="flex flex-wrap gap-2">
+                  {campaign.channels.map((c) => (
+                    <Badge key={c} variant="outline" className="capitalize rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">
+                      {c}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg text-slate-900">توزيع الميزانية</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-3">
+                <p className="text-xs text-muted-foreground mb-1">الميزانية المخططة</p>
+                <p className="text-2xl font-bold text-slate-900">${(campaign.budgetSuggestion ?? 0).toLocaleString()}</p>
+              </div>
+              <div className="space-y-3 rounded-xl border border-emerald-100 bg-white p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">وتيرة الإنفاق</p>
+                  <Badge variant="outline" className={`text-xs font-medium ${verdictColor}`}>
+                    <VerdictIcon className="h-3 w-3 mr-1" />
+                    {pacing.verdict}
+                  </Badge>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>اليوم {pacing.daysElapsed} من {pacing.totalDays}</span>
+                    <span>متبقي {pacing.daysRemaining}د</span>
+                  </div>
+                  <Progress value={pacing.progressPct * 100} className="h-2" />
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-lg border border-emerald-100 bg-white p-2">
+                    <p className="text-muted-foreground mb-0.5">الإنفاق التجريبي</p>
+                    <p className="font-semibold text-sm">${pacing.simulatedSpend.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                  </div>
+                  <div className="rounded-lg border border-emerald-100 bg-white p-2">
+                    <p className="text-muted-foreground mb-0.5">المتوقع</p>
+                    <p className="font-semibold text-sm">${pacing.expectedSpend.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <FlaskConical className="h-3 w-3 shrink-0" />
+                  بيانات تجريبية محاكاة فقط
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── Tabs ── */}
+        <Tabs defaultValue="workflow">
+          <TabsList>
+            <TabsTrigger value="workflow">سير عمل الذكاء الاصطناعي</TabsTrigger>
+            <TabsTrigger value="assets">محتوى الإعلانات</TabsTrigger>
+            <TabsTrigger value="publish">النشر</TabsTrigger>
+            <TabsTrigger value="links">روابط التتبع</TabsTrigger>
+            <TabsTrigger value="creative-assets">الأصول الإبداعية</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="workflow" className="mt-4">
+            <CampaignWorkflowTab
+              workspaceId={campaign.workspaceId}
+              campaignId={campaignId}
+              isViewer={isViewer}
+              onStatusChange={setWorkflowStatus}
+            />
+          </TabsContent>
+
+          <TabsContent value="assets" className="mt-4">
+            <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <CardTitle className="text-lg text-slate-900">محتوى الإعلانات</CardTitle>
+                    {hasAssets && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {approvedAdCount} من {assets?.length ?? 0} إعلان معتمد
+                      </p>
+                    )}
+                  </div>
+                  {!isViewer && (!assets || assets.length === 0) && (
+                    <Link href={`/content-studio?campaignId=${campaignId}`}>
+                      <Button size="sm">
+                        <Sparkles className="mr-2 h-3.5 w-3.5" />
+                        توليد الإعلانات
+                      </Button>
+                    </Link>
+                  )}
+                  {assets && assets.length > 0 && (
+                    <Link href={`/content-studio?campaignId=${campaignId}`}>
+                      <Button size="sm" variant="outline">
+                        <PenTool className="mr-2 h-3.5 w-3.5" />
+                        {isViewer ? "عرض في صفحة المحتوى" : "مراجعة في صفحة المحتوى"}
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isAssetsLoading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                  </div>
+                ) : !assets || assets.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-xl border-emerald-100">
+                    <PenTool className="h-8 w-8 text-muted-foreground/40 mb-3" />
+                    <p className="font-medium mb-1">لم يتم توليد إعلانات بعد</p>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      {isViewer
+                        ? "لم يتم توليد محتوى إعلاني لهذه الحملة."
+                        : `انقر على "توليد الإعلانات" للانتقال مباشرةً إلى صفحة المحتوى.`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {assets.slice(0, 3).map((asset) => (
+                      <div key={asset.id} className="border border-emerald-100 rounded-xl p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-bold text-lg leading-snug flex-1 pr-4">{asset.headline}</h4>
+                          <Badge
+                            variant={asset.status === "approved" ? "default" : asset.status === "rejected" ? "destructive" : "secondary"}
+                            className="capitalize shrink-0"
+                          >
+                            {asset.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{asset.shortCaption}</p>
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {asset.hashtags.map((tag) => (
+                            <span key={tag} className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                              #{tag}
+                            </span>
                           ))}
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground flex items-start gap-2 border rounded-lg p-4 bg-muted/10">
-                    <FlaskConical className="h-4 w-4 shrink-0 mt-0.5" />
-                    <span>
-                      This is a demo publish — no real ads have been created on any ad platform.
-                      Performance data will populate in the Reports page as simulated metrics.
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Checklist */}
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Complete these steps before publishing:
-                    </p>
-                    <div className="space-y-2">
-                      {[
-                        { label: "Campaign created", done: true },
-                        { label: "Ad content generated", done: hasAssets },
-                        { label: "Content reviewed in Content Studio", done: hasAssets && (assets?.some((a) => a.status === "approved") ?? false) },
-                        { label: "Campaign marked as ready (approved)", done: isApproved },
-                        { label: "Approved creative asset/reference with usage rights", done: hasApprovedCreativeAsset && hasUsageRightsNotes },
-                        { label: "Tracking link or landing URL", done: hasTrackingLink || Boolean(campaign.landingUrl) },
-                        { label: "Selected channels", done: hasSelectedChannels },
-                      ].map(({ label, done }) => (
-                        <div key={label} className="flex items-center gap-3 text-sm">
-                          <div
-                            className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
-                              done ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {done ? (
-                              <Check className="h-3 w-3" />
-                            ) : (
-                              <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
-                            )}
-                          </div>
-                          <span className={done ? "text-foreground" : "text-muted-foreground"}>
-                            {label}
-                          </span>
+                        <div className="bg-emerald-50 border border-emerald-100 px-4 py-2.5 rounded-xl text-sm flex items-center gap-2">
+                          <span className="font-semibold text-emerald-700 text-xs uppercase tracking-wide">CTA</span>
+                          {asset.cta}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {!isApproved ? (
-                    <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
-                      <p className="font-medium mb-1">Campaign not yet approved</p>
-                      <p className="text-amber-700/80 dark:text-amber-400/80">
-                        You need to mark the campaign as ready before publishing. Review and approve
-                        individual ads in the Content page first, then add an approved creative asset/reference
-                        with usage rights notes, tracking, and channels before clicking "Mark Campaign Ready".
-                      </p>
-                    </div>
-                  ) : !hasApprovedAd ? (
-                    <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
-                      <p className="font-medium mb-1">No individual ads approved yet</p>
-                      <p className="text-amber-700/80 dark:text-amber-400/80">
-                        Approve at least one ad in the{" "}
-                        <Link
-                          href={`/content-studio?campaignId=${campaignId}`}
-                          className="font-semibold underline underline-offset-2"
-                        >
-                          Content page
-                        </Link>{" "}
-                        before publishing.
-                      </p>
-                    </div>
-                  ) : !hasApprovedCreativeAsset ? (
-                    <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
-                      <p className="font-medium mb-1">No approved creative asset/reference yet</p>
-                      <p className="text-amber-700/80 dark:text-amber-400/80">
-                        Add and approve a creative asset/reference with usage rights notes in the{" "}
-                        <Link href="#creative-assets" className="font-semibold underline underline-offset-2">
-                          Creative Assets
-                        </Link>{" "}
-                        tab before publishing.
-                      </p>
-                    </div>
-                  ) : !isViewer ? (
-                    <div className="space-y-4">
-                      <div className="rounded-lg border bg-muted/10 p-4 text-sm text-muted-foreground flex items-start gap-2">
-                        <FlaskConical className="h-4 w-4 shrink-0 mt-0.5" />
-                        <span>
-                          This is a demo environment — no real ads will be created. Clicking "Publish"
-                          records the publish event and moves the campaign to Active status for demo
-                          purposes.
-                        </span>
                       </div>
-                      <Button
-                        onClick={openPublishDialog}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        disabled={!manualPublishReady}
-                      >
-                        <Rocket className="mr-2 h-4 w-4" />
-                        Publish Campaign
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Ask an admin or editor to publish this campaign.
+                    ))}
+                    <p className="text-xs text-muted-foreground text-center pt-1">
+                      لاعتماد الإعلانات أو طلب تعديلات، استخدم{" "}
+                      <Link href={`/content-studio?campaignId=${campaignId}`} className="text-emerald-600 hover:underline">
+                        صفحة المحتوى
+                      </Link>.
                     </p>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="creative-assets" className="mt-4">
-          <CampaignCreativeAssets campaignId={campaignId} isViewer={isViewer} />
-        </TabsContent>
-
-        <TabsContent value="links" className="mt-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Tracking Links</CardTitle>
-                {!isViewer && (
-                  <Button size="sm" onClick={openLinkDialog}>
-                    <Plus className="mr-2 h-3.5 w-3.5" />
-                    Generate Link
-                  </Button>
+                  </div>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {!trackingLinks || trackingLinks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-lg">
-                  <LinkIcon className="h-8 w-8 text-muted-foreground/40 mb-3" />
-                  <p className="font-medium mb-1">No tracking links yet</p>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    Tracking links help you measure where clicks come from.
-                  </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Publish tab */}
+          <TabsContent value="publish" className="mt-4">
+            <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
+                    <ClipboardCheck className="h-5 w-5 text-emerald-600" />
+                    قائمة متطلبات النشر
+                  </CardTitle>
+                  {isPublished && (
+                    <Badge className="bg-green-600 text-white hover:bg-green-600">
+                      <Check className="h-3.5 w-3.5 mr-1" />
+                      منشورة
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {isPublished ? (
+                  <>
+                    <div className="rounded-xl border border-green-200 bg-green-50/60 p-5 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                          <Check className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-green-800">الحملة مباشرة</p>
+                          <p className="text-sm text-muted-foreground">تم تعيين الحملة كمنشورة وهي الآن نشطة.</p>
+                        </div>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-green-200">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">تاريخ النشر</p>
+                          <p className="text-sm font-medium">
+                            {campaign.publishedAt ? format(new Date(campaign.publishedAt), "MMM d, yyyy 'at' h:mm a") : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">نُشرت بواسطة</p>
+                          <p className="text-sm font-medium">{campaign.publishedBy ?? "—"}</p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">القنوات</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(campaign.publishedChannels ?? []).map((ch) => (
+                              <Badge key={ch} variant="outline" className="capitalize rounded-full">{ch}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground flex items-start gap-2 rounded-xl border border-emerald-100 p-4 bg-muted/10">
+                      <FlaskConical className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>هذا نشر تجريبي — لم يتم إنشاء إعلانات حقيقية على أي منصة.</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-muted-foreground">أكمل هذه الخطوات قبل النشر:</p>
+                      <div className="space-y-2">
+                        {[
+                          { label: "تم إنشاء الحملة", done: true },
+                          { label: "تم توليد محتوى الإعلانات", done: hasAssets },
+                          { label: "تم مراجعة المحتوى في Content Studio", done: hasAssets && (assets?.some((a) => a.status === "approved") ?? false) },
+                          { label: "تم تعيين الحملة كجاهزة (معتمدة)", done: isApproved },
+                          { label: "أصل إبداعي معتمد مع ملاحظات حقوق الاستخدام", done: hasApprovedCreativeAsset && hasUsageRightsNotes },
+                          { label: "رابط تتبع أو عنوان صفحة هبوط", done: hasTrackingLink || Boolean(campaign.landingUrl) },
+                          { label: "قنوات محددة", done: hasSelectedChannels },
+                        ].map(({ label, done }) => (
+                          <div key={label} className="flex items-center gap-3 text-sm">
+                            <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${done ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"}`}>
+                              {done ? <Check className="h-3 w-3" /> : <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />}
+                            </div>
+                            <span className={done ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {!isApproved ? (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-800">
+                        <p className="font-medium mb-1">الحملة غير معتمدة بعد</p>
+                        <p className="text-amber-700/80">راجع واعتمد الإعلانات الفردية في صفحة المحتوى أولاً، ثم أضف أصلاً إبداعياً معتمداً مع ملاحظات الاستخدام والتتبع والقنوات قبل النقر على "تأكيد جاهزية الحملة".</p>
+                      </div>
+                    ) : !hasApprovedAd ? (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-800">
+                        <p className="font-medium mb-1">لا توجد إعلانات معتمدة بعد</p>
+                        <p className="text-amber-700/80">
+                          اعتمد إعلاناً واحداً على الأقل في{" "}
+                          <Link href={`/content-studio?campaignId=${campaignId}`} className="font-semibold underline underline-offset-2">صفحة المحتوى</Link>{" "}
+                          قبل النشر.
+                        </p>
+                      </div>
+                    ) : !hasApprovedCreativeAsset ? (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-800">
+                        <p className="font-medium mb-1">لا يوجد أصل إبداعي معتمد بعد</p>
+                        <p className="text-amber-700/80">
+                          أضف أصلاً إبداعياً معتمداً مع ملاحظات حقوق الاستخدام في تبويب{" "}
+                          <Link href="#creative-assets" className="font-semibold underline underline-offset-2">الأصول الإبداعية</Link>{" "}
+                          قبل النشر.
+                        </p>
+                      </div>
+                    ) : !isViewer ? (
+                      <div className="space-y-4">
+                        <div className="rounded-xl border border-emerald-100 bg-muted/10 p-4 text-sm text-muted-foreground flex items-start gap-2">
+                          <FlaskConical className="h-4 w-4 shrink-0 mt-0.5" />
+                          <span>بيئة تجريبية — لن يتم إنشاء إعلانات حقيقية. النشر يسجل الحدث ويحرك الحملة إلى حالة نشطة.</span>
+                        </div>
+                        <Button
+                          onClick={openPublishDialog}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          disabled={!manualPublishReady}
+                        >
+                          <Rocket className="mr-2 h-4 w-4" />
+                          نشر الحملة
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">اطلب من مدير أو محرر نشر هذه الحملة.</p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="creative-assets" className="mt-4">
+            <CampaignCreativeAssets campaignId={campaignId} isViewer={isViewer} />
+          </TabsContent>
+
+          <TabsContent value="links" className="mt-4">
+            <Card className="border-emerald-100 bg-white shadow-[0_14px_34px_-28px_rgba(15,23,42,0.28)]">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg text-slate-900">روابط التتبع</CardTitle>
                   {!isViewer && (
-                    <Button variant="outline" onClick={openLinkDialog}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Generate Your First Link
+                    <Button size="sm" onClick={openLinkDialog}>
+                      <Plus className="mr-2 h-3.5 w-3.5" />
+                      إنشاء رابط
                     </Button>
                   )}
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {trackingLinks.map((link) => (
-                    <div
-                      key={link.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between border rounded-lg p-4 gap-3"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Badge variant="outline" className="capitalize">
-                            {link.channel}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {link.source} / {link.medium}
-                          </span>
-                        </div>
-                        <p className="text-xs font-mono bg-muted p-2 rounded break-all">
-                          {link.generatedTrackingUrl}
-                        </p>
-                      </div>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={() => {
-                          navigator.clipboard.writeText(link.generatedTrackingUrl);
-                          toast({ title: "Copied to clipboard" });
-                        }}
-                      >
-                        <LinkIcon className="h-4 w-4 mr-2" />
-                        Copy
+              </CardHeader>
+              <CardContent>
+                {!trackingLinks || trackingLinks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-xl border-emerald-100">
+                    <LinkIcon className="h-8 w-8 text-muted-foreground/40 mb-3" />
+                    <p className="font-medium mb-1">لا توجد روابط تتبع بعد</p>
+                    <p className="text-muted-foreground text-sm mb-4">تساعد روابط التتبع في قياس مصادر النقرات.</p>
+                    {!isViewer && (
+                      <Button variant="outline" onClick={openLinkDialog}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        أنشئ أول رابط
                       </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {trackingLinks.map((link) => (
+                      <div key={link.id} className="flex flex-col sm:flex-row sm:items-center justify-between border border-emerald-100 rounded-xl p-4 gap-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <Badge variant="outline" className="capitalize rounded-full border-emerald-200 bg-emerald-50 text-emerald-700">{link.channel}</Badge>
+                            <span className="text-xs text-muted-foreground">{link.source} / {link.medium}</span>
+                          </div>
+                          <p className="text-xs font-mono bg-muted p-2 rounded break-all">{link.generatedTrackingUrl}</p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="shrink-0"
+                          onClick={() => {
+                            navigator.clipboard.writeText(link.generatedTrackingUrl);
+                            toast({ title: "تم النسخ إلى الحافظة" });
+                          }}
+                        >
+                          <LinkIcon className="h-4 w-4 mr-2" />
+                          نسخ
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-      {/* Manual Publish Dialog */}
+      </div>
+
+      {/* Manual Publish Dialog — behavior unchanged */}
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -1456,10 +1343,7 @@ export default function CampaignDetail() {
                       checked={publishChannels.includes(ch)}
                       onCheckedChange={() => togglePublishChannel(ch)}
                     />
-                    <label
-                      htmlFor={`ch-${ch}`}
-                      className="text-sm font-medium capitalize cursor-pointer"
-                    >
+                    <label htmlFor={`ch-${ch}`} className="text-sm font-medium capitalize cursor-pointer">
                       {ch}
                     </label>
                   </div>
@@ -1505,7 +1389,7 @@ export default function CampaignDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Generate Tracking Link Dialog */}
+      {/* Generate Tracking Link Dialog — behavior unchanged */}
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -1516,24 +1400,16 @@ export default function CampaignDetail() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Campaign — locked */}
             <div className="space-y-1.5">
               <Label>Campaign</Label>
               <Input value={campaign.name} disabled className="bg-muted/50" />
-              <p className="text-xs text-muted-foreground">
-                This link will be tracked to the current campaign.
-              </p>
+              <p className="text-xs text-muted-foreground">This link will be tracked to the current campaign.</p>
             </div>
 
-            {/* Channel */}
             <div className="space-y-1.5">
-              <Label htmlFor="link-channel">
-                Channel <span className="text-destructive">*</span>
-              </Label>
+              <Label htmlFor="link-channel">Channel <span className="text-destructive">*</span></Label>
               <Select value={linkChannel} onValueChange={(v) => { setLinkChannel(v); setLinkSource(v); }}>
-                <SelectTrigger id="link-channel">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger id="link-channel"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {LINK_CHANNELS.map((ch) => (
                     <SelectItem key={ch} value={ch} className="capitalize">
@@ -1545,75 +1421,34 @@ export default function CampaignDetail() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Source */}
               <div className="space-y-1.5">
-                <Label htmlFor="link-source">
-                  Source <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="link-source"
-                  value={linkSource}
-                  onChange={(e) => setLinkSource(e.target.value)}
-                  placeholder="instagram"
-                />
+                <Label htmlFor="link-source">Source <span className="text-destructive">*</span></Label>
+                <Input id="link-source" value={linkSource} onChange={(e) => setLinkSource(e.target.value)} placeholder="instagram" />
               </div>
-
-              {/* Medium */}
               <div className="space-y-1.5">
-                <Label htmlFor="link-medium">
-                  Medium <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="link-medium"
-                  value={linkMedium}
-                  onChange={(e) => setLinkMedium(e.target.value)}
-                  placeholder="paid"
-                />
+                <Label htmlFor="link-medium">Medium <span className="text-destructive">*</span></Label>
+                <Input id="link-medium" value={linkMedium} onChange={(e) => setLinkMedium(e.target.value)} placeholder="paid" />
               </div>
             </div>
 
-            {/* UTM Campaign name */}
             <div className="space-y-1.5">
-              <Label htmlFor="link-campaign">
-                UTM Campaign Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="link-campaign"
-                value={linkCampaignName}
-                onChange={(e) => setLinkCampaignName(e.target.value)}
-                placeholder="summer-launch"
-              />
+              <Label htmlFor="link-campaign">UTM Campaign Name <span className="text-destructive">*</span></Label>
+              <Input id="link-campaign" value={linkCampaignName} onChange={(e) => setLinkCampaignName(e.target.value)} placeholder="summer-launch" />
             </div>
 
-            {/* Content (optional) */}
             <div className="space-y-1.5">
               <Label htmlFor="link-content">UTM Content (optional)</Label>
-              <Input
-                id="link-content"
-                value={linkContent}
-                onChange={(e) => setLinkContent(e.target.value)}
-                placeholder="variant-a"
-              />
+              <Input id="link-content" value={linkContent} onChange={(e) => setLinkContent(e.target.value)} placeholder="variant-a" />
             </div>
 
-            {/* Final URL */}
             <div className="space-y-1.5">
-              <Label htmlFor="link-url">
-                Destination URL <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="link-url"
-                value={linkFinalUrl}
-                onChange={(e) => setLinkFinalUrl(e.target.value)}
-                placeholder="https://example.com/landing"
-              />
+              <Label htmlFor="link-url">Destination URL <span className="text-destructive">*</span></Label>
+              <Input id="link-url" value={linkFinalUrl} onChange={(e) => setLinkFinalUrl(e.target.value)} placeholder="https://example.com/landing" />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setLinkDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateLink} disabled={createTrackingLink.isPending}>
               {createTrackingLink.isPending ? "Creating…" : "Create Link"}
             </Button>
