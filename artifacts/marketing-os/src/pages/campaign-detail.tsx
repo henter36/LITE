@@ -333,6 +333,15 @@ function computeBudgetPacing(budgetSuggestion: number, startDate: string, endDat
 
 const LINK_CHANNELS = ["instagram", "snapchat", "youtube", "x", "tiktok", "email", "other"];
 const PUBLISH_CHANNELS = ["instagram", "snapchat", "youtube", "x", "tiktok"];
+type AITextAssistOutput = {
+  hooks: string[];
+  adCopyVariants: string[];
+  captions: string[];
+  ctas: string[];
+  improvementNotes: string[];
+  missingContextWarnings: string[];
+  safetyNotes: string[];
+};
 
 export default function CampaignDetail() {
   const [, params] = useRoute("/campaigns/:id");
@@ -381,6 +390,10 @@ export default function CampaignDetail() {
     },
   );
   const hasMetrics = (metrics?.length ?? 0) > 0;
+  const [aiAssistLoading, setAiAssistLoading] = useState(false);
+  const [aiAssistResult, setAiAssistResult] = useState<AITextAssistOutput | null>(null);
+  const [aiAssistError, setAiAssistError] = useState<string | null>(null);
+  const [aiAssistStatus, setAiAssistStatus] = useState<"idle" | "ready" | "unavailable" | "error">("idle");
 
   const handleApprove = () => {
     approveCampaign.mutate(
@@ -477,6 +490,50 @@ export default function CampaignDetail() {
         },
       },
     );
+  };
+
+  const handleGenerateTextAssist = async () => {
+    if (isViewer) {
+      setAiAssistStatus("error");
+      setAiAssistError("View-only access: ask an editor to generate AI suggestions.");
+      return;
+    }
+    if (!campaign) {
+      setAiAssistStatus("error");
+      setAiAssistError("Campaign context is unavailable.");
+      return;
+    }
+    setAiAssistLoading(true);
+    setAiAssistError(null);
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}api/strategy/text-assist`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: campaign.workspaceId, campaignId }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if ((data as { code?: string }).code === "AI_TEXT_UNAVAILABLE") {
+          setAiAssistStatus("unavailable");
+          setAiAssistResult((data as { output?: AITextAssistOutput }).output ?? null);
+          return;
+        }
+        throw new Error((data as { error?: string }).error ?? "Failed to generate AI suggestions.");
+      }
+      if ((data as { output?: AITextAssistOutput }).output) {
+        setAiAssistStatus("ready");
+        setAiAssistResult((data as { output?: AITextAssistOutput }).output ?? null);
+      } else {
+        setAiAssistStatus("error");
+        setAiAssistError("AI suggestions returned no output.");
+      }
+    } catch (error) {
+      setAiAssistStatus("error");
+      setAiAssistError(error instanceof Error ? error.message : "Failed to generate AI suggestions.");
+    } finally {
+      setAiAssistLoading(false);
+    }
   };
 
   if (isCampaignLoading) {
@@ -783,6 +840,63 @@ export default function CampaignDetail() {
           </div>
         </div>
       </div>
+
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              AI Assist
+            </CardTitle>
+            <Button onClick={handleGenerateTextAssist} disabled={aiAssistLoading || isViewer}>
+              {aiAssistLoading ? "Generating…" : "Generate text suggestions"}
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Draft-only suggestions for hooks, ad copy, captions, CTAs, and improvement notes.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {aiAssistStatus === "unavailable" && (
+            <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
+              AI suggestions are unavailable until server-side AI is configured.
+            </div>
+          )}
+          {aiAssistError && aiAssistStatus === "error" && (
+            <div className="rounded-lg border bg-red-500/5 border-red-500/20 p-4 text-sm text-red-700 dark:text-red-400">
+              {aiAssistError}
+            </div>
+          )}
+          {aiAssistResult ? (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {[
+                ["Hooks", aiAssistResult.hooks],
+                ["Ad copy variants", aiAssistResult.adCopyVariants],
+                ["Captions", aiAssistResult.captions],
+                ["CTAs", aiAssistResult.ctas],
+                ["Improvement notes", aiAssistResult.improvementNotes],
+                ["Missing context", aiAssistResult.missingContextWarnings],
+                ["Safety notes", aiAssistResult.safetyNotes],
+              ].map(([label, items]) => (
+                <div key={String(label)} className="rounded-lg border p-4">
+                  <p className="font-medium mb-2">{label}</p>
+                  <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
+                    {(items as string[]).length > 0 ? (
+                      (items as string[]).map((item) => <li key={item}>{item}</li>)
+                    ) : (
+                      <li>No suggestions returned.</li>
+                    )}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Run AI Assist to get draft-only suggestions based on the current campaign context.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Clickable flow indicator */}
       <div className="space-y-3">

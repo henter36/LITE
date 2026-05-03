@@ -1,0 +1,112 @@
+Integrate AI Text Assist into existing Campaign Detail only.
+
+Do not modify the backend AI runtime except for small type/interface fixes if required.
+Do not add new standalone pages.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement upload.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget changes.
+Do not implement autonomous optimization.
+Do not weaken Campaign Completion Wiring.
+
+Current backend route:
+POST /api/strategy/text-assist
+
+Objective:
+Add an AI Assist card inside existing Campaign Detail that calls the server-side AI text runtime and displays draft-only campaign suggestions.
+
+Requirements:
+
+1. Campaign Detail AI Assist card
+Inside existing Campaign Detail only, add an AI Assist section/card.
+
+Show:
+- Generate text suggestions action
+- loading state
+- success state
+- safe missing-key/unavailable state
+- safe error state
+
+Render returned fields:
+- hooks
+- adCopyVariants
+- captions
+- ctas
+- improvementNotes
+- missingContextWarnings
+- safetyNotes
+
+2. Draft-only governance
+AI suggestions must remain draft-only.
+AI must not:
+- approve content
+- mark campaign ready
+- publish
+- modify budget
+- update assets
+- approve assets
+- change readiness score
+- bypass manual publish guard
+
+3. Existing completion wiring must remain intact
+Do not weaken:
+- unified completion panel
+- readiness score
+- missing requirements list
+- publish checklist
+- handler-level manual publish guard
+- viewer restrictions
+- external/manual-only publishing model
+
+4. Role behavior
+Viewer must not trigger restricted AI generation if current policy treats generation as an action.
+If viewer can see AI output, view-only.
+
+5. UI behavior
+The AI card should support the existing Campaign Detail workflow:
+- use campaign context
+- show strategy-to-content suggestions
+- highlight missing context
+- do not create a separate AI page
+- do not replace existing campaign flow
+
+6. Documentation
+Create:
+docs/ai_text_campaign_detail_integration_report.md
+
+Report must include:
+- changed files
+- route used
+- frontend/backend separation
+- AI output rendering
+- draft-only governance
+- role restrictions
+- completion wiring preservation
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- app builds
+- no API key in frontend code
+- no frontend AI provider call
+- Campaign Detail completion panel still works
+- manual publish guard still works at UI and handler level
+- viewer restrictions still work
+- AI suggestions are draft-only
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no new standalone pages
+- no broad OpenAPI/generated client change unless strictly required
+
+Final output:
+- changed files
+- Campaign Detail AI integration implemented
+- verification results
+- remaining gaps
+- readiness decision
