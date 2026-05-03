@@ -1,0 +1,200 @@
+Rebuild Dashboard layout only using a strict reference-style grid.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+
+Scope:
+Only modify:
+- artifacts/marketing-os/src/pages/dashboard.tsx
+- docs/ui_alignment_dashboard_slice_report.md
+
+Do not modify sidebar-layout.tsx in this pass.
+
+Objective:
+Stop patching the current broken dashboard layout. Rebuild the Dashboard page layout using a clean RTL grid that visually matches the provided Arabic reference dashboard more closely.
+
+Current unacceptable issues:
+- content still clips horizontally
+- dashboard cards extend beyond the visible area
+- layout is too wide and unbalanced
+- header floats awkwardly
+- performance chart is basic and oversized
+- workflow funnel does not look like the reference
+- page still feels like a prototype
+- visual parity is not acceptable
+
+Layout requirements:
+
+1. Page container
+Use a stable dashboard container:
+- direction: rtl
+- width: 100%
+- max-width: 1180px or similar
+- margin-inline: auto
+- padding: 24px to 32px
+- no horizontal overflow
+- box-sizing: border-box
+
+No dashboard element should exceed the container width.
+
+2. Header
+Create a balanced header row:
+- right side: greeting "مرحبًا، أحمد" and subtitle
+- left side: date filter + notification/help buttons
+- no giant empty awkward space
+- header should resemble the reference dashboard
+
+3. KPI grid
+Create exactly 4 KPI cards in one row on desktop.
+Use responsive grid:
+- grid-template-columns: repeat(4, minmax(0, 1fr))
+- gap: 16px or 20px
+- cards must not overflow
+
+Cards:
+- إجمالي الحملات
+- قطع المحتوى المنشأة
+- المحتوى المعتمد
+- المحتوى المرفوض
+
+Each card:
+- soft white background
+- light border
+- subtle shadow
+- rounded corners
+- icon bubble
+- large number
+- small trend text
+- green/teal accent, red only for negative
+
+4. Main dashboard grid
+Use a clean 12-column grid:
+
+Row 1:
+- performance chart: 8 columns
+- workflow funnel: 4 columns
+
+Row 2:
+- recent campaigns: 5 columns
+- recent activity: 4 columns
+- right support stack: 3 columns
+
+Right support stack contains:
+- اكتمال ملف العلامة التجارية
+- موجز الحملة النشطة
+- المراجعات المعلقة
+
+This layout must fit inside the max-width container.
+
+5. Performance chart
+Do not use an oversized clipped chart.
+Make a contained card:
+- height around 320px
+- title: "أداء المحتوى (آخر 7 أيام)"
+- chart area fully visible
+- metric pills under chart
+- if current chart library is poor, use a clean CSS/SVG line approximation
+- avoid huge bar that dominates the page
+
+6. Workflow funnel
+Make it visually closer to the reference:
+- layered funnel-like blocks or stacked trapezoid-style cards
+- stages:
+  إجمالي الحملات
+  قيد التنفيذ
+  قيد المراجعة
+  معتمد
+  مرفوض
+- use soft green/yellow/red accents
+- not a plain list
+
+7. Recent campaigns
+Use Arabic card/table style:
+- title: "أحدث الحملات"
+- rows with campaign name, date, status badge
+- no clipping
+- no English-first labels unless data itself is English
+
+8. Recent activity
+Use compact activity rows:
+- title: "النشاط الأخير"
+- icon/status bubble
+- Arabic descriptions
+- timestamps
+- no giant empty space
+
+9. Brand/pending support cards
+Use compact cards like reference:
+- "اكتمال ملف العلامة التجارية"
+- circular or progress display if already possible
+- "موجز الحملة النشطة"
+- "المراجعات المعلقة"
+
+10. Remove broken top strip
+Remove or redesign the current awkward strip that shows "مساعدة" and "1" in a huge empty card unless it has a clear purpose.
+Do not keep visually confusing blocks.
+
+11. Functional preservation
+Preserve existing dashboard data where available:
+- metrics
+- campaigns
+- recommendations/dismiss flow
+- no fake live analytics
+- no unsupported live behavior
+
+12. Visual style
+Use:
+- Arabic-first labels
+- green/teal identity
+- soft white cards
+- subtle border/shadow
+- consistent spacing
+- no purple primary styling unless unavoidable
+- no dark dashboard-specific shell
+- no horizontal scroll
+
+Documentation:
+Update:
+docs/ui_alignment_dashboard_slice_report.md
+
+Report must include:
+- dashboard was rebuilt with strict RTL grid
+- overflow/clipping status
+- visual changes made
+- preserved data/actions
+- remaining visual gaps
+- verification results
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no horizontal overflow in dashboard layout by inspection
+- backend untouched
+- no DB/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+
+Final output:
+- changed files
+- layout rebuild completed
+- overflow/clipping result
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision

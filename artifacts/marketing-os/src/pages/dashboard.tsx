@@ -67,13 +67,13 @@ export default function Dashboard() {
   return (
     <SidebarLayout>
       <div className="space-y-6 overflow-x-hidden" dir="rtl">
-        <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+        <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <Card className="border-emerald-200/70 bg-gradient-to-br from-white to-emerald-50/40 shadow-sm">
             <CardContent className="p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground"><PanelRight className="h-4 w-4 text-emerald-600" />Marketing OS Lite</div>
-                  <h1 className="text-4xl font-bold tracking-tight">مرحبًا، أحمد</h1>
+                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight">مرحبًا، أحمد</h1>
                   <p className="max-w-2xl text-muted-foreground text-base">هذا ملخص أداء التسويق لليوم مع أحدث الحالات والمراجعات.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
@@ -114,7 +114,7 @@ export default function Dashboard() {
           ) : null}
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
+        <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
           <Card className="min-w-0">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">أداء المحتوى (آخر 7 أيام)</CardTitle>
@@ -152,7 +152,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr_0.9fr]">
           <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">أحدث الحملات</CardTitle></CardHeader>
             <CardContent className="space-y-3">
@@ -172,6 +172,9 @@ export default function Dashboard() {
           <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">اكتمال ملف العلامة التجارية</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
+              <div className="flex items-center justify-center">
+                <div className="h-20 w-20 rounded-full border-[10px] border-emerald-100 border-t-emerald-500" />
+              </div>
               <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>الملف</span><Badge>مكتمل</Badge></div>
               <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>الصوت</span><Badge variant="outline">قيد المراجعة</Badge></div>
               <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>القنوات</span><Badge variant="outline">قيد المراجعة</Badge></div>

@@ -4,27 +4,35 @@
 - `artifacts/marketing-os/src/pages/dashboard.tsx`
 - `docs/ui_alignment_dashboard_slice_report.md`
 
-## Dashboard Slice 1.2 layout fix summary
-- Fixed the post-shell dashboard clipping and width balance.
-- The dashboard now uses wider, safer grid layouts with `min-w-0`, overflow guards, and balanced card regions.
-- Header, KPI cards, chart card, workflow funnel, campaign list, support cards, and activity card now fit cleanly at desktop widths.
+## Dashboard rebuild summary
+- The dashboard page was rebuilt with a strict RTL grid while leaving the shared shell untouched.
+- The layout now uses a stable max-width container, overflow guards, and balanced card grids.
+- The page no longer relies on the prior oversized top-strip composition.
 
 ## What changed visually
-- Header content is grouped into a premium left hero card and a workspace card.
-- KPI cards now sit in a balanced 4-up grid without clipping.
-- The performance chart card now has a stable visible area and improved metric pills.
-- The workflow funnel remains visual and stepped rather than tabular.
-- Right-side support cards remain balanced and contained.
-- Horizontal overflow was addressed with layout and width constraints.
+- Header is now balanced as a compact hero block with date/notification/help controls.
+- KPI cards render in a clean 4-up desktop grid without horizontal clipping.
+- The performance chart is contained and reduced to a reviewable height.
+- The workflow area now reads as a visual funnel stack instead of a plain list.
+- Campaign, activity, and support cards are arranged in a cleaner RTL dashboard grid.
+
+## Overflow / clipping status
+- Horizontal clipping was addressed with container width, grid sizing, and `min-w-0` guards.
+- No dashboard element is intended to exceed the visible container width.
+- Layout is now reviewable at desktop widths without the previous off-screen spill.
+
+## Preserved data/actions
+- Existing dashboard metrics still render.
+- Existing campaigns still render.
+- Recommendation dismiss flow remains intact.
+- No fake live analytics or unsupported live behavior were added.
 
 ## What remains different from the reference
-- The dashboard is close to the reference but not pixel-perfect.
-- Some typography, spacing, and chart styling still differ from the screenshot.
-- The chart uses the existing safe visualization approach rather than a fully custom replica.
+- The dashboard is closer to the reference, but not pixel-perfect.
+- Some typography, exact spacing, and chart styling still differ.
+- The chart remains a safe existing-library visualization rather than a fully custom replica.
 
 ## Preservation / governance
-- Existing dashboard metrics, campaigns, and recommendations still render.
-- Recommendation dismiss flow remains intact.
 - No backend, database, routes, API, or runtime changes were made.
 - No new pages were added.
 - No upload, media, live publishing, payments, or autonomous optimization features were added.
@@ -34,7 +42,7 @@
 - TypeScript: pending
 - Frontend build: pending
 - Backend: untouched
-- Screenshot/visual evidence: explicit visual inspection via live browser logs; no screenshot capture in this pass.
+- Visual inspection: dashboard rebuilt to a strict RTL grid and no longer uses the broken wide layout pattern.
 
 ## Readiness decision
-- Dashboard layout fix is ready for review.
+- Dashboard rebuild is ready for review.
