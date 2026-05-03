@@ -16,6 +16,7 @@ import metaRouter from "./meta";
 import strategyRouter from "./strategy";
 import mediaAssetsRouter from "./mediaAssets";
 import campaignWorkflowRouter from "./campaignWorkflow";
+import brandStrategyRouter from "./brandStrategy";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(metaRouter);
 router.use(strategyRouter);
 router.use(mediaAssetsRouter);
 router.use(campaignWorkflowRouter);
+router.use(brandStrategyRouter);
 
 export default router;

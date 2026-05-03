@@ -834,3 +834,159 @@ export function getWorkflowAIProvider(): {
 
   return { provider: null, selectedProvider: "mock", keyMissing: false };
 }
+
+// ---------------------------------------------------------------------------
+// Brand Strategy AI — brand-level, reusable across campaigns
+// ---------------------------------------------------------------------------
+
+export interface BrandStrategyInput {
+  brandName: string;
+  productsServices: string;
+  targetAudience: string;
+  toneOfVoice: string;
+  preferredChannels: string[];
+  forbiddenClaims: string;
+  visualNotes: string;
+  userProvidedAnswers?: string;
+}
+
+export interface BrandStrategyOutput {
+  strategySummary: string;
+  positioning: string;
+  idealCustomerProfile: string;
+  primaryAudience: string;
+  secondaryAudience: string;
+  keyMessages: string[];
+  valueProposition: string;
+  contentPillars: string[];
+  channelStrategy: string[];
+  toneGuidelines: string;
+  ctaGuidelines: string;
+  forbiddenClaims: string[];
+  riskNotes: string[];
+}
+
+export interface BrandStrategyAIProvider {
+  generateBrandStrategy(input: BrandStrategyInput): Promise<BrandStrategyOutput>;
+}
+
+// ---------------------------------------------------------------------------
+// OpenAI Brand Strategy Provider
+// ---------------------------------------------------------------------------
+
+export class OpenAIBrandStrategyProvider implements BrandStrategyAIProvider {
+  private client: OpenAI;
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({ apiKey });
+  }
+
+  async generateBrandStrategy(input: BrandStrategyInput): Promise<BrandStrategyOutput> {
+    const filter = (t: string) => applyAllGuardrails(t, input.forbiddenClaims);
+    const response = await this.client.chat.completions.create({
+      model: OPENAI_MODEL,
+      response_format: { type: "json_object" },
+      temperature: 0.4,
+      max_tokens: 1800,
+      messages: [
+        {
+          role: "system",
+          content: `You are a brand-safe growth strategy expert. All outputs are draft-only for human review. Never approve, publish, or change any campaign status. Never make unsupported performance claims. Never guarantee revenue or growth outcomes. Return ONLY valid JSON with these exact keys: strategySummary (string, 2-3 sentences), positioning (string), idealCustomerProfile (string), primaryAudience (string), secondaryAudience (string), keyMessages (string[], 3-5 items), valueProposition (string), contentPillars (string[], 3-5 items), channelStrategy (string[], one item per channel with guidance), toneGuidelines (string), ctaGuidelines (string), forbiddenClaims (string[], safety guardrails), riskNotes (string[]).`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            brandName: input.brandName,
+            productsServices: input.productsServices,
+            targetAudience: input.targetAudience,
+            toneOfVoice: input.toneOfVoice,
+            preferredChannels: input.preferredChannels,
+            forbiddenClaims: input.forbiddenClaims,
+            visualNotes: input.visualNotes,
+            userProvidedAnswers: input.userProvidedAnswers ?? "",
+          }),
+        },
+      ],
+    });
+    const raw = response.choices[0]?.message?.content ?? "{}";
+    const p = JSON.parse(raw.trim()) as Record<string, unknown>;
+    return {
+      strategySummary: filter(String(p.strategySummary ?? "")),
+      positioning: filter(String(p.positioning ?? "")),
+      idealCustomerProfile: filter(String(p.idealCustomerProfile ?? "")),
+      primaryAudience: filter(String(p.primaryAudience ?? "")),
+      secondaryAudience: filter(String(p.secondaryAudience ?? "")),
+      keyMessages: safeList(p.keyMessages, filter),
+      valueProposition: filter(String(p.valueProposition ?? "")),
+      contentPillars: safeList(p.contentPillars, filter),
+      channelStrategy: safeList(p.channelStrategy, filter),
+      toneGuidelines: filter(String(p.toneGuidelines ?? "")),
+      ctaGuidelines: filter(String(p.ctaGuidelines ?? "")),
+      forbiddenClaims: [
+        ...safeList(p.forbiddenClaims, filter),
+        "All outputs are draft-only. Do not publish without human review.",
+      ],
+      riskNotes: safeList(p.riskNotes, filter),
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mock Brand Strategy Provider
+// ---------------------------------------------------------------------------
+
+export class MockBrandStrategyProvider implements BrandStrategyAIProvider {
+  async generateBrandStrategy(input: BrandStrategyInput): Promise<BrandStrategyOutput> {
+    const brand = input.brandName || "العلامة";
+    const channels = input.preferredChannels.length > 0 ? input.preferredChannels : ["instagram"];
+    return {
+      strategySummary: `${brand} تقدم ${input.productsServices} لجمهور متنوع يبحث عن قيمة حقيقية وموثوقية. تركز الاستراتيجية على بناء الثقة وتوصيل رسالة واضحة عبر القنوات الرقمية المختارة. [مسودة للمراجعة فقط]`,
+      positioning: `${brand} — الخيار الموثوق في فئة ${input.productsServices}. [مسودة]`,
+      idealCustomerProfile: `${input.targetAudience}. يبحثون عن حل موثوق وسهل الاستخدام. [مسودة]`,
+      primaryAudience: input.targetAudience || "الجمهور الأساسي غير محدد",
+      secondaryAudience: "جمهور ثانوي مقترح — يُحدد لاحقًا. [مسودة]",
+      keyMessages: [
+        `${brand} تحل مشكلة حقيقية بطريقة موثوقة. [مسودة]`,
+        "قيمة واضحة وسهلة الفهم. [مسودة]",
+        "نبرة صادقة تعكس الهوية. [مسودة]",
+      ],
+      valueProposition: `${brand} تقدم ${input.productsServices} بنبرة ${input.toneOfVoice || "موثوقة"} تناسب جمهورها. [مسودة]`,
+      contentPillars: [
+        "التعليم والوعي بالمنتج. [مسودة]",
+        "بناء المجتمع والثقة. [مسودة]",
+        "عروض القيمة والمقارنات. [مسودة]",
+      ],
+      channelStrategy: channels.map((c) => `${c}: محتوى متوافق مع طبيعة المنصة ونبرة العلامة. [مسودة]`),
+      toneGuidelines: input.toneOfVoice || "نبرة مهنية وودية — يُحدد لاحقًا. [مسودة]",
+      ctaGuidelines: `CTA واضح يدعو للتجربة أو التواصل — يُحدد لاحقًا. [مسودة]`,
+      forbiddenClaims: [
+        input.forbiddenClaims || "لا ادعاءات غير مدعومة. [مسودة]",
+        "All outputs are draft-only. Do not publish without human review.",
+      ],
+      riskNotes: ["هذه مسودة أولية للمراجعة البشرية فقط. لا يُعتمد عليها للنشر المباشر."],
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Factory — Brand Strategy AI provider
+// ---------------------------------------------------------------------------
+
+export function getBrandStrategyAIProvider(): {
+  provider: BrandStrategyAIProvider | null;
+  selectedProvider: "mock" | "openai";
+  keyMissing: boolean;
+} {
+  const requested = (process.env.AI_PROVIDER ?? "mock").toLowerCase();
+
+  if (requested === "openai") {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      logger.warn("AI_PROVIDER=openai but OPENAI_API_KEY is not set — brand strategy AI unavailable");
+      return { provider: null, selectedProvider: "mock", keyMissing: true };
+    }
+    return { provider: new OpenAIBrandStrategyProvider(apiKey), selectedProvider: "openai", keyMissing: false };
+  }
+
+  return { provider: new MockBrandStrategyProvider(), selectedProvider: "mock", keyMissing: false };
+}
