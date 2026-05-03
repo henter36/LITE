@@ -1,0 +1,71 @@
+STOP UI alignment immediately.
+
+Perform recovery only.
+
+Do not continue visual edits.
+Do not add environment variables.
+Do not save DASHBOARD_RESTORE_NEEDED.
+Do not modify backend.
+Do not modify database.
+Do not modify routes.
+Do not modify AI runtime.
+Do not modify Campaign Completion logic.
+Do not modify Campaign Workflow logic.
+Do not add pages.
+Do not implement upload/media/live publishing.
+
+Objective:
+Restore the dashboard file and return the app to a clean, buildable state before any further UI work.
+
+Tasks:
+
+1. Restore dashboard
+The dashboard file was accidentally removed or corrupted during the UI pass.
+Restore it from the last known good version / Replit checkpoint / git HEAD.
+
+Do not rewrite it from memory unless no source restore is available.
+Prefer exact restoration over reconstruction.
+
+2. Remove bad recovery artifact
+If DASHBOARD_RESTORE_NEEDED was added as an environment variable or referenced anywhere, remove it.
+It is not a valid app configuration.
+
+3. Inspect changed files
+List all files changed during the failed UI alignment attempt.
+
+4. Revert unsafe UI edits
+Revert any incomplete or risky visual edits from the failed UI alignment attempt.
+Keep only changes that are complete, build-safe, and intentionally documented.
+If uncertain, revert them.
+
+5. Verify app health
+Run:
+- TypeScript check
+- frontend build with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+
+If backend was not touched, state backend not touched.
+If backend was touched accidentally, run API server build too.
+
+6. Documentation
+Create or update:
+docs/ui_alignment_recovery_report.md
+
+Report must include:
+- what file was removed/corrupted
+- how it was restored
+- changed files after recovery
+- whether bad env variable was removed/not saved
+- build/typecheck results
+- remaining gaps
+- readiness decision
+
+Final output:
+- restored files
+- reverted files
+- changed files remaining
+- verification results
+- readiness decision
+
+Readiness rule:
+Do not resume UI alignment until recovery is clean and build passes.
