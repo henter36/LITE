@@ -1,0 +1,232 @@
+Implement UI Alignment to the provided reference screens only.
+
+This is a UI-only visual alignment task.
+
+Do not modify database schema.
+Do not add migrations.
+Do not run drizzle push.
+Do not create tables.
+Do not modify backend routes.
+Do not add API routes.
+Do not modify AI provider/runtime.
+Do not modify auth, roles, or workspace scoping.
+Do not change Campaign Completion logic.
+Do not change Campaign Workflow logic.
+Do not change publish/readiness/checklist logic.
+Do not change OpenAPI or generated client.
+
+Strict constraints:
+- Do not add new standalone pages.
+- Do not implement image generation.
+- Do not implement video generation.
+- Do not implement upload as a backend feature.
+- Do not implement live publishing.
+- Do not implement payments.
+- Do not implement budget automation.
+- Do not implement autonomous optimization.
+- Do not expose API keys in frontend.
+- Do not make fake functionality appear live if it is not actually implemented.
+
+Current baseline to preserve:
+- Campaign Completion Wiring is implemented and hardened.
+- Manual publish is blocked at UI and handler level.
+- Viewer restrictions are preserved.
+- Backend AI Text Runtime is implemented and secured.
+- Campaign Detail AI Assist is integrated.
+- Campaign Launch AI Workflow Foundation exists inside Campaign Detail.
+- AI Workflow tab is not a standalone route.
+- POST workflow routes are auth + editor-only.
+- GET workflow routes are role-gated and workspace-scoped.
+- OPENAI_API_KEY is server-side only.
+- AI outputs are draft-only.
+- No image/video/upload/live publishing exists.
+
+Objective:
+Make the existing Marketing OS Lite UI closely match the provided reference screens while preserving all existing product logic, governance, and scope constraints.
+
+Reference screens:
+Use the provided screenshots as the primary visual and layout reference for:
+- Dashboard
+- Brand
+- Campaign
+- Content
+- Review
+- Campaign Detail / AI Workflow cockpit where applicable
+
+Design goal:
+Achieve high visual parity with the references:
+- right-side navigation
+- top header
+- card styling
+- spacing
+- form style
+- progress indicators
+- status badges
+- helper side panels
+- review workspace
+- dashboard metrics
+- RTL polish
+- calm green/teal visual identity
+- clean rounded cards and light shadows
+
+But apply functional corrections:
+1. Reduce clutter where the reference is too dense.
+2. Preserve current real workflow and data model.
+3. Do not imply unsupported features are operational.
+4. Keep Campaign Detail as the campaign operating cockpit.
+5. Keep AI output draft-only.
+6. Keep publishing manual/external only.
+
+Required UI alignment work:
+
+1. Dashboard
+Align the existing dashboard visually to the reference:
+- KPI cards
+- recent campaigns
+- performance chart
+- workflow funnel
+- recent activity
+- brand completion card
+- pending reviews card
+
+Use real existing data where available.
+Use safe placeholders only if already part of current UI behavior.
+Do not invent live analytics.
+
+2. Brand screen
+Align Brand UI to the reference:
+- profile completion card
+- brand summary card
+- brand identity section
+- voice/tone section
+- keywords and banned words
+- audience/channels/CTA style
+- language settings
+- preview/help card
+
+Improve grouping and visual hierarchy.
+Reduce crowding.
+Keep save/update behavior unchanged.
+
+3. Campaign screen / Campaign Detail
+Align campaign creation/detail experience to the reference:
+- stepper or clear sectioned layout
+- campaign summary side card
+- AI helper side card
+- campaign fields
+- channels
+- CTA
+- content angle
+- dates
+- budget level only if already supported
+- Campaign Completion card preserved
+- AI Workflow status preserved
+
+If reference shows upload:
+- do not implement upload backend
+- show disabled placeholder only
+- or adapt to supported reference-link input only if already supported
+
+If reference implies live publishing:
+- replace wording with “manual publish readiness”
+- do not implement real publish
+
+4. Content screen
+Align content workspace to the reference:
+- filters by campaign/language/audience/goal
+- text variant cards
+- generation settings side panel
+- brand voice summary
+- content quality score
+
+Keep it text-first.
+Do not add image/video generation.
+Do not detach content from campaign context.
+
+5. Review screen
+Align review workspace to the reference:
+- left review queue
+- center content preview
+- right audit/timeline/reviewer panel
+- approve/request changes/reject actions
+
+Preserve approval workflow and roles.
+Do not change governance logic.
+
+6. Global design consistency
+Apply consistent:
+- spacing scale
+- card radius
+- shadows
+- typography hierarchy
+- status badges
+- buttons
+- empty states
+- disabled-state explanations
+- RTL alignment
+- responsive behavior where existing layout supports it
+
+7. Unsupported feature handling
+For any unsupported feature visible in the reference:
+- do not implement backend behavior
+- do not fake success
+- use disabled UI, “coming later”, or supported equivalent
+This applies to:
+- upload
+- image generation
+- video generation
+- live publishing
+- automated optimization
+
+8. Preservation requirements
+Verify nothing regressed:
+- Campaign Completion panel
+- readiness score
+- missing requirements list
+- publish checklist
+- manual publish guard at UI and handler level
+- viewer restrictions
+- AI text route auth/role/workspace scoping
+- AI workflow route auth/role/workspace scoping
+- draft-only AI outputs
+- manual/external publishing model
+
+Documentation:
+Create:
+docs/ui_alignment_to_reference_report.md
+
+Report must include:
+- changed files
+- screen-by-screen alignment summary
+- what was matched closely from the reference
+- what was intentionally corrected or adapted
+- unsupported features kept disabled/deferred
+- design consistency changes
+- preserved workflow/governance constraints
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes if affected; otherwise state backend not touched
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no DB/schema/migration changes
+- no backend route changes
+- no OpenAPI/generated client changes
+- no new unsupported live features
+- no image generation
+- no video generation
+- no upload backend implementation
+- no live publishing
+- no Campaign Completion regression
+- no auth/role/workspace scoping regression
+
+Final output:
+- changed files
+- UI alignment completed
+- corrections/adaptations made
+- verification results
+- remaining gaps
+- readiness decision
