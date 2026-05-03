@@ -1,0 +1,76 @@
+Start Asset Library Foundation — Slice 1 only.
+
+Do not implement image generation.
+Do not implement video generation.
+Do not call media AI APIs.
+Do not implement live publishing, payments, budget changes, or autonomous optimization.
+Do not reintroduce large media OpenAPI changes that could break codegen.
+If OpenAPI changes are needed, keep them minimal and run codegen with:
+NODE_OPTIONS=--max-old-space-size=8192
+
+Objective:
+Create a governed asset library foundation for campaign creative assets before adding image/video generation.
+
+Implement:
+1. Backend/data model for creative assets:
+- workspaceId
+- campaignId optional
+- assetType: image, video, document, link
+- title
+- description
+- sourceType: uploaded, external_url, generated_later
+- assetUrl/reference
+- status: draft, needs_review, approved, rejected
+- usageRightsNotes
+- createdBy
+- createdAt
+
+2. Routes:
+- list assets by workspace/campaign
+- create asset reference
+- update asset metadata/status
+- delete asset reference
+All routes must enforce auth, workspace isolation, and role permissions.
+
+3. UI:
+Add Asset Library under Settings or as a lightweight page.
+Show:
+- asset cards/table
+- type
+- status
+- campaign link if attached
+- usage rights notes
+- create asset reference form
+- approve/reject status actions
+
+4. Campaign integration:
+In Campaign Detail creative section, show linked assets.
+Allow attaching an existing asset reference to a campaign.
+
+5. Guardrails:
+- no binary upload unless already supported
+- no image/video generation
+- no auto-publishing
+- no copyright-risk claims
+- require usage rights notes for approved assets
+
+6. Documentation:
+Create:
+docs/asset_library_foundation_slice_1_report.md
+
+Verification:
+- TypeScript zero errors.
+- Codegen clean if changed.
+- asset reference can be created.
+- asset can be linked to campaign.
+- viewer cannot create/update/delete assets.
+- approved asset requires usage rights notes.
+- campaign detail shows linked assets.
+- existing campaign cycle, strategy, AI text, Meta read-only, auth, roles, and safety guards still work.
+
+Final output:
+- changed files
+- implemented asset library foundation
+- verification results
+- remaining risks
+- next recommended slice
