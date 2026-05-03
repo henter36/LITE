@@ -14,3 +14,8 @@ export * from "./strategyIntakes";
 export * from "./strategyDiagnoses";
 export * from "./media-assets";
 export * from "./system-admin-users";
+export * from "./campaignWorkflowIntakes";
+export * from "./campaignStrategyBriefs";
+export * from "./campaignCreativeBriefs";
+export * from "./campaignImagePromptSpecs";
+export * from "./campaignVideoScriptSpecs";

@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { useRoute, Link } from "wouter";
+import { CampaignWorkflowTab, WorkflowStatusPanel, type WorkflowStatusSummary } from "./campaign-workflow-tab";
 import { differenceInDays, parseISO, min as dateMin, format } from "date-fns";
 import {
   CheckCircle,
@@ -394,6 +395,14 @@ export default function CampaignDetail() {
   const [aiAssistResult, setAiAssistResult] = useState<AITextAssistOutput | null>(null);
   const [aiAssistError, setAiAssistError] = useState<string | null>(null);
   const [aiAssistStatus, setAiAssistStatus] = useState<"idle" | "ready" | "unavailable" | "error">("idle");
+  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatusSummary>({
+    intake: "not_started",
+    strategyBrief: "not_started",
+    creativeBrief: "not_started",
+    textSuggestions: "not_started",
+    imagePromptSpecs: "not_started",
+    videoScriptSpecs: "not_started",
+  });
 
   const handleApprove = () => {
     approveCampaign.mutate(
@@ -747,6 +756,7 @@ export default function CampaignDetail() {
               ))}
             </div>
           </div>
+          <WorkflowStatusPanel status={workflowStatus} />
           <div className="flex flex-wrap gap-2">
             <Link href="/strategy">
               <Button variant="outline" size="sm">
@@ -1053,13 +1063,23 @@ export default function CampaignDetail() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="assets">
+      <Tabs defaultValue="workflow">
         <TabsList>
+          <TabsTrigger value="workflow">AI Workflow</TabsTrigger>
           <TabsTrigger value="assets">Ad Content</TabsTrigger>
           <TabsTrigger value="publish">Publish</TabsTrigger>
           <TabsTrigger value="links">Tracking Links</TabsTrigger>
           <TabsTrigger value="creative-assets">Creative Assets</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="workflow" className="mt-4">
+          <CampaignWorkflowTab
+            workspaceId={campaign.workspaceId}
+            campaignId={campaignId}
+            isViewer={isViewer}
+            onStatusChange={setWorkflowStatus}
+          />
+        </TabsContent>
 
         <TabsContent value="assets" className="mt-4">
           <Card>
