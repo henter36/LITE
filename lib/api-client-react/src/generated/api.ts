@@ -31,6 +31,7 @@ import type {
   CreateCampaignBody,
   CreateCampaignFromStrategyBody,
   CreateConnectionBody,
+  CreateMediaAssetBody,
   CreateStrategyIntakeBody,
   CreateTrackingLinkBody,
   CreateWorkspaceBody,
@@ -53,10 +54,12 @@ import type {
   ListBrandProfilesParams,
   ListCampaignsParams,
   ListConnectionsParams,
+  ListMediaAssetsParams,
   ListMetricsParams,
   ListRecommendationsParams,
   ListTrackingLinksParams,
   ManualPublishBody,
+  MediaAsset,
   MetaAdAccount,
   MetaProviderStatus,
   MetaSyncRequest,
@@ -67,7 +70,7 @@ import type {
   StrategyIntake,
   SyncJob,
   TrackingLink,
-  UpdateAssetBriefBody,
+  UpdateMediaAssetBody,
   UpdateMemberBody,
   UpdateRecommendationBody,
   UpdateStrategyIntakeBody,
@@ -2809,43 +2812,136 @@ export function useGetAsset<
 }
 
 /**
- * @summary Update creative brief fields on a generated asset
+ * @summary List media asset references
  */
-export const getUpdateAssetBriefUrl = (id: number) => {
-  return `/api/assets/${id}`;
+export const getListMediaAssetsUrl = (params?: ListMediaAssetsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/media-assets?${stringifiedParams}`
+    : `/api/media-assets`;
 };
 
-export const updateAssetBrief = async (
-  id: number,
-  updateAssetBriefBody: UpdateAssetBriefBody,
+export const listMediaAssets = async (
+  params?: ListMediaAssetsParams,
   options?: RequestInit,
-): Promise<GeneratedAsset> => {
-  return customFetch<GeneratedAsset>(getUpdateAssetBriefUrl(id), {
+): Promise<MediaAsset[]> => {
+  return customFetch<MediaAsset[]>(getListMediaAssetsUrl(params), {
     ...options,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(updateAssetBriefBody),
+    method: "GET",
   });
 };
 
-export const getUpdateAssetBriefMutationOptions = <
+export const getListMediaAssetsQueryKey = (params?: ListMediaAssetsParams) => {
+  return [`/api/media-assets`, ...(params ? [params] : [])] as const;
+};
+
+export const getListMediaAssetsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMediaAssets>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListMediaAssetsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMediaAssets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListMediaAssetsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listMediaAssets>>> = ({
+    signal,
+  }) => listMediaAssets(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMediaAssets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListMediaAssetsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listMediaAssets>>
+>;
+export type ListMediaAssetsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List media asset references
+ */
+
+export function useListMediaAssets<
+  TData = Awaited<ReturnType<typeof listMediaAssets>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListMediaAssetsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMediaAssets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListMediaAssetsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a media asset reference
+ */
+export const getCreateMediaAssetUrl = () => {
+  return `/api/media-assets`;
+};
+
+export const createMediaAsset = async (
+  createMediaAssetBody: CreateMediaAssetBody,
+  options?: RequestInit,
+): Promise<MediaAsset> => {
+  return customFetch<MediaAsset>(getCreateMediaAssetUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createMediaAssetBody),
+  });
+};
+
+export const getCreateMediaAssetMutationOptions = <
   TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof updateAssetBrief>>,
+    Awaited<ReturnType<typeof createMediaAsset>>,
     TError,
-    { id: number; data: BodyType<UpdateAssetBriefBody> },
+    { data: BodyType<CreateMediaAssetBody> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof updateAssetBrief>>,
+  Awaited<ReturnType<typeof createMediaAsset>>,
   TError,
-  { id: number; data: BodyType<UpdateAssetBriefBody> },
+  { data: BodyType<CreateMediaAssetBody> },
   TContext
 > => {
-  const mutationKey = ["updateAssetBrief"];
+  const mutationKey = ["createMediaAsset"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -2855,44 +2951,215 @@ export const getUpdateAssetBriefMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof updateAssetBrief>>,
-    { id: number; data: BodyType<UpdateAssetBriefBody> }
+    Awaited<ReturnType<typeof createMediaAsset>>,
+    { data: BodyType<CreateMediaAssetBody> }
   > = (props) => {
-    const { id, data } = props ?? {};
+    const { data } = props ?? {};
 
-    return updateAssetBrief(id, data, requestOptions);
+    return createMediaAsset(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type UpdateAssetBriefMutationResult = NonNullable<
-  Awaited<ReturnType<typeof updateAssetBrief>>
+export type CreateMediaAssetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createMediaAsset>>
 >;
-export type UpdateAssetBriefMutationBody = BodyType<UpdateAssetBriefBody>;
-export type UpdateAssetBriefMutationError = ErrorType<unknown>;
+export type CreateMediaAssetMutationBody = BodyType<CreateMediaAssetBody>;
+export type CreateMediaAssetMutationError = ErrorType<unknown>;
 
 /**
- * @summary Update creative brief fields on a generated asset
+ * @summary Create a media asset reference
  */
-export const useUpdateAssetBrief = <
+export const useCreateMediaAsset = <
   TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof updateAssetBrief>>,
+    Awaited<ReturnType<typeof createMediaAsset>>,
     TError,
-    { id: number; data: BodyType<UpdateAssetBriefBody> },
+    { data: BodyType<CreateMediaAssetBody> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
-  Awaited<ReturnType<typeof updateAssetBrief>>,
+  Awaited<ReturnType<typeof createMediaAsset>>,
   TError,
-  { id: number; data: BodyType<UpdateAssetBriefBody> },
+  { data: BodyType<CreateMediaAssetBody> },
   TContext
 > => {
-  return useMutation(getUpdateAssetBriefMutationOptions(options));
+  return useMutation(getCreateMediaAssetMutationOptions(options));
+};
+
+/**
+ * @summary Update a media asset reference
+ */
+export const getUpdateMediaAssetUrl = (id: number) => {
+  return `/api/media-assets/${id}`;
+};
+
+export const updateMediaAsset = async (
+  id: number,
+  updateMediaAssetBody: UpdateMediaAssetBody,
+  options?: RequestInit,
+): Promise<MediaAsset> => {
+  return customFetch<MediaAsset>(getUpdateMediaAssetUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateMediaAssetBody),
+  });
+};
+
+export const getUpdateMediaAssetMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMediaAsset>>,
+    TError,
+    { id: number; data: BodyType<UpdateMediaAssetBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMediaAsset>>,
+  TError,
+  { id: number; data: BodyType<UpdateMediaAssetBody> },
+  TContext
+> => {
+  const mutationKey = ["updateMediaAsset"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMediaAsset>>,
+    { id: number; data: BodyType<UpdateMediaAssetBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateMediaAsset(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateMediaAssetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMediaAsset>>
+>;
+export type UpdateMediaAssetMutationBody = BodyType<UpdateMediaAssetBody>;
+export type UpdateMediaAssetMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a media asset reference
+ */
+export const useUpdateMediaAsset = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMediaAsset>>,
+    TError,
+    { id: number; data: BodyType<UpdateMediaAssetBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateMediaAsset>>,
+  TError,
+  { id: number; data: BodyType<UpdateMediaAssetBody> },
+  TContext
+> => {
+  return useMutation(getUpdateMediaAssetMutationOptions(options));
+};
+
+/**
+ * @summary Delete a media asset reference
+ */
+export const getDeleteMediaAssetUrl = (id: number) => {
+  return `/api/media-assets/${id}`;
+};
+
+export const deleteMediaAsset = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteMediaAssetUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteMediaAssetMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMediaAsset>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteMediaAsset>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteMediaAsset"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteMediaAsset>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteMediaAsset(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMediaAssetMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteMediaAsset>>
+>;
+
+export type DeleteMediaAssetMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a media asset reference
+ */
+export const useDeleteMediaAsset = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMediaAsset>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteMediaAsset>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteMediaAssetMutationOptions(options));
 };
 
 /**

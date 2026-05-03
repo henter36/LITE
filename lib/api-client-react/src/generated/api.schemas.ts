@@ -92,6 +92,62 @@ export interface Campaign {
   createdAt: string;
 }
 
+export type MediaAssetType =
+  (typeof MediaAssetType)[keyof typeof MediaAssetType];
+
+export const MediaAssetType = {
+  image: "image",
+  video: "video",
+  document: "document",
+  other: "other",
+} as const;
+
+export type MediaAssetStatus =
+  (typeof MediaAssetStatus)[keyof typeof MediaAssetStatus];
+
+export const MediaAssetStatus = {
+  draft: "draft",
+  needs_review: "needs_review",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface MediaAsset {
+  id: number;
+  workspaceId: number;
+  campaignId?: number | null;
+  title: string;
+  type: MediaAssetType;
+  urlOrReference: string;
+  description: string;
+  channel?: string | null;
+  status: MediaAssetStatus;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMediaAssetBody {
+  workspaceId: number;
+  campaignId?: number | null;
+  title: string;
+  type: MediaAssetType;
+  urlOrReference: string;
+  description?: string;
+  channel?: string | null;
+  status?: MediaAssetStatus;
+}
+
+export interface UpdateMediaAssetBody {
+  campaignId?: number | null;
+  title?: string;
+  type?: MediaAssetType;
+  urlOrReference?: string;
+  description?: string;
+  channel?: string | null;
+  status?: MediaAssetStatus;
+}
+
 export type CreateCampaignBodyObjective =
   (typeof CreateCampaignBodyObjective)[keyof typeof CreateCampaignBodyObjective];
 
@@ -600,6 +656,11 @@ export type GetLatestStrategyDiagnosisParams = {
 export type ListAssetsParams = {
   campaignId?: number;
   status?: string;
+};
+
+export type ListMediaAssetsParams = {
+  workspaceId?: number;
+  campaignId?: number;
 };
 
 export type ListApprovalsParams = {

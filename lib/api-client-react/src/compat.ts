@@ -1,6 +1,2 @@
-export * from "./generated/api";
-export * from "./generated/api.schemas";
 export { useUpdateMediaAsset as useUpdateAssetBrief, getUpdateMediaAssetMutationOptions as getUpdateAssetBriefMutationOptions } from "./generated/api";
 export type { UpdateMediaAssetBody as UpdateAssetBriefBody } from "./generated/api.schemas";
-export { setBaseUrl, setAuthTokenGetter } from "./custom-fetch";
-export type { AuthTokenGetter } from "./custom-fetch";

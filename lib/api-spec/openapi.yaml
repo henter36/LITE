@@ -20,6 +20,8 @@ tags:
     description: Campaign management
   - name: assets
     description: Generated content assets
+  - name: media-assets
+    description: Media asset references
   - name: approvals
     description: Approval workflow
   - name: connections
@@ -641,10 +643,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GeneratedAsset"
+
+  /media-assets:
+    get:
+      operationId: listMediaAssets
+      tags: [media-assets]
+      summary: List media asset references
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of media assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MediaAsset"
+    post:
+      operationId: createMediaAsset
+      tags: [media-assets]
+      summary: Create a media asset reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMediaAssetBody"
+      responses:
+        "201":
+          description: Created media asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaAsset"
+
+  /media-assets/{id}:
     patch:
-      operationId: updateAssetBrief
-      tags: [assets]
-      summary: Update creative brief fields on a generated asset
+      operationId: updateMediaAsset
+      tags: [media-assets]
+      summary: Update a media asset reference
       parameters:
         - name: id
           in: path
@@ -656,14 +701,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateAssetBriefBody"
+              $ref: "#/components/schemas/UpdateMediaAssetBody"
       responses:
         "200":
-          description: Updated asset
+          description: Updated media asset
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GeneratedAsset"
+                $ref: "#/components/schemas/MediaAsset"
+    delete:
+      operationId: deleteMediaAsset
+      tags: [media-assets]
+      summary: Delete a media asset reference
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
 
   /assets/{id}/variants:
     get:
@@ -1245,6 +1303,88 @@ components:
         createdAt:
           type: string
       required: [id, workspaceId, name, objective, productService, audience, geography, budgetSuggestion, startDate, endDate, channels, landingUrl, status, createdAt]
+
+    MediaAssetType:
+      type: string
+      enum: [image, video, document, other]
+
+    MediaAssetStatus:
+      type: string
+      enum: [draft, needs_review, approved, rejected]
+
+    MediaAsset:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        campaignId:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/MediaAssetType"
+        urlOrReference:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/MediaAssetStatus"
+        createdBy:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, workspaceId, title, type, urlOrReference, description, status, createdBy, createdAt, updatedAt]
+
+    CreateMediaAssetBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        campaignId:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/MediaAssetType"
+        urlOrReference:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/MediaAssetStatus"
+      required: [workspaceId, title, type, urlOrReference]
+
+    UpdateMediaAssetBody:
+      type: object
+      properties:
+        campaignId:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        type:
+          $ref: "#/components/schemas/MediaAssetType"
+        urlOrReference:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/MediaAssetStatus"
 
     CreateCampaignBody:
       type: object
