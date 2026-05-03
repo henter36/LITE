@@ -1230,9 +1230,9 @@ export default function CampaignDetail() {
                           <FlaskConical className="h-4 w-4 shrink-0 mt-0.5" />
                           <span>بيئة تجريبية — لن يتم إنشاء إعلانات حقيقية. النشر يسجل الحدث ويحرك الحملة إلى حالة نشطة.</span>
                         </div>
-                        <Button
+                            <Button
                           onClick={openPublishDialog}
-                          className="bg-green-600 hover:bg-green-700 text-white"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
                           disabled={!manualPublishReady}
                         >
                           <Rocket className="mr-2 h-4 w-4" />

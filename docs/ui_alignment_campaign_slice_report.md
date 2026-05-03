@@ -45,7 +45,7 @@
 
 ## Verification results
 - TypeScript: no errors reported in the latest build pass
-- Frontend build: pending re-run in this pass
+- Frontend build: passed with `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`
 - Backend untouched
 - No DB/routes/API/runtime changes
 - No Dashboard changes

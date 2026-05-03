@@ -811,8 +811,8 @@ function ImagePromptSpecsStep({
         {spec ? (
           <>
             <DraftBanner />
-            <div className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-            هذه مواصفات فقط، ولا يتم توليد صور أو رفعها.
+            <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400">
+              مواصفات الصورة نصية فقط ولا يتم توليد صور.
             </div>
             <div className="space-y-3">
               <CollapseCard title="مطالبات الصورة" icon={Image} defaultOpen>
@@ -922,8 +922,8 @@ function VideoScriptSpecsStep({
         {spec ? (
           <>
             <DraftBanner />
-            <div className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-            هذه خطة نصية فقط، ولا يتم توليد فيديو أو رفع ملفات.
+            <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400">
+              تخطيط الفيديو نصي فقط ولا يتم توليد فيديو أو رفع ملفات.
             </div>
             <div className="space-y-3">
               <CollapseCard title="مفهوم الفيديو" icon={Video} defaultOpen>
