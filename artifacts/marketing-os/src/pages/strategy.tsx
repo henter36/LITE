@@ -2,12 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useCreateStrategyIntake,
-  useCreateCampaignFromStrategy,
+  useCreateCampaign,
   useGenerateStrategyDiagnosis,
   useGetLatestStrategyDiagnosis,
   useGetStrategyIntake,
   useUpdateStrategyIntake,
-  getCreateCampaignFromStrategyMutationOptions,
   getGetLatestStrategyDiagnosisQueryKey,
   getGetStrategyIntakeQueryKey,
   getListCampaignsQueryKey,
@@ -51,7 +50,7 @@ export default function StrategyPage() {
   const createIntake = useCreateStrategyIntake();
   const updateIntake = useUpdateStrategyIntake();
   const generateDiagnosis = useGenerateStrategyDiagnosis();
-  const createCampaignFromStrategy = useCreateCampaignFromStrategy();
+  const createCampaignMutation = useCreateCampaign();
 
   useEffect(() => {
     if (latestIntake) {
@@ -119,7 +118,21 @@ export default function StrategyPage() {
   };
 
   const createCampaign = async () => {
-    const campaign = await createCampaignFromStrategy.mutateAsync({ data: { workspaceId: activeWorkspaceId } });
+    const campaign = await createCampaignMutation.mutateAsync({
+      data: {
+        workspaceId: activeWorkspaceId,
+        name: `${latestIntake?.businessCategory || "Strategy"} Campaign`,
+        objective: "leads",
+        productService: latestIntake?.currentOffer || "",
+        audience: latestDiagnosis?.audienceSummary || latestIntake?.targetAudience || "",
+        geography: latestIntake?.geography || "",
+        budgetSuggestion: 0,
+        startDate: new Date().toISOString().slice(0, 10),
+        endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString().slice(0, 10),
+        channels: (latestIntake?.availableAssets || "").split(",").map((s) => s.trim()).filter(Boolean),
+        landingUrl: "",
+      },
+    });
     await queryClient.invalidateQueries({ queryKey: getListCampaignsQueryKey({ workspaceId: activeWorkspaceId }) });
     window.location.assign(`/campaigns/${campaign.id}`);
   };
@@ -250,7 +263,7 @@ export default function StrategyPage() {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">Strategy suggestions are advisory. Human approval is still required before campaign execution.</p>
-          <Button onClick={createCampaign} disabled={!canEdit || createCampaignFromStrategy.isPending}>
+          <Button onClick={createCampaign} disabled={!canEdit || createCampaignMutation.isPending}>
             Create Campaign from Strategy
           </Button>
         </CardContent>

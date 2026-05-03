@@ -4,6 +4,49 @@ import { eq, desc } from "drizzle-orm";
 
 type RecommendationSource = "performance" | "strategy" | "mixed";
 
+type DecisionScore = {
+  readinessScore: number;
+  strategyAlignmentScore: number;
+  riskScore: number;
+};
+
+function clampScore(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function getDecisionScore(campaign: typeof campaignsTable.$inferSelect, intake?: typeof strategyIntakesTable.$inferSelect, diagnosis?: typeof strategyDiagnosesTable.$inferSelect): DecisionScore {
+  const channelCount = JSON.parse(campaign.channels || "[]").length;
+  const hasLanding = Boolean(campaign.landingUrl);
+  const hasStrategy = Boolean(intake || diagnosis);
+  const offerStrong = (diagnosis?.offerSummary ?? "").length >= 50;
+  const audienceClear = (intake?.targetAudience ?? "").length >= 40;
+  const funnelMissing = Boolean(diagnosis?.whatIsMissing);
+  const readinessScore = clampScore(20 + (hasLanding ? 30 : 0) + Math.min(channelCount * 10, 30) + (hasStrategy ? 20 : 0));
+  const strategyAlignmentScore = clampScore((hasStrategy ? 40 : 0) + (offerStrong ? 25 : 0) + (audienceClear ? 25 : 0) + (funnelMissing ? 0 : 10));
+  const riskScore = clampScore((funnelMissing ? 35 : 0) + (offerStrong ? 0 : 20) + (audienceClear ? 0 : 20) + (channelCount === 0 ? 20 : 0));
+  return { readinessScore, strategyAlignmentScore, riskScore };
+}
+
+function explainDecision(rec: { source: RecommendationSource; type: string }, strategyContext: boolean) {
+  const why = rec.source === "performance"
+    ? "Based on recent campaign data."
+    : rec.source === "strategy"
+      ? "Based on strategy intake and diagnosis."
+      : "Based on both strategy and recent campaign data.";
+  const expectedImpact = rec.type === "landing_page" ? "Higher conversion clarity." : rec.type === "audience" ? "Better efficiency and focus." : "More confident execution.";
+  const riskLevel = rec.source === "mixed" || strategyContext ? "medium" : "low";
+  return { why, expectedImpact, riskLevel };
+}
+
+function buildRecommendationText(
+  base: string,
+  rec: { source: RecommendationSource; type: string },
+  strategyContext: boolean,
+) {
+  const details = explainDecision(rec, strategyContext);
+  return `${base} Why: ${details.why} Expected impact: ${details.expectedImpact} Risk level: ${details.riskLevel}.`;
+}
+
 async function getLatestStrategyContext(workspaceId: number) {
   const [intake] = await db.select().from(strategyIntakesTable).where(eq(strategyIntakesTable.workspaceId, workspaceId)).orderBy(desc(strategyIntakesTable.updatedAt));
   const [diagnosis] = await db.select().from(strategyDiagnosesTable).where(eq(strategyDiagnosesTable.workspaceId, workspaceId)).orderBy(desc(strategyDiagnosesTable.createdAt));
@@ -19,6 +62,7 @@ function pushRecommendation(
     ...rest,
     campaignId: data.campaignId ?? null,
     source,
+    description: buildRecommendationText(data.description, data, true),
   } as typeof recommendationsTable.$inferInsert);
 }
 
@@ -32,6 +76,7 @@ export async function generateRecommendationsForWorkspace(
   const strategyContext = Boolean(intake || diagnosis);
 
   for (const campaign of campaigns) {
+    const scores = getDecisionScore(campaign, intake, diagnosis);
     if (campaign.endDate) {
       const endDate = new Date(campaign.endDate);
       const daysLeft = (endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
@@ -47,6 +92,17 @@ export async function generateRecommendationsForWorkspace(
           source: strategyContext ? "mixed" : "performance",
         });
       }
+    }
+    if (scores.readinessScore < 60 || scores.strategyAlignmentScore < 60 || scores.riskScore > 60) {
+      pushRecommendation(newRecs, {
+        workspaceId,
+        campaignId: campaign.id,
+        type: "budget",
+        title: "Review campaign decision score",
+        description: `Readiness ${scores.readinessScore}/100, alignment ${scores.strategyAlignmentScore}/100, risk ${scores.riskScore}/100.`,
+        priority: scores.riskScore > 60 ? "high" : "medium",
+        source: strategyContext ? "mixed" : "performance",
+      });
     }
 
     const metrics = await db.select().from(adMetricsDailyTable).where(eq(adMetricsDailyTable.campaignId, campaign.id));

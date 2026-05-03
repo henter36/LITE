@@ -2,32 +2,20 @@
 
 ## Changed files
 - `artifacts/api-server/src/lib/generate-recommendations.ts`
-- `artifacts/api-server/src/routes/recommendations.ts`
-- `artifacts/marketing-os/src/pages/dashboard.tsx`
-- `lib/db/src/schema/recommendations.ts`
+- `artifacts/marketing-os/src/pages/strategy.tsx`
 - `docs/strategy_sprint_1_slice_5_report.md`
 
-## Strategy recommendation rules
-- Funnel gaps exist → recommend fixing landing/offer flow before scaling spend.
-- Channel readiness is weak → recommend focusing on one primary channel.
-- Audience clarity is weak → recommend refining target audience before generating more campaigns.
-- Offer strength is weak → recommend improving offer before publishing.
-- Growth goal and current channel mismatch → recommend channel adjustment.
+## Phase 5 updates
+- Added decision scoring scaffolding for readiness, strategy alignment, and risk.
+- Added strategy-aware recommendation text with why / expected impact / risk wording.
+- Updated strategy campaign creation flow to stay demo-only and route through existing campaign creation.
 
 ## Verification results
 - TypeScript: pass
-- Recommendation generation without strategy: supported
-- Recommendation generation with strategy: supported
-- Dashboard source labels: added
-- Linked strategy/campaign context: shown where available
-- Existing dismiss/read behavior: unchanged
-- Auth / workspace isolation / roles / campaign cycle / AI fallback / Meta read-only / safety guards: unchanged
-- No guaranteed performance wording: confirmed
+- Auth / workspace isolation / roles / audit logs: unchanged
+- AI fallback / Meta read-only / safety guards: unchanged
+- No real publishing, payments, budget changes, auto-optimization, or image/video generation: unchanged
+- Demo-only/advisory wording preserved
 
-## Remaining gaps
-- Recommendation cards are still simple and do not fully expose every linked context field.
-- No new recommendation API was added.
-- No strategy modules were added.
-
-## Strategy Sprint 1 final decision
-- Sprint complete for the requested scope.
+## Final status
+- Phase 5 scope is complete for the requested slice.
