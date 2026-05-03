@@ -39,8 +39,8 @@
 - No Campaign Detail, Campaign Completion, or Campaign Workflow logic was changed.
 
 ## Verification results
-- TypeScript: pending
-- Frontend build: pending
+- TypeScript: passed
+- Frontend build: passed
 - Backend: untouched
 - Visual inspection: dashboard rebuilt to a strict RTL grid and no longer uses the broken wide layout pattern.
 

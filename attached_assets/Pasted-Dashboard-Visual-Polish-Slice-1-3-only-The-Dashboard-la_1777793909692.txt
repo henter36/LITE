@@ -1,0 +1,152 @@
+Dashboard Visual Polish Slice 1.3 only.
+
+The Dashboard layout is now structurally better after the shell/main layout fixes, but the visual quality is still not close enough to the provided Arabic reference dashboard.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/dashboard.tsx
+- docs/ui_alignment_dashboard_slice_report.md
+
+Do not modify sidebar-layout.tsx unless there is a tiny visual-only bug directly caused by Dashboard rendering.
+
+Objective:
+Make the Dashboard visually closer to the Arabic RTL reference dashboard. Focus on polish, hierarchy, card quality, chart feel, and funnel presentation. Do not change product logic or data sources.
+
+Current status:
+- right-side light shell is now in place
+- major clipping is improved
+- Dashboard still feels visually weak compared with the reference
+- chart/funnel/header/cards need refinement
+
+Required visual fixes:
+
+1. Header polish
+Improve the Dashboard header:
+- make "مرحبًا، أحمد" more prominent
+- subtitle should sit clearly under it
+- date/help/notification controls should be neatly aligned
+- reduce awkward empty spacing
+- make the header feel premium and similar to the reference
+
+2. KPI cards polish
+Refine the 4 KPI cards:
+- softer card shadows
+- cleaner icon bubbles
+- stronger Arabic labels
+- better number hierarchy
+- consistent internal padding
+- green/teal identity
+- red only for negative metric
+- ensure all cards look like the same design family as the reference
+
+3. Performance chart polish
+The current chart still looks basic.
+Make it visually closer to the reference:
+- prefer a line-style chart if possible with existing code/tools
+- if not, create a clean SVG/CSS line approximation using existing static/dashboard data
+- reduce the heavy bar-chart feel
+- title: "أداء المحتوى (آخر 7 أيام)"
+- metric pills below the chart should look premium and balanced
+- chart must be fully visible and contained
+
+4. Workflow funnel polish
+Make "مخطط سير العمل" look like a real visual funnel:
+- use layered soft blocks or stepped cards
+- stages:
+  إجمالي الحملات
+  قيد التنفيذ
+  قيد المراجعة
+  معتمد
+  مرفوض
+- use green/yellow/red soft accents
+- avoid plain list/table appearance
+- make it visually closer to the reference
+
+5. Recent campaigns polish
+Improve "أحدث الحملات":
+- Arabic-first row structure
+- better status badges
+- softer row cards
+- no English-first visual dominance unless campaign names are English data
+- no clipping
+
+6. Recent activity and support cards
+Improve:
+- النشاط الأخير
+- اكتمال ملف العلامة التجارية
+- موجز الحملة النشطة
+- المراجعات المعلقة
+
+They should feel like reference cards:
+- compact
+- soft
+- clear hierarchy
+- not empty-looking
+- not heavy bordered
+
+7. Remove remaining prototype feel
+Avoid:
+- harsh borders
+- overlarge empty cards
+- awkward floating controls
+- English chart labels if avoidable
+- purple dominance
+- generic SaaS template look
+
+8. Functional preservation
+Preserve:
+- existing dashboard metrics
+- existing campaigns
+- existing recommendations/dismiss flow
+- no fake live analytics
+- no unsupported functionality
+- no backend behavior
+
+Documentation:
+Update:
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- Dashboard Visual Polish 1.3 summary
+- what changed visually
+- what now matches the reference more closely
+- remaining visual gaps
+- confirmation that only dashboard/report files changed
+- verification results
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+- provide screenshot or explicit visual inspection after the polish
+
+Final output:
+- changed files
+- visual polish completed
+- screenshot/visual evidence status
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision
