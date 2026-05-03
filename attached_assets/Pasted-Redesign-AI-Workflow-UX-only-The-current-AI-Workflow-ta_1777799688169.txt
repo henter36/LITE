@@ -1,0 +1,231 @@
+Redesign AI Workflow UX only.
+
+The current AI Workflow tab is too technical and complex. It exposes implementation steps to the user and is not simple enough. Redesign the AI Workflow UI to be a simple campaign launch assistant.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Content.
+Do not touch Review.
+Do not change Campaign Completion logic.
+Do not change Campaign Workflow backend logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx
+- docs/ui_alignment_campaign_slice_report.md
+
+Only touch campaign-detail.tsx if absolutely required to rename the tab label or keep the tab integration working. Do not redesign Campaign Detail in this slice.
+
+Objective:
+Replace the current long 6-step technical AI Workflow UI with a simple Arabic RTL “Campaign Launch Assistant” experience that is easy for non-technical users.
+
+Current problem:
+The existing workflow shows too many technical steps:
+- Client Intake
+- Strategy Brief
+- Creative Brief
+- Text Suggestions
+- Image Prompt Specs
+- Video Script Specs
+
+This is too developer-oriented and hard for users.
+
+New UX concept:
+Create one simplified guided assistant called:
+"مساعد إطلاق الحملة"
+
+The user should understand:
+- ماذا يحتاج النظام؟
+- ما الخطوة الحالية؟
+- ما الذي سيتم توليده؟
+- ما الذي يحتاج مراجعته؟
+- أن كل شيء مسودة فقط
+- أنه لا يوجد توليد صور أو فيديو أو نشر مباشر
+
+Required redesign:
+
+1. Top assistant summary card
+
+At the top of the AI Workflow tab, show a premium card:
+
+Title:
+"مساعد إطلاق الحملة"
+
+Subtitle:
+"حوّل معلومات الحملة إلى استراتيجية، نصوص، ومواصفات إبداعية جاهزة للمراجعة."
+
+Show:
+- current campaign name if available
+- workflow progress percentage or completed step count
+- next recommended step
+- draft-only badge
+- safe note: "لا يتم الاعتماد أو النشر تلقائيًا"
+
+Use emerald/teal styling, soft white card, RTL layout.
+
+2. Replace 6 exposed technical cards with 4 user-friendly stages
+
+Use four stages only:
+
+Stage 1:
+"فهم الحملة"
+Combines client intake and missing context.
+
+Stage 2:
+"بناء الاستراتيجية"
+Covers strategy brief.
+
+Stage 3:
+"تجهيز المحتوى"
+Covers text suggestions, hooks, captions, CTA, ad copy.
+
+Stage 4:
+"المواصفات الإبداعية"
+Covers image prompt specs and video script/storyboard specs.
+Clearly state:
+- "مواصفات الصورة نصية فقط ولا يتم توليد صور."
+- "نص الفيديو ولوحة المشاهد تخطيط نصي فقط ولا يتم توليد فيديو أو رفع ملفات."
+
+3. Active-step layout
+
+Do not show all detailed forms as long stacked cards by default.
+
+Show:
+- one active stage expanded
+- other stages collapsed/compact
+- each stage has a clear status badge:
+  - لم يبدأ
+  - جاهز
+  - مسودة
+  - يحتاج مراجعة
+  - مكتمل
+
+Use cards/accordion-like layout if existing components allow it.
+Do not add new libraries.
+
+4. One primary action at a time
+
+Avoid multiple competing generation buttons.
+
+For the active stage, show one main CTA:
+- حفظ المدخلات
+- توليد موجز الاستراتيجية
+- توليد اقتراحات المحتوى
+- توليد المواصفات الإبداعية
+- مراجعة النتائج
+
+Do not change existing handlers.
+Reuse the existing functions/mutations/buttons behind the simplified UI.
+
+5. Simplify language
+
+Use Arabic-first language.
+Avoid technical English terms in visible UI.
+
+Translate or replace:
+- Strategy Brief → موجز الاستراتيجية
+- Creative Brief → الموجز الإبداعي
+- Text Suggestions → اقتراحات المحتوى
+- Image Prompt Specs → مواصفات الصورة
+- Video Script / Storyboard Specs → نص الفيديو ولوحة المشاهد
+- Not started → لم يبدأ
+- Draft only → مسودة فقط
+- Generate → توليد
+
+Do not translate saved user-entered campaign names.
+
+6. Results presentation
+
+When outputs exist, show them as compact review cards:
+- short summary
+- "عرض التفاصيل"
+- "مسودة فقط"
+- safety notes if available
+
+Do not show huge text blocks unless expanded.
+
+7. Governance wording
+
+Every generated section must clearly state:
+- "مخرجات الذكاء الاصطناعي مسودة فقط."
+- "لا يتم اعتماد المحتوى أو نشر الحملة تلقائيًا."
+- "يجب مراجعة النتائج قبل استخدامها."
+
+8. Unsupported features
+
+Do not implement or imply:
+- image generation
+- video generation
+- upload
+- live publishing
+- auto approval
+- autonomous optimization
+
+9. Preserve behavior
+
+Do not change:
+- existing API calls
+- route calls
+- auth/role/workspace scoping
+- draft-only behavior
+- completion/readiness logic
+- publish checklist
+- manual publish guard
+- viewer restrictions
+
+This is a UI simplification only.
+
+10. Visual style
+
+Match the accepted Dashboard/Brand family:
+- Arabic RTL
+- emerald/teal accents
+- soft white cards
+- subtle shadows
+- rounded cards
+- no purple primary styling
+- compact hierarchy
+- easy-to-scan layout
+
+Documentation:
+Update:
+docs/ui_alignment_campaign_slice_report.md
+
+Add:
+- AI Workflow redesign summary
+- old 6-step technical flow replaced with 4-stage user-friendly assistant
+- what behavior was preserved
+- unsupported media/upload/publish features still deferred
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard or Brand changes
+- no Content/Review changes
+- no new pages
+- no upload/media/live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- AI Workflow redesign completed
+- simplified stages implemented
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision
