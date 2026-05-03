@@ -13,7 +13,9 @@
 - `artifacts/api-server/src/routes/brandStrategy.ts`
 - `artifacts/api-server/src/routes/campaignWorkflow.ts`
 - `artifacts/api-server/src/routes/index.ts`
+- `artifacts/api-server/src/routes/strategy.ts`
 - `artifacts/marketing-os/src/pages/brand-profile.tsx`
+- `artifacts/marketing-os/src/pages/content-studio.tsx`
 - `docs/brand_strategy_agent_foundation_report.md`
 - `docs/ai_strategy_vs_campaign_workflow_reconciliation.md`
 - `docs/real_ai_workflow_runtime_persistence_report.md`
@@ -56,6 +58,8 @@
 - status remains draft: **PASS**
 - no approved ad is created automatically: **PASS**
 - no readiness state changes automatically: **PASS**
+- Content screen reads persisted Stage 3 drafts: **PASS**
+- Content screen remains draft-only review space: **PASS**
 
 ### 4. Creative Specs
 - image prompt specs generate as text only: **PASS**

@@ -7,6 +7,7 @@
 ## Changed Files
 
 - `artifacts/marketing-os/src/pages/content-studio.tsx`
+- `artifacts/api-server/src/routes/strategy.ts`
 - `docs/ui_alignment_content_slice_report.md`
 
 ---
@@ -29,20 +30,17 @@ The screen now reads as a dedicated content review workspace rather than a media
 
 ## Stage 3 Connection Status
 
-**Status: Not yet connected.**
+**Status: Connected to persisted Stage 3 text suggestions.**
 
-The screen currently shows existing campaign content data and documents the gap explicitly:
-- `Content screen is not yet connected to campaign_text_suggestions.`
+The screen now reads the latest saved draft suggestions from `campaign_text_suggestions` and remains draft-only for human review.
 
-So the UI is prepared for Stage 3 content, but this slice does not introduce backend wiring.
+The UI still avoids generation, upload, live publishing, and automatic approval.
 
 ---
 
 ## Preserved Behavior
 
-- Backend untouched
 - Database untouched
-- Routes untouched
 - AI runtime untouched
 - Dashboard untouched
 - Brand untouched
@@ -81,8 +79,8 @@ This is a production blocker for clean schema sync / push hygiene, but it is not
 - TypeScript diagnostics for the edited file: **PASS**
 - Frontend build: **PASS**
   - `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`
-- Backend untouched: **PASS**
-- No DB/routes/API/runtime changes: **PASS**
+- Backend restart/build: **PASS**
+- Read-only Stage 3 route added: **PASS**
 - No Dashboard/Brand/Campaign changes: **PASS**
 - No new pages: **PASS**
 - No upload/media/live publishing: **PASS**
@@ -94,7 +92,6 @@ Build warnings from existing UI library sourcemaps and chunk size remain non-blo
 
 ## Remaining Gaps
 
-- Content is not wired to persisted Stage 3 suggestions yet
 - No backend filters were added, so visual filters are local-only
 - No automatic approval or publish flow exists here
 - Existing drizzle drift still requires follow-up before production
@@ -103,6 +100,6 @@ Build warnings from existing UI library sourcemaps and chunk size remain non-blo
 
 ## Readiness Decision
 
-**UI alignment slice: PASS**
+**UI alignment + Stage 3 connection slice: PASS**
 
-The Content screen is aligned as requested and stays within the allowed scope.
+The Content screen is aligned as requested, now reads persisted Stage 3 drafts, and stays within the allowed scope.

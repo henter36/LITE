@@ -38,6 +38,7 @@ import {
   Flame,
 } from "lucide-react";
 import { Link as WouterLink, useSearch } from "wouter";
+import { useQuery as useApiQuery } from "@tanstack/react-query";
 
 function countGuardrails(forbiddenClaims: string): number {
   if (!forbiddenClaims.trim()) return 0;
@@ -59,6 +60,25 @@ type Asset = {
   videoScript?: string | null;
   storyboardOutline?: string | null;
   status: string;
+};
+
+type TextSuggestion = {
+  id: number;
+  campaignId: number;
+  campaignName?: string | null;
+  campaignObjective?: string | null;
+  campaignChannels?: string[];
+  source: string;
+  status: string;
+  hooks: string[];
+  adCopyVariants: string[];
+  captions: string[];
+  ctas: string[];
+  improvementNotes: string[];
+  missingContextWarnings: string[];
+  safetyNotes: string[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 const PLATFORM_TABS = [
@@ -154,6 +174,14 @@ function VariantTabPanel({
       )}
     </div>
   );
+}
+
+async function fetchTextSuggestions(workspaceId: number, campaignId?: number): Promise<TextSuggestion[]> {
+  const params = new URLSearchParams({ workspaceId: String(workspaceId) });
+  if (campaignId) params.set("campaignId", String(campaignId));
+  const response = await fetch(`/api/strategy/text-suggestions?${params.toString()}`, { credentials: "include" });
+  if (!response.ok) return [];
+  return response.json();
 }
 
 function CreativeBriefPanel({
@@ -304,18 +332,19 @@ export default function ContentStudio() {
   const brandProfile = brandProfiles?.[0];
   const campaignIdNum = selectedCampaignId ? parseInt(selectedCampaignId, 10) : undefined;
 
-  const { data: assets, isLoading: isAssetsLoading } = useListAssets(
-    { campaignId: campaignIdNum ?? 0 },
-    { query: { enabled: !!campaignIdNum, queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum ?? 0 }) } },
-  );
+  const { data: textSuggestions, isLoading: isSuggestionsLoading } = useApiQuery({
+    queryKey: ["text-suggestions", activeWorkspaceId, campaignIdNum],
+    queryFn: () => fetchTextSuggestions(activeWorkspaceId, campaignIdNum),
+    enabled: !!activeWorkspaceId && !!campaignIdNum,
+  });
 
   const createApproval = useCreateApproval();
 
   const selectedCampaign = campaigns?.find((c) => c.id === campaignIdNum);
   const guardrailCount = brandProfile ? countGuardrails(brandProfile.forbiddenClaims ?? "") : 0;
-  const displayAssets = (assets?.slice(0, 3) ?? []) as Asset[];
   const cameFromCampaign = !!preselectedId;
-  const connectedToStage3 = displayAssets.length > 0;
+  const latestSuggestion = textSuggestions?.[0];
+  const connectedToStage3 = !!latestSuggestion;
   const filters = useMemo(() => ["الحملة", "القناة", "الحالة", "اللغة", "الهدف"], []);
   const handleGenerate = () => {
     toast({ title: "المحتوى مسودة فقط", description: "توليد المحتوى غير مفعّل في هذه الشريحة." });
@@ -409,7 +438,7 @@ export default function ContentStudio() {
               <p className="text-sm text-muted-foreground">سيتم عرض النصوص الجاهزة هنا عندما تتوفر.</p>
             </CardContent>
           </Card>
-        ) : isAssetsLoading ? (
+        ) : isSuggestionsLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-48 w-full rounded-3xl" />
@@ -420,20 +449,20 @@ export default function ContentStudio() {
             <div className="space-y-6">
               {!connectedToStage3 && (
                 <Alert className="border-emerald-100 bg-white">
-                  <AlertTitle>Content screen is not yet connected to campaign_text_suggestions.</AlertTitle>
+                  <AlertTitle>Content screen is connected to persisted stage 3 text suggestions.</AlertTitle>
                   <AlertDescription>
-                    يتم عرض بيانات المحتوى الحالية فقط حتى يتم ربط هذه الشاشة بالمخرجات المحفوظة من المرحلة الثالثة.
+                    لا تزال الشاشة draft-only وتعرض أحدث مقترحات النص المحفوظة للمراجعة البشرية فقط.
                   </AlertDescription>
                 </Alert>
               )}
 
               <div className="grid gap-4 md:grid-cols-2">
-                <ContentItemCard title="Hooks" badge="مسودة" items={displayAssets.map((asset) => asset.headline)} />
-                <ContentItemCard title="Ad copy variants" badge="تحتاج مراجعة" items={displayAssets.map((asset) => asset.shortCaption)} />
-                <ContentItemCard title="Captions" badge="مولّدة بالذكاء الاصطناعي" items={displayAssets.flatMap((asset) => asset.hashtags.length ? asset.hashtags.map((tag) => `#${tag}`) : [asset.cta])} />
-                <ContentItemCard title="CTAs" badge="مسودة" items={displayAssets.map((asset) => asset.cta)} />
-                <ContentItemCard title="Improvement notes" badge="تحتاج مراجعة" items={["تحسين تقاطع الرسالة مع صوت العلامة", "تقليل التكرار في الصياغة", "مراجعة نبرة الدعوة للإجراء"]} />
-                <ContentItemCard title="Safety notes" badge="مسودة" items={["التأكد من عدم تضخيم الوعود", "فحص العبارات المحظورة", "الالتزام بموافقة بشرية قبل الاستخدام"]} />
+                <ContentItemCard title="Hooks" badge="مسودة" items={latestSuggestion?.hooks ?? []} />
+                <ContentItemCard title="Ad copy variants" badge="تحتاج مراجعة" items={latestSuggestion?.adCopyVariants ?? []} />
+                <ContentItemCard title="Captions" badge="مولّدة بالذكاء الاصطناعي" items={latestSuggestion?.captions ?? []} />
+                <ContentItemCard title="CTAs" badge="مسودة" items={latestSuggestion?.ctas ?? []} />
+                <ContentItemCard title="Improvement notes" badge="تحتاج مراجعة" items={latestSuggestion?.improvementNotes ?? []} />
+                <ContentItemCard title="Safety notes" badge="مسودة" items={latestSuggestion?.safetyNotes ?? []} />
               </div>
             </div>
 
@@ -441,6 +470,10 @@ export default function ContentStudio() {
               <div className="space-y-1.5">
                 <h2 className="text-lg font-semibold text-slate-900">ملخص صوت العلامة</h2>
                 <p className="text-sm text-muted-foreground">{brandProfile?.toneOfVoice || "لا توجد بيانات نبرة متاحة حالياً."}</p>
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-semibold text-slate-900">آخر حالة محفوظة</h2>
+                <p className="text-sm text-muted-foreground">{latestSuggestion ? `${latestSuggestion.source} • ${latestSuggestion.status}` : "لا توجد مقترحات محفوظة لهذه الحملة بعد."}</p>
               </div>
               <div className="space-y-1.5">
                 <h2 className="text-lg font-semibold text-slate-900">جودة المحتوى</h2>

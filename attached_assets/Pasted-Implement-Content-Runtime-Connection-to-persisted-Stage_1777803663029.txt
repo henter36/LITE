@@ -1,0 +1,144 @@
+Implement Content Runtime Connection to persisted Stage 3 text suggestions only.
+
+Current baseline:
+- Content screen UI alignment passed.
+- Stage 3 text suggestions now persist in campaign_text_suggestions.
+- Content screen is not yet connected to persisted Stage 3 suggestions.
+- This must be fixed before moving to Review.
+
+Do not redesign Content broadly.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic except read-only data integration if needed.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not expose API keys in frontend.
+Do not change OpenAPI or generated client unless strictly required by existing architecture.
+
+Objective:
+Make the Content screen display real persisted Stage 3 text suggestions from campaign_text_suggestions so it becomes a functional review workspace, not just a visual shell.
+
+Scope:
+Read/display persisted text suggestions only.
+Keep suggestions draft-only.
+
+Required behavior:
+
+1. Data source
+Use the existing persisted Stage 3 text suggestions table/model:
+campaign_text_suggestions
+
+If an existing API route already exposes these suggestions, use it.
+If no route exists, add the smallest read-only route consistent with current API patterns.
+
+Do not create a new table.
+
+2. Content screen display
+Content screen should show persisted:
+- hooks
+- ad copy variants
+- captions
+- CTAs
+- improvement notes
+- missing context warnings
+- safety notes
+
+Each item should show:
+- campaign name if available
+- source: real | mock
+- status: draft
+- generated date
+- channel/context if available
+
+3. Draft-only governance
+Every AI-generated item must be clearly labeled:
+- مسودة
+- مولّد بالذكاء الاصطناعي
+- يحتاج مراجعة
+
+Do not mark anything approved automatically.
+Do not create approved ads automatically.
+Do not change Campaign Completion readiness.
+
+4. Filters
+Existing UI filters may remain local-only if backend filtering is not implemented.
+
+Filters should support, where possible:
+- الحملة
+- الحالة
+- النوع: Hook / إعلان / Caption / CTA
+- المصدر: real / mock
+
+Do not add broad backend search unless necessary.
+
+5. Empty states
+If no persisted text suggestions exist:
+Show a clear Arabic empty state:
+"لا توجد نصوص محفوظة بعد. ابدأ من مساعد تجهيز الحملة لتوليد نصوص إعلانية محفوظة."
+
+6. Role behavior
+Viewers may read if current policy allows reading campaign content.
+Viewers cannot generate or approve from Content screen.
+Editors/admins may view drafts.
+Do not add approval behavior in this slice unless already existing.
+
+7. No AI calls
+Content screen must not call OpenAI.
+Content screen must not generate new text.
+It only reads persisted suggestions.
+
+8. Preserve behavior
+Do not change:
+- Stage 3 generation behavior
+- campaign workflow routes except minimal read route if required
+- Campaign Completion
+- manual publish guard
+- brand strategy logic
+- media specs behavior
+
+9. Documentation
+Update:
+docs/ui_alignment_content_slice_report.md
+
+Create if needed:
+docs/content_runtime_connection_report.md
+
+Report must include:
+- changed files
+- data source used
+- API route used or added
+- what persisted fields are displayed
+- draft-only governance
+- role behavior
+- empty state
+- unsupported features deferred
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes if backend route was added
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- Content screen displays persisted Stage 3 suggestions after refresh
+- no frontend OpenAI/provider call
+- no API key in frontend
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- Content connected to persisted Stage 3 suggestions
+- verification results
+- remaining gaps
+- readiness decision

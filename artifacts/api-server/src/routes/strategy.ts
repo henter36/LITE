@@ -302,6 +302,63 @@ router.get("/strategy/text-assist", requireAuth, async (req, res): Promise<void>
   });
 });
 
+router.get("/strategy/text-suggestions", requireAuth, async (req, res): Promise<void> => {
+  const workspaceId = Number(req.query.workspaceId);
+  if (!workspaceId) {
+    res.status(400).json({ error: "workspaceId is required" });
+    return;
+  }
+  const role = await getMemberRole(req.session.userId!, workspaceId);
+  if (!role) {
+    res.status(403).json({ error: "Access denied" });
+    return;
+  }
+  const campaignId = req.query.campaignId ? Number(req.query.campaignId) : undefined;
+  const suggestions = await db
+    .select({
+      id: campaignTextSuggestionsTable.id,
+      workspaceId: campaignTextSuggestionsTable.workspaceId,
+      campaignId: campaignTextSuggestionsTable.campaignId,
+      generatedByUserId: campaignTextSuggestionsTable.generatedByUserId,
+      status: campaignTextSuggestionsTable.status,
+      source: campaignTextSuggestionsTable.source,
+      hooks: campaignTextSuggestionsTable.hooks,
+      adCopyVariants: campaignTextSuggestionsTable.adCopyVariants,
+      captions: campaignTextSuggestionsTable.captions,
+      ctas: campaignTextSuggestionsTable.ctas,
+      improvementNotes: campaignTextSuggestionsTable.improvementNotes,
+      missingContextWarnings: campaignTextSuggestionsTable.missingContextWarnings,
+      safetyNotes: campaignTextSuggestionsTable.safetyNotes,
+      createdAt: campaignTextSuggestionsTable.createdAt,
+      updatedAt: campaignTextSuggestionsTable.updatedAt,
+      campaignName: campaignsTable.name,
+      campaignObjective: campaignsTable.objective,
+      campaignChannels: campaignsTable.channels,
+    })
+    .from(campaignTextSuggestionsTable)
+    .leftJoin(campaignsTable, eq(campaignTextSuggestionsTable.campaignId, campaignsTable.id))
+    .orderBy(desc(campaignTextSuggestionsTable.createdAt));
+
+  const filtered = suggestions.filter(
+    (item) => item.workspaceId === workspaceId && (!campaignId || item.campaignId === campaignId),
+  );
+  res.json(
+    filtered.map((item) => ({
+      ...item,
+      hooks: JSON.parse(item.hooks || "[]"),
+      adCopyVariants: JSON.parse(item.adCopyVariants || "[]"),
+      captions: JSON.parse(item.captions || "[]"),
+      ctas: JSON.parse(item.ctas || "[]"),
+      improvementNotes: JSON.parse(item.improvementNotes || "[]"),
+      missingContextWarnings: JSON.parse(item.missingContextWarnings || "[]"),
+      safetyNotes: JSON.parse(item.safetyNotes || "[]"),
+      campaignChannels: JSON.parse(item.campaignChannels || "[]"),
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+    })),
+  );
+});
+
 router.get("/strategy/diagnosis/latest", requireAuth, async (req, res): Promise<void> => {
   const workspaceId = Number(req.query.workspaceId);
   if (!workspaceId) {
