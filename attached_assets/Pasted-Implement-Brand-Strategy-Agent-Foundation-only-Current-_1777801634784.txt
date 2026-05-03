@@ -1,0 +1,171 @@
+Implement Brand Strategy Agent Foundation only.
+
+Current baseline:
+- Real AI runtime works for campaign workflow.
+- Stage 3 text suggestions now persist and reload.
+- Campaign strategy stage has been reframed as campaign-specific adaptation.
+- Brand/Growth Strategy is still missing as a reusable brand-level strategy layer.
+
+Do not touch Dashboard.
+Do not touch Campaign UI except documentation references if needed.
+Do not touch Content.
+Do not touch Review.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not change Campaign Completion logic.
+Do not change manual publish guards.
+Do not expose API keys in frontend.
+Do not change OpenAPI or generated client unless strictly required.
+
+Objective:
+Add the foundation for a reusable Brand/Growth Strategy Agent at the brand level, so campaigns use a saved brand strategy instead of recreating full strategy inside each campaign.
+
+Scope:
+Brand-level strategy foundation only.
+
+Required product model:
+1. Brand strategy is created during onboarding or brand setup.
+2. Brand strategy is reusable across campaigns.
+3. Customer can update it later.
+4. Campaign workflow uses the current brand strategy as context.
+5. Campaign workflow generates campaign-specific adaptation, not full brand strategy.
+
+1. Inspect existing brand/profile schema first
+Before adding anything, inspect existing tables/models:
+- brand profile
+- workspace profile
+- brand rules
+- strategy-like fields
+- brand voice fields
+
+If an existing table can safely store strategy, use it.
+If not, add the smallest brand-level strategy persistence model consistent with the architecture.
+
+2. Brand Strategy data model
+Persist:
+- workspaceId
+- brandProfileId if available
+- positioning
+- idealCustomerProfile
+- primaryAudience
+- secondaryAudience
+- keyMessages
+- valueProposition
+- contentPillars
+- channelStrategy
+- toneGuidelines
+- ctaGuidelines
+- forbiddenClaims
+- riskNotes
+- strategySummary
+- status: draft/current/archived if pattern exists
+- version if simple and safe
+- generatedBy
+- source: real | mock | unavailable
+- createdAt / updatedAt
+
+Do not overbuild versioning if the architecture does not support it yet.
+At minimum, support current strategy + update.
+
+3. Brand Strategy Agent
+Create server-side generation only.
+
+Input:
+- brand profile
+- existing brand fields
+- business/category/services
+- audience
+- tone
+- channels
+- forbidden claims
+- user-provided strategy answers if available
+
+Output:
+- structured JSON matching the brand strategy model
+
+Use `process.env.OPENAI_API_KEY` only on server.
+No frontend AI calls.
+No API key exposure.
+
+4. Missing-key behavior
+If OPENAI_API_KEY is missing:
+- return safe AI_UNAVAILABLE
+- do not save fake real strategy
+- no mock success in production
+
+5. UI integration — minimal
+Inside existing Brand screen only:
+- add a compact “مساعد بناء الاستراتيجية” card/section
+- show current strategy summary if available
+- allow editor/admin to generate or update strategy
+- viewers read-only
+- show draft/current status
+- do not redesign Brand screen broadly
+
+6. Campaign context link
+Do not rework Campaign UI in this slice.
+But document that Campaign AI Workflow should use this current brand strategy as context in future prompt inputs.
+
+If there is a safe existing backend path to include brand strategy context in campaign generation prompts, wire it minimally.
+If not, document as follow-up.
+
+7. Governance
+Brand Strategy Agent must not:
+- publish
+- approve campaign content
+- mark campaign ready
+- modify budget
+- update assets
+- bypass role guards
+- bypass workspace scoping
+
+8. Documentation
+Create:
+docs/brand_strategy_agent_foundation_report.md
+
+Update:
+docs/ai_strategy_vs_campaign_workflow_reconciliation.md
+docs/real_ai_workflow_runtime_persistence_report.md if needed
+
+Report must include:
+- changed files
+- selected persistence model
+- schema changes if any
+- generation route/action
+- API key handling
+- missing-key behavior
+- mock behavior
+- role/workspace guards
+- UI integration
+- how campaign workflow should use brand strategy
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no API key in frontend
+- no frontend OpenAI/provider call
+- missing key fails safely
+- brand strategy persists and reloads
+- viewer cannot generate/update strategy
+- editor/admin can generate/update strategy
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- Brand Strategy Agent foundation implemented
+- persistence implemented
+- verification results
+- remaining gaps
+- readiness decision
