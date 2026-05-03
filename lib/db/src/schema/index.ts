@@ -13,4 +13,3 @@ export * from "./auditLogs";
 export * from "./strategyIntakes";
 export * from "./strategyDiagnoses";
 export * from "./media-assets";
-export * from "./system-admin-users";
