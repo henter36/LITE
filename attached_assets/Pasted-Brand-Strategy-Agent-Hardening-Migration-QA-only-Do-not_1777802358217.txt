@@ -1,0 +1,178 @@
+Brand Strategy Agent Hardening + Migration QA only.
+
+Do not add new product features.
+Do not redesign UI.
+Do not touch Dashboard.
+Do not touch Campaign UI.
+Do not touch Content.
+Do not touch Review.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not change Campaign Completion logic.
+Do not change manual publish guards.
+Do not change OpenAPI or generated client unless strictly required.
+
+Current state:
+- brand_strategies table was added.
+- BrandStrategyAIProvider was added.
+- Brand strategy routes were added.
+- Brand strategy card was added to Brand screen.
+- Table was created directly via SQL because drizzle push failed due to a pre-existing index conflict.
+
+Objective:
+Harden the Brand Strategy Agent foundation and make the database/schema state reproducible and safe before any further product work.
+
+Tasks:
+
+1. Migration / reproducibility review
+
+The brand_strategies table must not remain manual-DB-only state.
+
+Verify:
+- brand_strategies is represented in committed schema files
+- indexes, foreign keys, status/source fields, timestamps, workspace scoping are represented in code
+- a clean environment can recreate the table from repository state
+- no hidden manual SQL-only state is required
+- direct SQL creation is documented as temporary if no migration system exists
+
+If the project uses migrations:
+- create the proper migration file for brand_strategies
+- do not rely on direct SQL only
+
+If the project uses drizzle push without migrations:
+- document the accepted schema-sync approach
+- document the exact conflict cause
+- document why the brand_strategies table remains reproducible from committed schema
+
+2. Drizzle conflict root cause
+
+Document:
+- exact failing index/constraint
+- why system_admin_users_user_id_unique conflicts
+- whether this conflict is unrelated to brand_strategies
+- whether it indicates existing schema drift
+- whether the project needs a follow-up DB drift cleanup task
+
+Do not silently ignore this.
+
+3. Brand strategy route security review
+
+For each route:
+- GET /api/brand-strategy
+- POST /api/brand-strategy/generate
+- PUT /api/brand-strategy/:id
+
+Document:
+- auth guard
+- role requirement
+- workspace scoping
+- whether viewer can read
+- whether viewer can generate/update
+- editor/admin behavior
+- whether route can affect campaign publish/readiness
+
+Confirm:
+- generation requires editor or above
+- update requires editor or above
+- read access follows existing workspace role policy
+- strategy cannot be generated or updated outside the user’s workspace
+- no route can publish, approve, mark campaign ready, modify budget, update assets, or change Campaign Completion state
+
+4. AI provider safety review
+
+Verify:
+- OPENAI_API_KEY is server-side only
+- no frontend OpenAI/provider calls
+- no key logged
+- no key committed
+- missing key returns safe unavailable response
+- no fake strategy saved as real when key is missing
+- mock strategy cannot masquerade as real AI output in production
+- source is tracked as real | mock | unavailable
+
+5. Brand strategy persistence review
+
+Verify:
+- generated strategy persists
+- current strategy can be reloaded
+- old current strategy is archived if that is the chosen behavior
+- manual update works
+- status model is clear: draft/current/archived
+- source model is clear: real/mock/unavailable
+- createdAt/updatedAt are present if project pattern supports them
+
+6. Brand UI behavior review
+
+Verify:
+- Brand screen card loads current strategy
+- editor/admin can generate/update
+- viewer is read-only
+- missing-key state is shown safely
+- no upload/media/live publishing is implied
+- UI remains Arabic-first enough for current stage
+
+Do not perform broad visual redesign.
+
+7. Campaign context follow-up
+
+Do not fully rework Campaign in this slice.
+
+But document the required follow-up:
+- Campaign Stage 2 “تكييف الاستراتيجية للحملة” must read brand_strategies.current as context
+- campaign generation prompts should include current brand strategy
+- if a minimal safe DB read can be added to existing campaign workflow generation without changing UI, you may implement it
+- otherwise document it as the immediate next task
+
+Do not create a new campaign strategy system.
+
+8. Documentation
+
+Update or create:
+- docs/brand_strategy_agent_foundation_report.md
+- docs/ai_strategy_vs_campaign_workflow_reconciliation.md
+- docs/real_ai_workflow_runtime_persistence_report.md if needed
+
+Include:
+- changed files
+- migration/reproducibility decision
+- Drizzle conflict finding
+- route-by-route security table
+- AI provider safety
+- persistence behavior
+- UI behavior
+- campaign context follow-up
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no API key in frontend
+- no frontend OpenAI/provider call
+- missing key fails safely
+- viewer cannot generate/update strategy
+- editor/admin can generate/update strategy
+- brand strategy persists and reloads
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- migration/reproducibility result
+- Drizzle conflict root cause
+- route security result
+- AI safety result
+- persistence/reload result
+- campaign context follow-up decision
+- verification results
+- remaining gaps
+- readiness decision

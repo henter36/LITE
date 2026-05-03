@@ -8,6 +8,7 @@ import {
   campaignCreativeBriefsTable,
   campaignImagePromptSpecsTable,
   campaignVideoScriptSpecsTable,
+  brandStrategiesTable,
 } from "@workspace/db";
 import { desc, eq, and } from "drizzle-orm";
 import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
@@ -188,6 +189,7 @@ router.post("/campaign-workflow/strategy-brief", requireAuth, async (req, res): 
 
   const { provider, keyMissing, selectedProvider } = getWorkflowAIProvider();
   const ctx = buildStrategyBriefMockInput(campaign, intake ?? null);
+  const [brandStrategy] = await db.select().from(brandStrategiesTable).where(and(eq(brandStrategiesTable.workspaceId, Number(workspaceId)), eq(brandStrategiesTable.status, "current"))).orderBy(desc(brandStrategiesTable.updatedAt));
 
   if (keyMissing) {
     const draft = buildMockStrategyBrief(ctx);

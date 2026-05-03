@@ -84,19 +84,16 @@ Campaign Workflow Stage 3, 4, ...
 ### What IS wired
 - Brand profile → Brand Strategy Agent → `brand_strategies` table ✅
 - Campaign workflow Stage 2 → `campaign_strategy_briefs` table ✅
+- Campaign workflow Stage 2 now also loads `brand_strategies.current` as prompt context ✅
 
-### What is NOT yet wired (follow-up)
-- Campaign workflow Stage 2 does not yet query `brand_strategies` as context
+### What was changed
+- `campaignWorkflow.ts` now reads the workspace current brand strategy and forwards its summary / positioning / key messages into Stage 2 prompt inputs
 
 **Current Stage 2 behavior:**  
-Uses brand profile fields directly (`brandName`, `toneOfVoice`, `targetAudience`, `forbiddenClaims`, `preferredChannels`) as inputs to `generateStrategyBrief()`.
+Uses campaign intake plus current brand strategy context instead of rebuilding full brand strategy inside each campaign.
 
-**Target Stage 2 behavior (next slice):**  
-1. After loading the campaign intake, also query `brand_strategies` for the workspace (`status = "current"`)
-2. If found, pass `brandStrategy.strategySummary`, `brandStrategy.keyMessages`, `brandStrategy.positioning` as additional context into `StrategyBriefInput`
-3. Update `OpenAIWorkflowProvider.generateStrategyBrief()` system prompt to reference brand strategy context
-
-**Implementation effort:** Low — 1 DB read in `campaignWorkflow.ts`, 3 optional fields added to `StrategyBriefInput`, system prompt update.
+**Target Stage 2 behavior:**  
+Continue keeping Stage 2 as campaign-specific adaptation only; do not reintroduce brand-level strategy generation here.
 
 ---
 

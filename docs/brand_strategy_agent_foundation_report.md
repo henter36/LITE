@@ -30,6 +30,8 @@ Add a reusable **brand-level** strategy layer so campaigns draw from a saved, pe
 
 **Decision:** New dedicated table `brand_strategies` (not stored in `brand_profiles`).
 
+**Reproducibility:** the table is fully represented in committed schema (`lib/db/src/schema/brandStrategies.ts`) and exported from `lib/db/src/schema/index.ts`, so a fresh schema sync can recreate it from repo state. The direct SQL creation was temporary only to bypass an existing unrelated drift conflict in drizzle-kit.
+
 **Rationale:**
 - `brand_profiles` stores brand configuration (name, tone, channels, forbidden claims). It is a profile, not a strategy.
 - Brand strategy is generated output — structured AI analysis with different lifecycle (draft → current → archived).
@@ -40,6 +42,13 @@ Add a reusable **brand-level** strategy layer so campaigns draw from a saved, pe
 ---
 
 ## 4. Schema — `brand_strategies`
+
+The schema includes:
+- workspace scoping via `workspace_id` FK
+- optional `brand_profile_id` FK
+- optional `generated_by_user_id` FK
+- `status`, `source`, `created_at`, `updated_at`
+- JSON-array-in-text fields for messages/pillars/channels/claims/risks
 
 ```sql
 CREATE TABLE brand_strategies (
@@ -147,15 +156,55 @@ When `AI_PROVIDER=mock` (default):
 
 ---
 
-## 11. Role and Workspace Guards
+## 11. Route Security Review
 
-| Operation | Guard |
-|---|---|
-| Read current strategy | `requireAuth` + any workspace member role |
-| Generate strategy | `requireAuth` + `editor` or above |
-| Update strategy manually | `requireAuth` + `editor` or above |
-| Viewer | Read-only; generate button disabled with Arabic message |
-| Workspace scope | All routes verify `workspaceId` membership |
+| Route | Auth | Role | Workspace scope | Viewer | Editor/Admin | Campaign publish/readiness impact |
+|---|---|---|---|---|---|---|
+| `GET /api/brand-strategy` | `requireAuth` | any member | yes | read-only | read | none |
+| `POST /api/brand-strategy/generate` | `requireAuth` | editor+ | yes | denied | generate current strategy | none |
+| `PUT /api/brand-strategy/:id` | `requireAuth` | editor+ | yes | denied | update selected strategy | none |
+
+## 12. AI Provider Safety Review
+
+- `OPENAI_API_KEY` is accessed only in server-side `ai-provider.ts`
+- No frontend OpenAI/provider imports were added
+- No key is logged or serialized
+- Missing key returns HTTP 503 with `source: "unavailable"`
+- No fake strategy is saved when key is missing
+- Mock output is explicitly tracked as `source: "mock"` and is labeled in the UI
+- Real output is tracked as `source: "real"`
+
+## 13. Persistence / Reload Behavior
+
+- Generated strategy persists to `brand_strategies`
+- Current strategy reloads on mount in Brand screen
+- Previous current strategy is archived on each successful generation
+- Manual update works through `PUT /api/brand-strategy/:id`
+- Status is `draft/current/archived`
+- Source is `real/mock/unavailable`
+- Timestamps are present as `createdAt` and `updatedAt`
+
+## 14. UI Behavior Review
+
+- Brand screen card loads current strategy
+- Editor/admin can generate/update
+- Viewer is read-only
+- Missing-key state is shown safely
+- No upload/media/live publishing is implied
+- UI remains Arabic-first and compact
+
+## 15. Campaign Context Follow-up
+
+Campaign Stage 2 should read `brand_strategies.current` as additional context. A minimal safe DB read has been added to `campaignWorkflow.ts` so the current brand strategy can inform prompts without changing UI.
+
+## 16. Remaining Gaps
+
+1. No archive/history browser for older brand strategies
+2. No dedicated UI field for `userProvidedAnswers`
+3. The drizzle-kit conflict indicates existing schema drift unrelated to `brand_strategies`
+4. Stage 3 audit gap remains pre-existing
+
+## 17. Readiness Decision
 
 Brand Strategy Agent must not and does not:
 - Publish content
