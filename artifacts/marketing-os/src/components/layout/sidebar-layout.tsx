@@ -47,7 +47,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar side="right" className="border-l border-r-0 bg-white">
+    <Sidebar side="right" collapsible="none" className="border-l border-r-0 bg-white shrink-0">
       <SidebarHeader className="h-20 flex items-center px-5 border-b bg-white">
         <div className="flex items-center gap-3 font-bold text-lg tracking-tight text-foreground">
           <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
@@ -114,27 +114,21 @@ export function AppSidebar() {
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
-      <div
-        dir="rtl"
-        className="grid min-h-screen w-full grid-cols-[minmax(0,1fr)_280px] bg-[#f6faf8]"
-        style={{ gridTemplateAreas: `"main sidebar"` }}
-      >
-        <main className="min-w-0 overflow-x-hidden bg-[#f6faf8]" style={{ gridArea: "main", width: "100%", maxWidth: "100%" }}>
+    <div dir="rtl" className="min-h-screen w-full bg-[#f6faf8]">
+      <SidebarProvider>
+        <AppSidebar />
+        <main className="flex-1 min-w-0 overflow-x-hidden bg-[#f6faf8]">
           <div className="bg-white text-muted-foreground text-xs px-4 py-1.5 text-center border-b flex items-center justify-center gap-1.5 shadow-sm">
             <FlaskConical className="h-3 w-3" />
             وضع تجريبي · لا توجد إعلانات حقيقية
           </div>
-          <div className="px-6 py-6 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1180px] space-y-8">
+          <div className="px-6 py-6">
+            <div className="mx-auto w-full max-w-[1024px] space-y-8">
               {children}
             </div>
           </div>
         </main>
-        <div className="min-w-0" style={{ gridArea: "sidebar", width: "280px", justifySelf: "end", alignSelf: "start", position: "sticky", top: 0 }}>
-          <AppSidebar />
-        </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 }
