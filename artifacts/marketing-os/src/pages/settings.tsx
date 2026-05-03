@@ -92,12 +92,12 @@ function BrandProfileTab() {
     if (profile) {
       form.reset({
         brandName: profile.brandName,
-        toneOfVoice: profile.toneOfVoice,
-        targetAudience: profile.targetAudience,
-        productsServices: profile.productsServices,
-        forbiddenClaims: profile.forbiddenClaims,
+        toneOfVoice: profile.toneOfVoice ?? undefined,
+        targetAudience: profile.targetAudience ?? undefined,
+        productsServices: profile.productsServices ?? undefined,
+        forbiddenClaims: profile.forbiddenClaims ?? undefined,
         preferredChannels: profile.preferredChannels,
-        visualNotes: profile.visualNotes,
+        visualNotes: profile.visualNotes ?? undefined,
       });
     }
   }, [profile, form]);
@@ -642,7 +642,7 @@ function ActivityLogTab() {
                     <TableCell>
                       <span className="capitalize text-sm">{log.entityType || "—"}</span>
                     </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground max-w-[240px] truncate" title={log.details}>
+                    <TableCell className="text-right text-xs text-muted-foreground max-w-[240px] truncate" title={log.details ?? undefined}>
                       {log.details || "—"}
                     </TableCell>
                   </TableRow>
@@ -825,7 +825,7 @@ function MembersTab() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                            {(member.name || member.email).charAt(0).toUpperCase()}
+                            {(member.name ?? member.email ?? "?").charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <p className="font-medium text-sm">{member.name || "—"}</p>
@@ -870,7 +870,7 @@ function MembersTab() {
                               size="icon"
                               className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                               disabled={removeMember.isPending}
-                              onClick={() => onRemove(member.userId, member.name || member.email)}
+                              onClick={() => onRemove(member.userId, member.name ?? member.email ?? "")}
                               title="Remove member"
                             >
                               <UserMinus className="h-4 w-4" />

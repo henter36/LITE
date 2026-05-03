@@ -332,15 +332,15 @@ export default function ContentStudio() {
   const campaignIdNum = selectedCampaignId ? parseInt(selectedCampaignId, 10) : undefined;
 
   const { data: assets, isLoading: isAssetsLoading } = useListAssets(
-    { campaignId: campaignIdNum },
-    { query: { enabled: !!campaignIdNum, queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) } },
+    { campaignId: campaignIdNum ?? 0 },
+    { query: { enabled: !!campaignIdNum, queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum ?? 0 }) } },
   );
 
   const generateAssets = useGenerateAssets();
   const createApproval = useCreateApproval();
 
   const selectedCampaign = campaigns?.find((c) => c.id === campaignIdNum);
-  const guardrailCount = brandProfile ? countGuardrails(brandProfile.forbiddenClaims) : 0;
+  const guardrailCount = brandProfile ? countGuardrails(brandProfile.forbiddenClaims ?? "") : 0;
   const displayAssets = assets?.slice(0, 3) ?? [];
 
   const handleGenerate = () => {
@@ -375,7 +375,7 @@ export default function ContentStudio() {
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
+          queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum ?? 0 }) });
           const label =
             decision === "approved"
               ? "Ad approved"

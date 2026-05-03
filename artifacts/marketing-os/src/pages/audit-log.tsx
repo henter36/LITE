@@ -86,7 +86,7 @@ export default function AuditLog() {
                           {log.entityId && <span className="text-xs text-muted-foreground font-mono">ID: {log.entityId}</span>}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground max-w-[300px] truncate" title={log.details}>
+                      <TableCell className="text-right text-xs text-muted-foreground max-w-[300px] truncate" title={log.details ?? undefined}>
                         {log.details || "-"}
                       </TableCell>
                     </TableRow>

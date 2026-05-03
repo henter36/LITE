@@ -20,9 +20,11 @@ export const HealthCheckResponse = zod.object({
 export const ListWorkspacesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
-  slug: zod.string(),
+  businessType: zod.string(),
+  country: zod.string(),
+  language: zod.string(),
+  defaultCurrency: zod.string(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 export const ListWorkspacesResponse = zod.array(ListWorkspacesResponseItem);
 
@@ -31,7 +33,10 @@ export const ListWorkspacesResponse = zod.array(ListWorkspacesResponseItem);
  */
 export const CreateWorkspaceBody = zod.object({
   name: zod.string(),
-  slug: zod.string(),
+  businessType: zod.string(),
+  country: zod.string(),
+  language: zod.string(),
+  defaultCurrency: zod.string(),
 });
 
 /**
@@ -44,9 +49,11 @@ export const GetWorkspaceParams = zod.object({
 export const GetWorkspaceResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
-  slug: zod.string(),
+  businessType: zod.string(),
+  country: zod.string(),
+  language: zod.string(),
+  defaultCurrency: zod.string(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 
 /**
@@ -58,15 +65,20 @@ export const UpdateWorkspaceParams = zod.object({
 
 export const UpdateWorkspaceBody = zod.object({
   name: zod.string(),
-  slug: zod.string(),
+  businessType: zod.string(),
+  country: zod.string(),
+  language: zod.string(),
+  defaultCurrency: zod.string(),
 });
 
 export const UpdateWorkspaceResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
-  slug: zod.string(),
+  businessType: zod.string(),
+  country: zod.string(),
+  language: zod.string(),
+  defaultCurrency: zod.string(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 
 /**
@@ -85,9 +97,11 @@ export const ListWorkspaceMembersParams = zod.object({
 
 export const ListWorkspaceMembersResponseItem = zod.object({
   id: zod.number(),
-  workspaceId: zod.number(),
   userId: zod.number(),
-  role: zod.enum(["admin", "member", "viewer"]),
+  workspaceId: zod.number().optional(),
+  role: zod.enum(["owner", "admin", "editor", "viewer"]),
+  email: zod.string().nullish(),
+  name: zod.string().nullish(),
   createdAt: zod.string(),
 });
 export const ListWorkspaceMembersResponse = zod.array(
@@ -95,19 +109,19 @@ export const ListWorkspaceMembersResponse = zod.array(
 );
 
 /**
- * @summary Add a member to a workspace (admin only)
+ * @summary Add a member to a workspace
  */
 export const AddWorkspaceMemberParams = zod.object({
   id: zod.coerce.number(),
 });
 
 export const AddWorkspaceMemberBody = zod.object({
-  userId: zod.number(),
-  role: zod.enum(["admin", "member", "viewer"]),
+  email: zod.string(),
+  role: zod.enum(["admin", "editor", "viewer"]),
 });
 
 /**
- * @summary Change a member's role (admin only)
+ * @summary Change a member's role
  */
 export const UpdateWorkspaceMemberParams = zod.object({
   id: zod.coerce.number(),
@@ -115,19 +129,21 @@ export const UpdateWorkspaceMemberParams = zod.object({
 });
 
 export const UpdateWorkspaceMemberBody = zod.object({
-  role: zod.enum(["admin", "member", "viewer"]),
+  role: zod.enum(["admin", "editor", "viewer"]),
 });
 
 export const UpdateWorkspaceMemberResponse = zod.object({
   id: zod.number(),
-  workspaceId: zod.number(),
   userId: zod.number(),
-  role: zod.enum(["admin", "member", "viewer"]),
+  workspaceId: zod.number().optional(),
+  role: zod.enum(["owner", "admin", "editor", "viewer"]),
+  email: zod.string().nullish(),
+  name: zod.string().nullish(),
   createdAt: zod.string(),
 });
 
 /**
- * @summary Remove a member from a workspace (admin only)
+ * @summary Remove a member from a workspace
  */
 export const RemoveWorkspaceMemberParams = zod.object({
   id: zod.coerce.number(),
@@ -144,14 +160,14 @@ export const ListBrandProfilesQueryParams = zod.object({
 export const ListBrandProfilesResponseItem = zod.object({
   id: zod.number(),
   workspaceId: zod.number(),
-  name: zod.string(),
-  logoUrl: zod.string().nullish(),
-  primaryColor: zod.string().nullish(),
-  secondaryColor: zod.string().nullish(),
-  fontFamily: zod.string().nullish(),
+  brandName: zod.string(),
   toneOfVoice: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  productsServices: zod.string().nullish(),
+  forbiddenClaims: zod.string().nullish(),
+  preferredChannels: zod.array(zod.string()),
+  visualNotes: zod.string().nullish(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 export const ListBrandProfilesResponse = zod.array(
   ListBrandProfilesResponseItem,
@@ -162,12 +178,13 @@ export const ListBrandProfilesResponse = zod.array(
  */
 export const CreateBrandProfileBody = zod.object({
   workspaceId: zod.number(),
-  name: zod.string(),
-  logoUrl: zod.string().nullish(),
-  primaryColor: zod.string().nullish(),
-  secondaryColor: zod.string().nullish(),
-  fontFamily: zod.string().nullish(),
+  brandName: zod.string(),
   toneOfVoice: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  productsServices: zod.string().nullish(),
+  forbiddenClaims: zod.string().nullish(),
+  preferredChannels: zod.array(zod.string()).optional(),
+  visualNotes: zod.string().nullish(),
 });
 
 /**
@@ -180,14 +197,14 @@ export const GetBrandProfileParams = zod.object({
 export const GetBrandProfileResponse = zod.object({
   id: zod.number(),
   workspaceId: zod.number(),
-  name: zod.string(),
-  logoUrl: zod.string().nullish(),
-  primaryColor: zod.string().nullish(),
-  secondaryColor: zod.string().nullish(),
-  fontFamily: zod.string().nullish(),
+  brandName: zod.string(),
   toneOfVoice: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  productsServices: zod.string().nullish(),
+  forbiddenClaims: zod.string().nullish(),
+  preferredChannels: zod.array(zod.string()),
+  visualNotes: zod.string().nullish(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 
 /**
@@ -199,25 +216,26 @@ export const UpdateBrandProfileParams = zod.object({
 
 export const UpdateBrandProfileBody = zod.object({
   workspaceId: zod.number(),
-  name: zod.string(),
-  logoUrl: zod.string().nullish(),
-  primaryColor: zod.string().nullish(),
-  secondaryColor: zod.string().nullish(),
-  fontFamily: zod.string().nullish(),
+  brandName: zod.string(),
   toneOfVoice: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  productsServices: zod.string().nullish(),
+  forbiddenClaims: zod.string().nullish(),
+  preferredChannels: zod.array(zod.string()).optional(),
+  visualNotes: zod.string().nullish(),
 });
 
 export const UpdateBrandProfileResponse = zod.object({
   id: zod.number(),
   workspaceId: zod.number(),
-  name: zod.string(),
-  logoUrl: zod.string().nullish(),
-  primaryColor: zod.string().nullish(),
-  secondaryColor: zod.string().nullish(),
-  fontFamily: zod.string().nullish(),
+  brandName: zod.string(),
   toneOfVoice: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  productsServices: zod.string().nullish(),
+  forbiddenClaims: zod.string().nullish(),
+  preferredChannels: zod.array(zod.string()),
+  visualNotes: zod.string().nullish(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 
 /**
@@ -232,12 +250,20 @@ export const ListCampaignsResponseItem = zod.object({
   id: zod.number(),
   workspaceId: zod.number(),
   name: zod.string(),
-  status: zod.enum(["draft", "active", "paused", "completed", "archived"]),
+  objective: zod.string(),
+  productService: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetSuggestion: zod.number().nullish(),
   startDate: zod.string().nullish(),
   endDate: zod.string().nullish(),
-  budget: zod.number().nullish(),
+  channels: zod.array(zod.string()),
+  landingUrl: zod.string().nullish(),
+  status: zod.enum(["draft", "approved", "active", "completed", "archived"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem);
 
@@ -247,12 +273,15 @@ export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem);
 export const CreateCampaignBody = zod.object({
   workspaceId: zod.number(),
   name: zod.string(),
-  status: zod
-    .enum(["draft", "active", "paused", "completed", "archived"])
-    .optional(),
+  objective: zod.string(),
+  productService: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetSuggestion: zod.number().nullish(),
   startDate: zod.string().nullish(),
   endDate: zod.string().nullish(),
-  budget: zod.number().nullish(),
+  channels: zod.array(zod.string()).optional(),
+  landingUrl: zod.string().nullish(),
 });
 
 /**
@@ -266,12 +295,20 @@ export const GetCampaignResponse = zod.object({
   id: zod.number(),
   workspaceId: zod.number(),
   name: zod.string(),
-  status: zod.enum(["draft", "active", "paused", "completed", "archived"]),
+  objective: zod.string(),
+  productService: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetSuggestion: zod.number().nullish(),
   startDate: zod.string().nullish(),
   endDate: zod.string().nullish(),
-  budget: zod.number().nullish(),
+  channels: zod.array(zod.string()),
+  landingUrl: zod.string().nullish(),
+  status: zod.enum(["draft", "approved", "active", "completed", "archived"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 
 /**
@@ -284,24 +321,35 @@ export const UpdateCampaignParams = zod.object({
 export const UpdateCampaignBody = zod.object({
   workspaceId: zod.number(),
   name: zod.string(),
-  status: zod
-    .enum(["draft", "active", "paused", "completed", "archived"])
-    .optional(),
+  objective: zod.string(),
+  productService: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetSuggestion: zod.number().nullish(),
   startDate: zod.string().nullish(),
   endDate: zod.string().nullish(),
-  budget: zod.number().nullish(),
+  channels: zod.array(zod.string()).optional(),
+  landingUrl: zod.string().nullish(),
 });
 
 export const UpdateCampaignResponse = zod.object({
   id: zod.number(),
   workspaceId: zod.number(),
   name: zod.string(),
-  status: zod.enum(["draft", "active", "paused", "completed", "archived"]),
+  objective: zod.string(),
+  productService: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetSuggestion: zod.number().nullish(),
   startDate: zod.string().nullish(),
   endDate: zod.string().nullish(),
-  budget: zod.number().nullish(),
+  channels: zod.array(zod.string()),
+  landingUrl: zod.string().nullish(),
+  status: zod.enum(["draft", "approved", "active", "completed", "archived"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
   createdAt: zod.string(),
-  updatedAt: zod.string(),
 });
 
 /**
@@ -309,4 +357,620 @@ export const UpdateCampaignResponse = zod.object({
  */
 export const DeleteCampaignParams = zod.object({
   id: zod.coerce.number(),
+});
+
+/**
+ * @summary Mark a campaign as approved/ready
+ */
+export const ApproveCampaignParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ApproveCampaignResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  name: zod.string(),
+  objective: zod.string(),
+  productService: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetSuggestion: zod.number().nullish(),
+  startDate: zod.string().nullish(),
+  endDate: zod.string().nullish(),
+  channels: zod.array(zod.string()),
+  landingUrl: zod.string().nullish(),
+  status: zod.enum(["draft", "approved", "active", "completed", "archived"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Manually mark a campaign as published (demo only)
+ */
+export const ManualPublishCampaignParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ManualPublishCampaignBody = zod.object({
+  channels: zod.array(zod.string()),
+  notes: zod.string().nullish(),
+});
+
+export const ManualPublishCampaignResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  name: zod.string(),
+  objective: zod.string(),
+  productService: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetSuggestion: zod.number().nullish(),
+  startDate: zod.string().nullish(),
+  endDate: zod.string().nullish(),
+  channels: zod.array(zod.string()),
+  landingUrl: zod.string().nullish(),
+  status: zod.enum(["draft", "approved", "active", "completed", "archived"]),
+  publishedAt: zod.string().nullish(),
+  publishedBy: zod.string().nullish(),
+  publishedChannels: zod.array(zod.string()).nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary List generated assets for a campaign
+ */
+export const ListAssetsQueryParams = zod.object({
+  campaignId: zod.coerce.number(),
+  status: zod.coerce.string().optional(),
+});
+
+export const ListAssetsResponseItem = zod.object({
+  id: zod.number(),
+  campaignId: zod.number(),
+  headline: zod.string(),
+  shortCaption: zod.string(),
+  longCaption: zod.string().nullish(),
+  cta: zod.string(),
+  hashtags: zod.array(zod.string()),
+  videoScript: zod.string().nullish(),
+  storyboardOutline: zod.string().nullish(),
+  status: zod.string(),
+  aiProvider: zod.string().nullish(),
+  aiModel: zod.string().nullish(),
+  promptVersion: zod.string().nullish(),
+  aiFallbackUsed: zod.boolean().nullish(),
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const ListAssetsResponse = zod.array(ListAssetsResponseItem);
+
+/**
+ * @summary Generate ad assets for a campaign
+ */
+export const GenerateAssetsBody = zod.object({
+  campaignId: zod.number(),
+});
+
+/**
+ * @summary Get a generated asset
+ */
+export const GetAssetParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetAssetResponse = zod.object({
+  id: zod.number(),
+  campaignId: zod.number(),
+  headline: zod.string(),
+  shortCaption: zod.string(),
+  longCaption: zod.string().nullish(),
+  cta: zod.string(),
+  hashtags: zod.array(zod.string()),
+  videoScript: zod.string().nullish(),
+  storyboardOutline: zod.string().nullish(),
+  status: zod.string(),
+  aiProvider: zod.string().nullish(),
+  aiModel: zod.string().nullish(),
+  promptVersion: zod.string().nullish(),
+  aiFallbackUsed: zod.boolean().nullish(),
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Update creative brief fields on an asset
+ */
+export const UpdateAssetBriefParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateAssetBriefBody = zod.object({
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+});
+
+export const UpdateAssetBriefResponse = zod.object({
+  id: zod.number(),
+  campaignId: zod.number(),
+  headline: zod.string(),
+  shortCaption: zod.string(),
+  longCaption: zod.string().nullish(),
+  cta: zod.string(),
+  hashtags: zod.array(zod.string()),
+  videoScript: zod.string().nullish(),
+  storyboardOutline: zod.string().nullish(),
+  status: zod.string(),
+  aiProvider: zod.string().nullish(),
+  aiModel: zod.string().nullish(),
+  promptVersion: zod.string().nullish(),
+  aiFallbackUsed: zod.boolean().nullish(),
+  imageBrief: zod.string().nullish(),
+  videoBrief: zod.string().nullish(),
+  assetReference: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Get channel variants for an asset
+ */
+export const GetAssetVariantsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetAssetVariantsResponseItem = zod.object({
+  id: zod.number(),
+  assetId: zod.number(),
+  channel: zod.string(),
+  headline: zod.string(),
+  caption: zod.string(),
+  cta: zod.string(),
+  hashtags: zod.array(zod.string()),
+});
+export const GetAssetVariantsResponse = zod.array(GetAssetVariantsResponseItem);
+
+/**
+ * @summary List approvals for an asset or campaign
+ */
+export const ListApprovalsQueryParams = zod.object({
+  assetId: zod.coerce.number().optional(),
+  campaignId: zod.coerce.number().optional(),
+});
+
+export const ListApprovalsResponseItem = zod.object({
+  id: zod.number(),
+  assetId: zod.number().nullish(),
+  campaignId: zod.number().nullish(),
+  actor: zod.string(),
+  decision: zod.enum(["approved", "rejected", "changes_requested"]),
+  reason: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const ListApprovalsResponse = zod.array(ListApprovalsResponseItem);
+
+/**
+ * @summary Create an approval decision
+ */
+export const CreateApprovalBody = zod.object({
+  assetId: zod.number().nullish(),
+  campaignId: zod.number().nullish(),
+  decision: zod.enum(["approved", "rejected", "changes_requested"]),
+  reason: zod.string().nullish(),
+  actor: zod.string().nullish(),
+});
+
+/**
+ * @summary List tracking links
+ */
+export const ListTrackingLinksQueryParams = zod.object({
+  campaignId: zod.coerce.number().optional(),
+});
+
+export const ListTrackingLinksResponseItem = zod.object({
+  id: zod.number(),
+  campaignId: zod.number(),
+  channel: zod.string(),
+  source: zod.string(),
+  medium: zod.string(),
+  campaign: zod.string(),
+  content: zod.string().nullish(),
+  finalUrl: zod.string(),
+  generatedTrackingUrl: zod.string(),
+  createdAt: zod.string(),
+});
+export const ListTrackingLinksResponse = zod.array(
+  ListTrackingLinksResponseItem,
+);
+
+/**
+ * @summary Create a UTM tracking link
+ */
+export const CreateTrackingLinkBody = zod.object({
+  campaignId: zod.number(),
+  channel: zod.string(),
+  source: zod.string(),
+  medium: zod.string(),
+  campaign: zod.string(),
+  content: zod.string().nullish(),
+  finalUrl: zod.string(),
+});
+
+/**
+ * @summary Delete a tracking link
+ */
+export const DeleteTrackingLinkParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary List ad metrics
+ */
+export const ListMetricsQueryParams = zod.object({
+  campaignId: zod.coerce.number().optional(),
+  workspaceId: zod.coerce.number().optional(),
+  platform: zod.coerce.string().optional(),
+  fromDate: zod.coerce.string().optional(),
+  toDate: zod.coerce.string().optional(),
+});
+
+export const ListMetricsResponseItem = zod.object({
+  id: zod.number(),
+  campaignId: zod.number(),
+  platform: zod.string(),
+  date: zod.string(),
+  spend: zod.number(),
+  impressions: zod.number(),
+  clicks: zod.number(),
+  ctr: zod.number(),
+  cpc: zod.number(),
+  conversions: zod.number(),
+});
+export const ListMetricsResponse = zod.array(ListMetricsResponseItem);
+
+/**
+ * @summary Get dashboard summary metrics
+ */
+export const GetDashboardMetricsQueryParams = zod.object({
+  workspaceId: zod.coerce.number().optional(),
+});
+
+export const GetDashboardMetricsResponse = zod.object({
+  totalSpend: zod.number(),
+  totalImpressions: zod.number(),
+  totalClicks: zod.number(),
+  totalConversions: zod.number(),
+  avgCtr: zod.number(),
+  avgCpc: zod.number(),
+  bestChannel: zod.string(),
+  worstChannel: zod.string(),
+  dailyTrend: zod.array(
+    zod.object({
+      date: zod.string(),
+      spend: zod.number(),
+      impressions: zod.number(),
+      clicks: zod.number(),
+      conversions: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary List platform connections
+ */
+export const ListConnectionsQueryParams = zod.object({
+  workspaceId: zod.coerce.number().optional(),
+});
+
+export const ListConnectionsResponseItem = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  platform: zod.string(),
+  accountName: zod.string(),
+  accountId: zod.string(),
+  status: zod.string(),
+  mockSpend: zod.number(),
+  mockImpressions: zod.number(),
+  mockClicks: zod.number(),
+  lastSyncAt: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+export const ListConnectionsResponse = zod.array(ListConnectionsResponseItem);
+
+/**
+ * @summary Create a mock platform connection
+ */
+export const CreateConnectionBody = zod.object({
+  workspaceId: zod.number(),
+  platform: zod.string(),
+  accountName: zod.string(),
+});
+
+/**
+ * @summary Delete a platform connection
+ */
+export const DeleteConnectionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Trigger a mock sync for a connection
+ */
+export const SyncConnectionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SyncConnectionResponse = zod.object({
+  id: zod.number(),
+  connectionId: zod.number(),
+  status: zod.string(),
+  startedAt: zod.string(),
+  completedAt: zod.string().nullish(),
+});
+
+/**
+ * @summary List audit log entries
+ */
+export const ListAuditLogsQueryParams = zod.object({
+  workspaceId: zod.coerce.number().optional(),
+  action: zod.coerce.string().optional(),
+  search: zod.coerce.string().optional(),
+  limit: zod.coerce.number().optional(),
+  offset: zod.coerce.number().optional(),
+});
+
+export const ListAuditLogsResponse = zod.object({
+  items: zod.array(
+    zod.object({
+      id: zod.number(),
+      workspaceId: zod.number(),
+      action: zod.string(),
+      entityType: zod.string().nullish(),
+      entityId: zod.number().nullish(),
+      actor: zod.string(),
+      details: zod.string().nullish(),
+      createdAt: zod.string(),
+    }),
+  ),
+  total: zod.number(),
+  limit: zod.number(),
+  offset: zod.number(),
+});
+
+/**
+ * @summary Get Meta integration status
+ */
+export const GetMetaStatusQueryParams = zod.object({
+  workspaceId: zod.coerce.number().optional(),
+});
+
+export const GetMetaStatusResponse = zod.object({
+  provider: zod.string(),
+  credentialsConfigured: zod.boolean(),
+  fallbackUsed: zod.boolean(),
+});
+
+/**
+ * @summary Sync read-only Meta data
+ */
+export const SyncMetaBody = zod.object({
+  workspaceId: zod.number(),
+});
+
+export const SyncMetaResponse = zod.object({
+  adAccounts: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+    }),
+  ),
+  campaigns: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      status: zod.string().nullish(),
+    }),
+  ),
+  metrics: zod.array(
+    zod.object({
+      accountId: zod.string(),
+      spend: zod.number(),
+      impressions: zod.number(),
+      clicks: zod.number(),
+    }),
+  ),
+  provider: zod.string(),
+  fallbackUsed: zod.boolean(),
+  syncedAt: zod.string(),
+});
+
+/**
+ * @summary List recommendations
+ */
+export const ListRecommendationsQueryParams = zod.object({
+  workspaceId: zod.coerce.number().optional(),
+  campaignId: zod.coerce.number().optional(),
+  isRead: zod.coerce.boolean().optional(),
+});
+
+export const ListRecommendationsResponseItem = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  campaignId: zod.number().nullish(),
+  type: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  priority: zod.enum(["high", "medium", "low"]),
+  isRead: zod.boolean(),
+  source: zod.string().nullish(),
+  linkedStrategyId: zod.number().nullish(),
+  createdAt: zod.string(),
+});
+export const ListRecommendationsResponse = zod.array(
+  ListRecommendationsResponseItem,
+);
+
+/**
+ * @summary Update a recommendation (e.g. mark as read)
+ */
+export const UpdateRecommendationParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateRecommendationBody = zod.object({
+  isRead: zod.boolean(),
+});
+
+export const UpdateRecommendationResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  campaignId: zod.number().nullish(),
+  type: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  priority: zod.enum(["high", "medium", "low"]),
+  isRead: zod.boolean(),
+  source: zod.string().nullish(),
+  linkedStrategyId: zod.number().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Generate recommendations for a workspace
+ */
+export const GenerateRecommendationsBody = zod.object({
+  workspaceId: zod.number(),
+});
+
+export const GenerateRecommendationsResponseItem = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  campaignId: zod.number().nullish(),
+  type: zod.string(),
+  title: zod.string(),
+  description: zod.string(),
+  priority: zod.enum(["high", "medium", "low"]),
+  isRead: zod.boolean(),
+  source: zod.string().nullish(),
+  linkedStrategyId: zod.number().nullish(),
+  createdAt: zod.string(),
+});
+export const GenerateRecommendationsResponse = zod.array(
+  GenerateRecommendationsResponseItem,
+);
+
+/**
+ * @summary Get strategy intake for a workspace
+ */
+export const GetStrategyIntakeQueryParams = zod.object({
+  workspaceId: zod.coerce.number(),
+});
+
+export const GetStrategyIntakeResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  businessCategory: zod.string().nullish(),
+  currentOffer: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetRange: zod.string().nullish(),
+  primaryGoal: zod.string().nullish(),
+  brandVoice: zod.string().nullish(),
+  painPoints: zod.string().nullish(),
+  availableAssets: zod.string().nullish(),
+  previousLearnings: zod.string().nullish(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Create strategy intake
+ */
+export const CreateStrategyIntakeBody = zod.object({
+  workspaceId: zod.number(),
+  businessCategory: zod.string().nullish(),
+  currentOffer: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetRange: zod.string().nullish(),
+  primaryGoal: zod.string().nullish(),
+  brandVoice: zod.string().nullish(),
+  painPoints: zod.string().nullish(),
+  availableAssets: zod.string().nullish(),
+  previousLearnings: zod.string().nullish(),
+});
+
+/**
+ * @summary Update strategy intake
+ */
+export const UpdateStrategyIntakeBody = zod.object({
+  workspaceId: zod.number(),
+  businessCategory: zod.string().nullish(),
+  currentOffer: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetRange: zod.string().nullish(),
+  primaryGoal: zod.string().nullish(),
+  brandVoice: zod.string().nullish(),
+  painPoints: zod.string().nullish(),
+  availableAssets: zod.string().nullish(),
+  previousLearnings: zod.string().nullish(),
+});
+
+export const UpdateStrategyIntakeResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  businessCategory: zod.string().nullish(),
+  currentOffer: zod.string().nullish(),
+  targetAudience: zod.string().nullish(),
+  geography: zod.string().nullish(),
+  budgetRange: zod.string().nullish(),
+  primaryGoal: zod.string().nullish(),
+  brandVoice: zod.string().nullish(),
+  painPoints: zod.string().nullish(),
+  availableAssets: zod.string().nullish(),
+  previousLearnings: zod.string().nullish(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Generate a strategy diagnosis
+ */
+export const GenerateStrategyDiagnosisBody = zod.object({
+  workspaceId: zod.number(),
+});
+
+/**
+ * @summary Get the latest strategy diagnosis
+ */
+export const GetLatestStrategyDiagnosisQueryParams = zod.object({
+  workspaceId: zod.coerce.number(),
+});
+
+export const GetLatestStrategyDiagnosisResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  intakeId: zod.number(),
+  summary: zod.string().nullish(),
+  whatIsMissing: zod.string().nullish(),
+  whatToTestFirst: zod.string().nullish(),
+  likelyCreativeDirection: zod.string().nullish(),
+  audienceSummary: zod.string().nullish(),
+  offerSummary: zod.string().nullish(),
+  topObjections: zod.string().nullish(),
+  suggestedCTA: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Create a campaign from strategy
+ */
+export const CreateCampaignFromStrategyBody = zod.object({
+  workspaceId: zod.number(),
 });

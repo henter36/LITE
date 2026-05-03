@@ -18,6 +18,24 @@ tags:
     description: Brand profile management
   - name: campaigns
     description: Campaign management
+  - name: assets
+    description: Generated ad assets
+  - name: approvals
+    description: Ad approval decisions
+  - name: tracking-links
+    description: UTM tracking links
+  - name: metrics
+    description: Ad performance metrics
+  - name: connections
+    description: Platform connections
+  - name: audit-logs
+    description: Audit log entries
+  - name: meta
+    description: Meta read-only integration
+  - name: recommendations
+    description: AI-driven recommendations
+  - name: strategy
+    description: Strategy intake and diagnosis
 
 paths:
   /healthz:
@@ -145,7 +163,7 @@ paths:
     post:
       operationId: addWorkspaceMember
       tags: [members]
-      summary: Add a member to a workspace (admin only)
+      summary: Add a member to a workspace
       parameters:
         - name: id
           in: path
@@ -170,7 +188,7 @@ paths:
     patch:
       operationId: updateWorkspaceMember
       tags: [members]
-      summary: Change a member's role (admin only)
+      summary: Change a member's role
       parameters:
         - name: id
           in: path
@@ -198,7 +216,7 @@ paths:
     delete:
       operationId: removeWorkspaceMember
       tags: [members]
-      summary: Remove a member from a workspace (admin only)
+      summary: Remove a member from a workspace
       parameters:
         - name: id
           in: path
@@ -391,6 +409,651 @@ paths:
         "204":
           description: Deleted
 
+  /campaigns/{id}/approve:
+    post:
+      operationId: approveCampaign
+      tags: [campaigns]
+      summary: Mark a campaign as approved/ready
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}/manual-publish:
+    post:
+      operationId: manualPublishCampaign
+      tags: [campaigns]
+      summary: Manually mark a campaign as published (demo only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManualPublishBody"
+      responses:
+        "200":
+          description: Published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  # Assets
+  /assets:
+    get:
+      operationId: listAssets
+      tags: [assets]
+      summary: List generated assets for a campaign
+      parameters:
+        - name: campaignId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeneratedAsset"
+    post:
+      operationId: generateAssets
+      tags: [assets]
+      summary: Generate ad assets for a campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateAssetsBody"
+      responses:
+        "201":
+          description: Generated assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeneratedAsset"
+
+  /assets/{id}:
+    get:
+      operationId: getAsset
+      tags: [assets]
+      summary: Get a generated asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedAsset"
+    patch:
+      operationId: updateAssetBrief
+      tags: [assets]
+      summary: Update creative brief fields on an asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAssetBriefBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedAsset"
+
+  /assets/{id}/variants:
+    get:
+      operationId: getAssetVariants
+      tags: [assets]
+      summary: Get channel variants for an asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Channel variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChannelVariant"
+
+  # Approvals
+  /approvals:
+    get:
+      operationId: listApprovals
+      tags: [approvals]
+      summary: List approvals for an asset or campaign
+      parameters:
+        - name: assetId
+          in: query
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of approvals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApprovalDecision"
+    post:
+      operationId: createApproval
+      tags: [approvals]
+      summary: Create an approval decision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApprovalBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalDecision"
+
+  # Tracking Links
+  /tracking-links:
+    get:
+      operationId: listTrackingLinks
+      tags: [tracking-links]
+      summary: List tracking links
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of tracking links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrackingLink"
+    post:
+      operationId: createTrackingLink
+      tags: [tracking-links]
+      summary: Create a UTM tracking link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTrackingLinkBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingLink"
+
+  /tracking-links/{id}:
+    delete:
+      operationId: deleteTrackingLink
+      tags: [tracking-links]
+      summary: Delete a tracking link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # Metrics
+  /metrics:
+    get:
+      operationId: listMetrics
+      tags: [metrics]
+      summary: List ad metrics
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: platform
+          in: query
+          schema:
+            type: string
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+        - name: toDate
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdMetric"
+
+  /metrics/dashboard:
+    get:
+      operationId: getDashboardMetrics
+      tags: [metrics]
+      summary: Get dashboard summary metrics
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dashboard metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardMetrics"
+
+  # Connections
+  /connections:
+    get:
+      operationId: listConnections
+      tags: [connections]
+      summary: List platform connections
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformConnection"
+    post:
+      operationId: createConnection
+      tags: [connections]
+      summary: Create a mock platform connection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConnectionBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformConnection"
+
+  /connections/{id}:
+    delete:
+      operationId: deleteConnection
+      tags: [connections]
+      summary: Delete a platform connection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /connections/{id}/sync:
+    post:
+      operationId: syncConnection
+      tags: [connections]
+      summary: Trigger a mock sync for a connection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Sync result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncJobResult"
+
+  # Audit Logs
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit-logs]
+      summary: List audit log entries
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit log page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogPage"
+
+  # Meta
+  /meta/status:
+    get:
+      operationId: getMetaStatus
+      tags: [meta]
+      summary: Get Meta integration status
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetaStatus"
+
+  /meta/sync:
+    post:
+      operationId: syncMeta
+      tags: [meta]
+      summary: Sync read-only Meta data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncMetaBody"
+      responses:
+        "200":
+          description: Sync result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetaSyncResult"
+
+  # Recommendations
+  /recommendations:
+    get:
+      operationId: listRecommendations
+      tags: [recommendations]
+      summary: List recommendations
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: integer
+        - name: isRead
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+
+  /recommendations/{id}:
+    patch:
+      operationId: updateRecommendation
+      tags: [recommendations]
+      summary: Update a recommendation (e.g. mark as read)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecommendationBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recommendation"
+
+  /recommendations/generate:
+    post:
+      operationId: generateRecommendations
+      tags: [recommendations]
+      summary: Generate recommendations for a workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId:
+                  type: integer
+              required: [workspaceId]
+      responses:
+        "200":
+          description: Generated recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+
+  # Strategy
+  /strategy/intake:
+    get:
+      operationId: getStrategyIntake
+      tags: [strategy]
+      summary: Get strategy intake for a workspace
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Strategy intake
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyIntake"
+    post:
+      operationId: createStrategyIntake
+      tags: [strategy]
+      summary: Create strategy intake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StrategyIntakeBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyIntake"
+    put:
+      operationId: updateStrategyIntake
+      tags: [strategy]
+      summary: Update strategy intake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StrategyIntakeBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyIntake"
+
+  /strategy/diagnosis:
+    post:
+      operationId: generateStrategyDiagnosis
+      tags: [strategy]
+      summary: Generate a strategy diagnosis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId:
+                  type: integer
+              required: [workspaceId]
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyDiagnosis"
+
+  /strategy/diagnosis/latest:
+    get:
+      operationId: getLatestStrategyDiagnosis
+      tags: [strategy]
+      summary: Get the latest strategy diagnosis
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Latest diagnosis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyDiagnosis"
+
+  /strategy/create-campaign:
+    post:
+      operationId: createCampaignFromStrategy
+      tags: [strategy]
+      summary: Create a campaign from strategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId:
+                  type: integer
+              required: [workspaceId]
+      responses:
+        "201":
+          description: Created campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
 components:
   schemas:
     HealthCheckResponse:
@@ -408,55 +1071,71 @@ components:
           type: integer
         name:
           type: string
-        slug:
+        businessType:
+          type: string
+        country:
+          type: string
+        language:
+          type: string
+        defaultCurrency:
           type: string
         createdAt:
           type: string
-        updatedAt:
-          type: string
-      required: [id, name, slug, createdAt, updatedAt]
+      required: [id, name, businessType, country, language, defaultCurrency, createdAt]
 
     CreateWorkspaceBody:
       type: object
       properties:
         name:
           type: string
-        slug:
+        businessType:
           type: string
-      required: [name, slug]
+        country:
+          type: string
+        language:
+          type: string
+        defaultCurrency:
+          type: string
+      required: [name, businessType, country, language, defaultCurrency]
 
     WorkspaceMember:
       type: object
       properties:
         id:
           type: integer
-        workspaceId:
-          type: integer
         userId:
+          type: integer
+        workspaceId:
           type: integer
         role:
           type: string
-          enum: [admin, member, viewer]
+          enum: [owner, admin, editor, viewer]
+        email:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
         createdAt:
           type: string
-      required: [id, workspaceId, userId, role, createdAt]
+      required: [id, userId, role, createdAt]
 
     AddMemberBody:
       type: object
       properties:
-        userId:
-          type: integer
+        email:
+          type: string
         role:
           type: string
-          enum: [admin, member, viewer]
-      required: [userId, role]
+          enum: [admin, editor, viewer]
+      required: [email, role]
 
     UpdateMemberBody:
       type: object
       properties:
         role:
           type: string
-          enum: [admin, member, viewer]
+          enum: [admin, editor, viewer]
       required: [role]
 
     BrandProfile:
@@ -466,52 +1145,58 @@ components:
           type: integer
         workspaceId:
           type: integer
-        name:
+        brandName:
           type: string
-        logoUrl:
-          type: string
-          nullable: true
-        primaryColor:
-          type: string
-          nullable: true
-        secondaryColor:
-          type: string
-          nullable: true
-        fontFamily:
-          type: string
-          nullable: true
         toneOfVoice:
+          type: string
+          nullable: true
+        targetAudience:
+          type: string
+          nullable: true
+        productsServices:
+          type: string
+          nullable: true
+        forbiddenClaims:
+          type: string
+          nullable: true
+        preferredChannels:
+          type: array
+          items:
+            type: string
+        visualNotes:
           type: string
           nullable: true
         createdAt:
           type: string
-        updatedAt:
-          type: string
-      required: [id, workspaceId, name, createdAt, updatedAt]
+      required: [id, workspaceId, brandName, preferredChannels, createdAt]
 
     CreateBrandProfileBody:
       type: object
       properties:
         workspaceId:
           type: integer
-        name:
+        brandName:
           type: string
-        logoUrl:
-          type: string
-          nullable: true
-        primaryColor:
-          type: string
-          nullable: true
-        secondaryColor:
-          type: string
-          nullable: true
-        fontFamily:
-          type: string
-          nullable: true
         toneOfVoice:
           type: string
           nullable: true
-      required: [workspaceId, name]
+        targetAudience:
+          type: string
+          nullable: true
+        productsServices:
+          type: string
+          nullable: true
+        forbiddenClaims:
+          type: string
+          nullable: true
+        preferredChannels:
+          type: array
+          items:
+            type: string
+        visualNotes:
+          type: string
+          nullable: true
+      required: [workspaceId, brandName]
 
     Campaign:
       type: object
@@ -522,23 +1207,50 @@ components:
           type: integer
         name:
           type: string
-        status:
+        objective:
           type: string
-          enum: [draft, active, paused, completed, archived]
+        productService:
+          type: string
+          nullable: true
+        audience:
+          type: string
+          nullable: true
+        geography:
+          type: string
+          nullable: true
+        budgetSuggestion:
+          type: number
+          nullable: true
         startDate:
           type: string
           nullable: true
         endDate:
           type: string
           nullable: true
-        budget:
-          type: number
+        channels:
+          type: array
+          items:
+            type: string
+        landingUrl:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, approved, active, completed, archived]
+        publishedAt:
+          type: string
+          nullable: true
+        publishedBy:
+          type: string
+          nullable: true
+        publishedChannels:
+          type: array
+          items:
+            type: string
           nullable: true
         createdAt:
           type: string
-        updatedAt:
-          type: string
-      required: [id, workspaceId, name, status, createdAt, updatedAt]
+      required: [id, workspaceId, name, objective, channels, status, createdAt]
 
     CreateCampaignBody:
       type: object
@@ -547,16 +1259,615 @@ components:
           type: integer
         name:
           type: string
-        status:
+        objective:
           type: string
-          enum: [draft, active, paused, completed, archived]
+        productService:
+          type: string
+          nullable: true
+        audience:
+          type: string
+          nullable: true
+        geography:
+          type: string
+          nullable: true
+        budgetSuggestion:
+          type: number
+          nullable: true
         startDate:
           type: string
           nullable: true
         endDate:
           type: string
           nullable: true
-        budget:
-          type: number
+        channels:
+          type: array
+          items:
+            type: string
+        landingUrl:
+          type: string
           nullable: true
-      required: [workspaceId, name]
+      required: [workspaceId, name, objective]
+
+    ManualPublishBody:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+          nullable: true
+      required: [channels]
+
+    GeneratedAsset:
+      type: object
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        headline:
+          type: string
+        shortCaption:
+          type: string
+        longCaption:
+          type: string
+          nullable: true
+        cta:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        videoScript:
+          type: string
+          nullable: true
+        storyboardOutline:
+          type: string
+          nullable: true
+        status:
+          type: string
+        aiProvider:
+          type: string
+          nullable: true
+        aiModel:
+          type: string
+          nullable: true
+        promptVersion:
+          type: string
+          nullable: true
+        aiFallbackUsed:
+          type: boolean
+          nullable: true
+        imageBrief:
+          type: string
+          nullable: true
+        videoBrief:
+          type: string
+          nullable: true
+        assetReference:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, campaignId, headline, shortCaption, cta, hashtags, status, createdAt]
+
+    GenerateAssetsBody:
+      type: object
+      properties:
+        campaignId:
+          type: integer
+      required: [campaignId]
+
+    UpdateAssetBriefBody:
+      type: object
+      properties:
+        imageBrief:
+          type: string
+          nullable: true
+        videoBrief:
+          type: string
+          nullable: true
+        assetReference:
+          type: string
+          nullable: true
+
+    ChannelVariant:
+      type: object
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+        channel:
+          type: string
+        headline:
+          type: string
+        caption:
+          type: string
+        cta:
+          type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+      required: [id, assetId, channel, headline, caption, cta, hashtags]
+
+    ApprovalDecision:
+      type: object
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+          nullable: true
+        campaignId:
+          type: integer
+          nullable: true
+        actor:
+          type: string
+        decision:
+          type: string
+          enum: [approved, rejected, changes_requested]
+        reason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, actor, decision, createdAt]
+
+    CreateApprovalBody:
+      type: object
+      properties:
+        assetId:
+          type: integer
+          nullable: true
+        campaignId:
+          type: integer
+          nullable: true
+        decision:
+          type: string
+          enum: [approved, rejected, changes_requested]
+        reason:
+          type: string
+          nullable: true
+        actor:
+          type: string
+          nullable: true
+      required: [decision]
+
+    TrackingLink:
+      type: object
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        channel:
+          type: string
+        source:
+          type: string
+        medium:
+          type: string
+        campaign:
+          type: string
+        content:
+          type: string
+          nullable: true
+        finalUrl:
+          type: string
+        generatedTrackingUrl:
+          type: string
+        createdAt:
+          type: string
+      required: [id, campaignId, channel, source, medium, campaign, finalUrl, generatedTrackingUrl, createdAt]
+
+    CreateTrackingLinkBody:
+      type: object
+      properties:
+        campaignId:
+          type: integer
+        channel:
+          type: string
+        source:
+          type: string
+        medium:
+          type: string
+        campaign:
+          type: string
+        content:
+          type: string
+          nullable: true
+        finalUrl:
+          type: string
+      required: [campaignId, channel, source, medium, campaign, finalUrl]
+
+    AdMetric:
+      type: object
+      properties:
+        id:
+          type: integer
+        campaignId:
+          type: integer
+        platform:
+          type: string
+        date:
+          type: string
+        spend:
+          type: number
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+        ctr:
+          type: number
+        cpc:
+          type: number
+        conversions:
+          type: integer
+      required: [id, campaignId, platform, date, spend, impressions, clicks, ctr, cpc, conversions]
+
+    DailyTrendPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        spend:
+          type: number
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+        conversions:
+          type: integer
+      required: [date, spend, impressions, clicks, conversions]
+
+    DashboardMetrics:
+      type: object
+      properties:
+        totalSpend:
+          type: number
+        totalImpressions:
+          type: integer
+        totalClicks:
+          type: integer
+        totalConversions:
+          type: integer
+        avgCtr:
+          type: number
+        avgCpc:
+          type: number
+        bestChannel:
+          type: string
+        worstChannel:
+          type: string
+        dailyTrend:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyTrendPoint"
+      required: [totalSpend, totalImpressions, totalClicks, totalConversions, avgCtr, avgCpc, bestChannel, worstChannel, dailyTrend]
+
+    PlatformConnection:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        platform:
+          type: string
+        accountName:
+          type: string
+        accountId:
+          type: string
+        status:
+          type: string
+        mockSpend:
+          type: number
+        mockImpressions:
+          type: integer
+        mockClicks:
+          type: integer
+        lastSyncAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, workspaceId, platform, accountName, accountId, status, mockSpend, mockImpressions, mockClicks, createdAt]
+
+    CreateConnectionBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        platform:
+          type: string
+        accountName:
+          type: string
+      required: [workspaceId, platform, accountName]
+
+    SyncJobResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        connectionId:
+          type: integer
+        status:
+          type: string
+        startedAt:
+          type: string
+        completedAt:
+          type: string
+          nullable: true
+      required: [id, connectionId, status, startedAt]
+
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        action:
+          type: string
+        entityType:
+          type: string
+          nullable: true
+        entityId:
+          type: integer
+          nullable: true
+        actor:
+          type: string
+        details:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, workspaceId, action, actor, createdAt]
+
+    AuditLogPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLogEntry"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+      required: [items, total, limit, offset]
+
+    MetaStatus:
+      type: object
+      properties:
+        provider:
+          type: string
+        credentialsConfigured:
+          type: boolean
+        fallbackUsed:
+          type: boolean
+      required: [provider, credentialsConfigured, fallbackUsed]
+
+    MetaAdAccount:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required: [id, name]
+
+    MetaCampaign:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          nullable: true
+      required: [id, name]
+
+    MetaAccountMetrics:
+      type: object
+      properties:
+        accountId:
+          type: string
+        spend:
+          type: number
+        impressions:
+          type: integer
+        clicks:
+          type: integer
+      required: [accountId, spend, impressions, clicks]
+
+    MetaSyncResult:
+      type: object
+      properties:
+        adAccounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetaAdAccount"
+        campaigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetaCampaign"
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetaAccountMetrics"
+        provider:
+          type: string
+        fallbackUsed:
+          type: boolean
+        syncedAt:
+          type: string
+      required: [adAccounts, campaigns, metrics, provider, fallbackUsed, syncedAt]
+
+    SyncMetaBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+      required: [workspaceId]
+
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        campaignId:
+          type: integer
+          nullable: true
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        isRead:
+          type: boolean
+        source:
+          type: string
+          nullable: true
+        linkedStrategyId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, workspaceId, type, title, description, priority, isRead, createdAt]
+
+    UpdateRecommendationBody:
+      type: object
+      properties:
+        isRead:
+          type: boolean
+      required: [isRead]
+
+    StrategyIntake:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        businessCategory:
+          type: string
+          nullable: true
+        currentOffer:
+          type: string
+          nullable: true
+        targetAudience:
+          type: string
+          nullable: true
+        geography:
+          type: string
+          nullable: true
+        budgetRange:
+          type: string
+          nullable: true
+        primaryGoal:
+          type: string
+          nullable: true
+        brandVoice:
+          type: string
+          nullable: true
+        painPoints:
+          type: string
+          nullable: true
+        availableAssets:
+          type: string
+          nullable: true
+        previousLearnings:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, workspaceId, createdAt, updatedAt]
+
+    StrategyIntakeBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        businessCategory:
+          type: string
+          nullable: true
+        currentOffer:
+          type: string
+          nullable: true
+        targetAudience:
+          type: string
+          nullable: true
+        geography:
+          type: string
+          nullable: true
+        budgetRange:
+          type: string
+          nullable: true
+        primaryGoal:
+          type: string
+          nullable: true
+        brandVoice:
+          type: string
+          nullable: true
+        painPoints:
+          type: string
+          nullable: true
+        availableAssets:
+          type: string
+          nullable: true
+        previousLearnings:
+          type: string
+          nullable: true
+      required: [workspaceId]
+
+    StrategyDiagnosis:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        intakeId:
+          type: integer
+        summary:
+          type: string
+          nullable: true
+        whatIsMissing:
+          type: string
+          nullable: true
+        whatToTestFirst:
+          type: string
+          nullable: true
+        likelyCreativeDirection:
+          type: string
+          nullable: true
+        audienceSummary:
+          type: string
+          nullable: true
+        offerSummary:
+          type: string
+          nullable: true
+        topObjections:
+          type: string
+          nullable: true
+        suggestedCTA:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required: [id, workspaceId, intakeId, createdAt]

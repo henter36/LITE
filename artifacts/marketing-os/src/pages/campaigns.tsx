@@ -104,8 +104,8 @@ export default function Campaigns() {
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Calendar className="h-3.5 w-3.5" />
-                          {format(new Date(campaign.startDate), "MMM d")} –{" "}
-                          {format(new Date(campaign.endDate), "MMM d, yyyy")}
+                          {campaign.startDate ? format(new Date(campaign.startDate), "MMM d") : "—"} –{" "}
+                          {campaign.endDate ? format(new Date(campaign.endDate), "MMM d, yyyy") : "—"}
                         </span>
                       </div>
                       {campaign.channels.length > 0 && (

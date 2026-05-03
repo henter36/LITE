@@ -281,9 +281,9 @@ export default function CampaignDetail() {
   }
 
   const pacing = computeBudgetPacing(
-    campaign.budgetSuggestion,
-    campaign.startDate,
-    campaign.endDate,
+    campaign.budgetSuggestion ?? 0,
+    campaign.startDate ?? "",
+    campaign.endDate ?? "",
   );
 
   const verdictColor =
@@ -512,8 +512,8 @@ export default function CampaignDetail() {
                 <Calendar className="h-3.5 w-3.5" /> Duration
               </p>
               <p className="font-medium">
-                {format(parseISO(campaign.startDate), "MMM d")} –{" "}
-                {format(parseISO(campaign.endDate), "MMM d, yyyy")}
+                {campaign.startDate ? format(parseISO(campaign.startDate), "MMM d") : "—"} –{" "}
+                {campaign.endDate ? format(parseISO(campaign.endDate), "MMM d, yyyy") : "—"}
               </p>
             </div>
             <div className="sm:col-span-2">
@@ -540,7 +540,7 @@ export default function CampaignDetail() {
           <CardContent className="space-y-5">
             <div>
               <p className="text-sm text-muted-foreground mb-1">Budget Plan</p>
-              <p className="text-2xl font-bold">${campaign.budgetSuggestion.toLocaleString()}</p>
+              <p className="text-2xl font-bold">${(campaign.budgetSuggestion ?? 0).toLocaleString()}</p>
             </div>
 
             <div className="space-y-3 border rounded-lg p-4 bg-muted/20">

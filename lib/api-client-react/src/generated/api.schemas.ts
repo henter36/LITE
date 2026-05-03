@@ -19,30 +19,38 @@ export interface HealthCheckResponse {
 export interface Workspace {
   id: number;
   name: string;
-  slug: string;
+  businessType: string;
+  country: string;
+  language: string;
+  defaultCurrency: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface CreateWorkspaceBody {
   name: string;
-  slug: string;
+  businessType: string;
+  country: string;
+  language: string;
+  defaultCurrency: string;
 }
 
 export type WorkspaceMemberRole =
   (typeof WorkspaceMemberRole)[keyof typeof WorkspaceMemberRole];
 
 export const WorkspaceMemberRole = {
+  owner: "owner",
   admin: "admin",
-  member: "member",
+  editor: "editor",
   viewer: "viewer",
 } as const;
 
 export interface WorkspaceMember {
   id: number;
-  workspaceId: number;
   userId: number;
+  workspaceId?: number;
   role: WorkspaceMemberRole;
+  email?: string | null;
+  name?: string | null;
   createdAt: string;
 }
 
@@ -51,12 +59,12 @@ export type AddMemberBodyRole =
 
 export const AddMemberBodyRole = {
   admin: "admin",
-  member: "member",
+  editor: "editor",
   viewer: "viewer",
 } as const;
 
 export interface AddMemberBody {
-  userId: number;
+  email: string;
   role: AddMemberBodyRole;
 }
 
@@ -65,7 +73,7 @@ export type UpdateMemberBodyRole =
 
 export const UpdateMemberBodyRole = {
   admin: "admin",
-  member: "member",
+  editor: "editor",
   viewer: "viewer",
 } as const;
 
@@ -76,24 +84,25 @@ export interface UpdateMemberBody {
 export interface BrandProfile {
   id: number;
   workspaceId: number;
-  name: string;
-  logoUrl?: string | null;
-  primaryColor?: string | null;
-  secondaryColor?: string | null;
-  fontFamily?: string | null;
+  brandName: string;
   toneOfVoice?: string | null;
+  targetAudience?: string | null;
+  productsServices?: string | null;
+  forbiddenClaims?: string | null;
+  preferredChannels: string[];
+  visualNotes?: string | null;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface CreateBrandProfileBody {
   workspaceId: number;
-  name: string;
-  logoUrl?: string | null;
-  primaryColor?: string | null;
-  secondaryColor?: string | null;
-  fontFamily?: string | null;
+  brandName: string;
   toneOfVoice?: string | null;
+  targetAudience?: string | null;
+  productsServices?: string | null;
+  forbiddenClaims?: string | null;
+  preferredChannels?: string[];
+  visualNotes?: string | null;
 }
 
 export type CampaignStatus =
@@ -101,8 +110,8 @@ export type CampaignStatus =
 
 export const CampaignStatus = {
   draft: "draft",
+  approved: "approved",
   active: "active",
-  paused: "paused",
   completed: "completed",
   archived: "archived",
 } as const;
@@ -111,32 +120,328 @@ export interface Campaign {
   id: number;
   workspaceId: number;
   name: string;
-  status: CampaignStatus;
+  objective: string;
+  productService?: string | null;
+  audience?: string | null;
+  geography?: string | null;
+  budgetSuggestion?: number | null;
   startDate?: string | null;
   endDate?: string | null;
-  budget?: number | null;
+  channels: string[];
+  landingUrl?: string | null;
+  status: CampaignStatus;
+  publishedAt?: string | null;
+  publishedBy?: string | null;
+  publishedChannels?: string[] | null;
   createdAt: string;
-  updatedAt: string;
 }
-
-export type CreateCampaignBodyStatus =
-  (typeof CreateCampaignBodyStatus)[keyof typeof CreateCampaignBodyStatus];
-
-export const CreateCampaignBodyStatus = {
-  draft: "draft",
-  active: "active",
-  paused: "paused",
-  completed: "completed",
-  archived: "archived",
-} as const;
 
 export interface CreateCampaignBody {
   workspaceId: number;
   name: string;
-  status?: CreateCampaignBodyStatus;
+  objective: string;
+  productService?: string | null;
+  audience?: string | null;
+  geography?: string | null;
+  budgetSuggestion?: number | null;
   startDate?: string | null;
   endDate?: string | null;
-  budget?: number | null;
+  channels?: string[];
+  landingUrl?: string | null;
+}
+
+export interface ManualPublishBody {
+  channels: string[];
+  notes?: string | null;
+}
+
+export interface GeneratedAsset {
+  id: number;
+  campaignId: number;
+  headline: string;
+  shortCaption: string;
+  longCaption?: string | null;
+  cta: string;
+  hashtags: string[];
+  videoScript?: string | null;
+  storyboardOutline?: string | null;
+  status: string;
+  aiProvider?: string | null;
+  aiModel?: string | null;
+  promptVersion?: string | null;
+  aiFallbackUsed?: boolean | null;
+  imageBrief?: string | null;
+  videoBrief?: string | null;
+  assetReference?: string | null;
+  createdAt: string;
+}
+
+export interface GenerateAssetsBody {
+  campaignId: number;
+}
+
+export interface UpdateAssetBriefBody {
+  imageBrief?: string | null;
+  videoBrief?: string | null;
+  assetReference?: string | null;
+}
+
+export interface ChannelVariant {
+  id: number;
+  assetId: number;
+  channel: string;
+  headline: string;
+  caption: string;
+  cta: string;
+  hashtags: string[];
+}
+
+export type ApprovalDecisionDecision =
+  (typeof ApprovalDecisionDecision)[keyof typeof ApprovalDecisionDecision];
+
+export const ApprovalDecisionDecision = {
+  approved: "approved",
+  rejected: "rejected",
+  changes_requested: "changes_requested",
+} as const;
+
+export interface ApprovalDecision {
+  id: number;
+  assetId?: number | null;
+  campaignId?: number | null;
+  actor: string;
+  decision: ApprovalDecisionDecision;
+  reason?: string | null;
+  createdAt: string;
+}
+
+export type CreateApprovalBodyDecision =
+  (typeof CreateApprovalBodyDecision)[keyof typeof CreateApprovalBodyDecision];
+
+export const CreateApprovalBodyDecision = {
+  approved: "approved",
+  rejected: "rejected",
+  changes_requested: "changes_requested",
+} as const;
+
+export interface CreateApprovalBody {
+  assetId?: number | null;
+  campaignId?: number | null;
+  decision: CreateApprovalBodyDecision;
+  reason?: string | null;
+  actor?: string | null;
+}
+
+export interface TrackingLink {
+  id: number;
+  campaignId: number;
+  channel: string;
+  source: string;
+  medium: string;
+  campaign: string;
+  content?: string | null;
+  finalUrl: string;
+  generatedTrackingUrl: string;
+  createdAt: string;
+}
+
+export interface CreateTrackingLinkBody {
+  campaignId: number;
+  channel: string;
+  source: string;
+  medium: string;
+  campaign: string;
+  content?: string | null;
+  finalUrl: string;
+}
+
+export interface AdMetric {
+  id: number;
+  campaignId: number;
+  platform: string;
+  date: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  cpc: number;
+  conversions: number;
+}
+
+export interface DailyTrendPoint {
+  date: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+}
+
+export interface DashboardMetrics {
+  totalSpend: number;
+  totalImpressions: number;
+  totalClicks: number;
+  totalConversions: number;
+  avgCtr: number;
+  avgCpc: number;
+  bestChannel: string;
+  worstChannel: string;
+  dailyTrend: DailyTrendPoint[];
+}
+
+export interface PlatformConnection {
+  id: number;
+  workspaceId: number;
+  platform: string;
+  accountName: string;
+  accountId: string;
+  status: string;
+  mockSpend: number;
+  mockImpressions: number;
+  mockClicks: number;
+  lastSyncAt?: string | null;
+  createdAt: string;
+}
+
+export interface CreateConnectionBody {
+  workspaceId: number;
+  platform: string;
+  accountName: string;
+}
+
+export interface SyncJobResult {
+  id: number;
+  connectionId: number;
+  status: string;
+  startedAt: string;
+  completedAt?: string | null;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  workspaceId: number;
+  action: string;
+  entityType?: string | null;
+  entityId?: number | null;
+  actor: string;
+  details?: string | null;
+  createdAt: string;
+}
+
+export interface AuditLogPage {
+  items: AuditLogEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface MetaStatus {
+  provider: string;
+  credentialsConfigured: boolean;
+  fallbackUsed: boolean;
+}
+
+export interface MetaAdAccount {
+  id: string;
+  name: string;
+}
+
+export interface MetaCampaign {
+  id: string;
+  name: string;
+  status?: string | null;
+}
+
+export interface MetaAccountMetrics {
+  accountId: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+}
+
+export interface MetaSyncResult {
+  adAccounts: MetaAdAccount[];
+  campaigns: MetaCampaign[];
+  metrics: MetaAccountMetrics[];
+  provider: string;
+  fallbackUsed: boolean;
+  syncedAt: string;
+}
+
+export interface SyncMetaBody {
+  workspaceId: number;
+}
+
+export type RecommendationPriority =
+  (typeof RecommendationPriority)[keyof typeof RecommendationPriority];
+
+export const RecommendationPriority = {
+  high: "high",
+  medium: "medium",
+  low: "low",
+} as const;
+
+export interface Recommendation {
+  id: number;
+  workspaceId: number;
+  campaignId?: number | null;
+  type: string;
+  title: string;
+  description: string;
+  priority: RecommendationPriority;
+  isRead: boolean;
+  source?: string | null;
+  linkedStrategyId?: number | null;
+  createdAt: string;
+}
+
+export interface UpdateRecommendationBody {
+  isRead: boolean;
+}
+
+export interface StrategyIntake {
+  id: number;
+  workspaceId: number;
+  businessCategory?: string | null;
+  currentOffer?: string | null;
+  targetAudience?: string | null;
+  geography?: string | null;
+  budgetRange?: string | null;
+  primaryGoal?: string | null;
+  brandVoice?: string | null;
+  painPoints?: string | null;
+  availableAssets?: string | null;
+  previousLearnings?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StrategyIntakeBody {
+  workspaceId: number;
+  businessCategory?: string | null;
+  currentOffer?: string | null;
+  targetAudience?: string | null;
+  geography?: string | null;
+  budgetRange?: string | null;
+  primaryGoal?: string | null;
+  brandVoice?: string | null;
+  painPoints?: string | null;
+  availableAssets?: string | null;
+  previousLearnings?: string | null;
+}
+
+export interface StrategyDiagnosis {
+  id: number;
+  workspaceId: number;
+  intakeId: number;
+  summary?: string | null;
+  whatIsMissing?: string | null;
+  whatToTestFirst?: string | null;
+  likelyCreativeDirection?: string | null;
+  audienceSummary?: string | null;
+  offerSummary?: string | null;
+  topObjections?: string | null;
+  suggestedCTA?: string | null;
+  createdAt: string;
 }
 
 export type ListBrandProfilesParams = {
@@ -146,4 +451,72 @@ export type ListBrandProfilesParams = {
 export type ListCampaignsParams = {
   workspaceId?: number;
   status?: string;
+};
+
+export type ListAssetsParams = {
+  campaignId: number;
+  status?: string;
+};
+
+export type ListApprovalsParams = {
+  assetId?: number;
+  campaignId?: number;
+};
+
+export type ListTrackingLinksParams = {
+  campaignId?: number;
+};
+
+export type ListMetricsParams = {
+  campaignId?: number;
+  workspaceId?: number;
+  platform?: string;
+  fromDate?: string;
+  toDate?: string;
+};
+
+export type GetDashboardMetricsParams = {
+  workspaceId?: number;
+};
+
+export type ListConnectionsParams = {
+  workspaceId?: number;
+};
+
+export type ListAuditLogsParams = {
+  workspaceId?: number;
+  action?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+};
+
+export type GetMetaStatusParams = {
+  workspaceId?: number;
+};
+
+export type ListRecommendationsParams = {
+  workspaceId?: number;
+  campaignId?: number;
+  isRead?: boolean;
+};
+
+export type GenerateRecommendationsBody = {
+  workspaceId: number;
+};
+
+export type GetStrategyIntakeParams = {
+  workspaceId: number;
+};
+
+export type GenerateStrategyDiagnosisBody = {
+  workspaceId: number;
+};
+
+export type GetLatestStrategyDiagnosisParams = {
+  workspaceId: number;
+};
+
+export type CreateCampaignFromStrategyBody = {
+  workspaceId: number;
 };

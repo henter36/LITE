@@ -61,12 +61,12 @@ export default function BrandProfile() {
     if (profile) {
       form.reset({
         brandName: profile.brandName,
-        toneOfVoice: profile.toneOfVoice,
-        targetAudience: profile.targetAudience,
-        productsServices: profile.productsServices,
-        forbiddenClaims: profile.forbiddenClaims,
+        toneOfVoice: profile.toneOfVoice ?? undefined,
+        targetAudience: profile.targetAudience ?? undefined,
+        productsServices: profile.productsServices ?? undefined,
+        forbiddenClaims: profile.forbiddenClaims ?? undefined,
         preferredChannels: profile.preferredChannels,
-        visualNotes: profile.visualNotes,
+        visualNotes: profile.visualNotes ?? undefined,
       });
     }
   }, [profile, form]);
