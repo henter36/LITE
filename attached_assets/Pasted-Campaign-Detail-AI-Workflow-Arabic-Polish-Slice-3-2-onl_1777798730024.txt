@@ -1,0 +1,168 @@
+Campaign Detail + AI Workflow Arabic Polish Slice 3.2 only.
+
+The Campaign list is acceptable for now. Do not modify the campaign list further unless needed for a tiny shared label fix.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/campaign-detail.tsx
+- artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx
+- docs/ui_alignment_campaign_slice_report.md
+
+Objective:
+Make Campaign Detail and the AI Workflow tab Arabic-first, RTL-polished, and visually consistent with the accepted Dashboard/Brand direction, while preserving all guards, dialogs, mutations, readiness logic, and draft-only AI behavior.
+
+Current issues to fix:
+- Campaign Detail still contains many English UI labels.
+- Purple still appears in readiness/progress/actions.
+- AI Workflow tab is still mostly English.
+- Action buttons are English.
+- Completion/readiness checklist labels are English.
+- The page feels technical instead of an Arabic campaign operating cockpit.
+
+1. Campaign Detail copy cleanup
+Translate visible UI labels only. Do not translate saved campaign names or user-entered data.
+
+Required translations:
+- Performance → الأداء
+- Publish → النشر اليدوي
+- Approve → اعتماد
+- Generate Ads → توليد نصوص إعلانية
+- Create Campaign → إنشاء الحملة
+- AI Workflow Status → حالة سير عمل الذكاء الاصطناعي
+- Approved ads → الإعلانات المعتمدة
+- Strategy context → سياق الاستراتيجية
+- Approved creative asset/reference → أصل/مرجع إبداعي معتمد
+- Campaign marked ready → الحملة معلّمة كجاهزة
+- Tracking link or landing URL → رابط تتبع أو صفحة هبوط
+- Selected channels → القنوات المحددة
+- Not started → لم يبدأ
+- Draft only → مسودة فقط
+- Ready / Complete / Missing → جاهز / مكتمل / ناقص where applicable
+
+2. Campaign Detail visual cleanup
+Use green/teal identity consistently:
+- reduce purple progress bars/buttons/badges
+- use emerald status badges
+- use soft white cards
+- preserve current layout but make it cleaner
+- no behavior changes
+
+3. AI Assist card cleanup
+Translate visible labels and helper text:
+- مساعد الذكاء الاصطناعي
+- توليد اقتراحات نصية
+- مسودة فقط
+- لا يعتمد المحتوى ولا ينشر الحملة
+
+Keep AI suggestions draft-only.
+Do not change route or backend behavior.
+
+4. AI Workflow tab full Arabic pass
+Translate all visible copy in campaign-workflow-tab.tsx.
+
+Required section titles:
+- Step 1 — Client Intake → الخطوة 1 — مدخلات العميل
+- Step 2 — Strategy Brief → الخطوة 2 — موجز الاستراتيجية
+- Step 3 — Creative Brief → الخطوة 3 — الموجز الإبداعي
+- Step 4 — Text Suggestions → الخطوة 4 — اقتراحات النصوص
+- Step 5 — Image Prompt Specs → الخطوة 5 — مواصفات مطالبة الصورة
+- Step 6 — Video Script / Storyboard Specs → الخطوة 6 — نص الفيديو ولوحة المشاهد
+
+Required button labels:
+- Save Intake → حفظ المدخلات
+- Generate Strategy Brief → توليد موجز الاستراتيجية
+- Generate Creative Brief → توليد الموجز الإبداعي
+- Generate Text Suggestions → توليد اقتراحات النصوص
+- Generate Image Prompt Specs → توليد مواصفات الصورة
+- Generate Video Script Specs → توليد نص الفيديو
+
+Translate helper text:
+- AI-generated campaign strategy draft...
+- Draft creative direction...
+- Draft hooks, ad copy...
+- Prompt text and specs...
+- Draft video concept...
+into clear Arabic.
+
+5. AI Workflow safety wording
+For image/video specs, clearly state:
+- هذه مواصفات فقط، ولا يتم توليد صور.
+- هذه خطة نصية فقط، ولا يتم توليد فيديو أو رفع ملفات.
+
+6. Preserve all logic
+Do not change:
+- readiness score
+- missing requirements
+- publish checklist
+- manual publish guard at UI and handler level
+- viewer restrictions
+- tracking link dialog
+- publish dialog
+- approve/publish/create-link mutations
+- AI workflow auth/role/workspace scoping
+- AI output draft-only behavior
+
+7. Unsupported feature handling
+Do not add or imply:
+- upload
+- image generation
+- video generation
+- live publishing
+- autonomous optimization
+- budget automation
+
+Manual publishing remains external/manual only.
+
+Documentation:
+Update:
+docs/ui_alignment_campaign_slice_report.md
+
+Add:
+- Campaign Detail 3.2 Arabic polish summary
+- AI Workflow tab Arabic polish summary
+- English labels removed/reduced
+- purple styling reduced
+- preserved guards/workflows
+- unsupported features still deferred
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard changes
+- no Brand changes
+- no Content/Review changes
+- no new pages
+- no upload/media/live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- Campaign Detail polish completed
+- AI Workflow Arabic polish completed
+- screenshot/visual evidence status
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision

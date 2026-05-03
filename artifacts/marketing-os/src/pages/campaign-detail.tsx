@@ -707,7 +707,7 @@ export default function CampaignDetail() {
               <Badge variant="outline" className="capitalize text-emerald-700 border-emerald-200 bg-white">
                 {campaign.objective}
               </Badge>
-              <Badge variant="outline" className={manualPublishReady ? "bg-green-500/10 text-green-700 border-green-500/20" : ""}>
+              <Badge variant="outline" className={manualPublishReady ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" : ""}>
                 {manualPublishReady ? "جاهزة للنشر اليدوي" : "غير جاهزة"}
               </Badge>
             </div>
@@ -717,7 +717,7 @@ export default function CampaignDetail() {
             {!isViewer && !isApproved && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button onClick={handleApprove} disabled={approveCampaign.isPending}>
+                  <Button onClick={handleApprove} disabled={approveCampaign.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                     <CheckCircle className="mr-2 h-4 w-4" />
                     {approveCampaign.isPending ? "جارٍ الحفظ…" : "تأكيد جاهزية الحملة"}
                   </Button>
@@ -738,13 +738,13 @@ export default function CampaignDetail() {
               </Button>
             )}
             {isPublished && (
-              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20 flex items-center gap-1.5 px-3 py-1.5">
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 flex items-center gap-1.5 px-3 py-1.5">
                 <Check className="h-3.5 w-3.5" />
                 منشورة
               </Badge>
             )}
             {isApproved && !isPublished && (
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 flex items-center gap-1.5 px-3 py-1.5">
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5 px-3 py-1.5">
                 <Check className="h-3.5 w-3.5" />
                 جاهزة
               </Badge>
@@ -763,7 +763,7 @@ export default function CampaignDetail() {
                   <ClipboardCheck className="h-5 w-5 text-emerald-600" />
                   جاهزية الحملة
                 </CardTitle>
-                <Badge variant="outline" className={manualPublishReady ? "bg-green-500/10 text-green-700 border-green-500/20" : ""}>
+                <Badge variant="outline" className={manualPublishReady ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" : ""}>
                   {readinessScore}%
                 </Badge>
               </div>
@@ -776,12 +776,12 @@ export default function CampaignDetail() {
               )}
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2 text-sm">
                 {[
-                  { label: "ملخص الاستراتيجية", value: hasStrategyContext ? "موجود" : "ناقص", ok: hasStrategyContext },
-                  { label: "اعتماد المحتوى", value: hasApprovedAd ? "إعلانات معتمدة" : "لا يوجد اعتماد بعد", ok: hasApprovedAd },
-                  { label: "اعتماد الأصول", value: hasApprovedCreativeAsset ? `${approvedCreativeAssetCount} معتمد` : "مرجع معتمد غير موجود", ok: hasApprovedCreativeAsset },
-                  { label: "الرابط / التتبع", value: hasTrackingLink || campaign.landingUrl ? "متاح" : "ناقص", ok: !!(hasTrackingLink || campaign.landingUrl) },
-                  { label: "الجاهزية", value: isApproved ? "جاهزة" : "غير جاهزة", ok: isApproved },
-                  { label: "النشر اليدوي", value: manualPublishReady ? "مسموح" : "محجوب", ok: manualPublishReady },
+                    { label: "سياق الاستراتيجية", value: hasStrategyContext ? "جاهز" : "ناقص", ok: hasStrategyContext },
+                    { label: "الإعلانات المعتمدة", value: hasApprovedAd ? "مكتمل" : "ناقص", ok: hasApprovedAd },
+                    { label: "أصل/مرجع إبداعي معتمد", value: hasApprovedCreativeAsset ? `${approvedCreativeAssetCount} مكتمل` : "ناقص", ok: hasApprovedCreativeAsset },
+                    { label: "رابط تتبع أو صفحة هبوط", value: hasTrackingLink || campaign.landingUrl ? "مكتمل" : "ناقص", ok: !!(hasTrackingLink || campaign.landingUrl) },
+                    { label: "الحملة معلّمة كجاهزة", value: isApproved ? "جاهز" : "ناقص", ok: isApproved },
+                    { label: "النشر اليدوي", value: manualPublishReady ? "مسموح" : "محجوب", ok: manualPublishReady },
                 ].map(({ label, value, ok }) => (
                   <div key={label} className={`rounded-xl border p-3 ${ok ? "border-emerald-100 bg-emerald-50/40" : "border-slate-100 bg-white"}`}>
                     <p className="text-muted-foreground text-xs mb-1">{label}</p>
@@ -792,7 +792,7 @@ export default function CampaignDetail() {
               <div className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 to-white p-4 space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium text-sm">مقياس الجاهزية</p>
-                  <Badge variant="outline">{readinessScore}%</Badge>
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">{readinessScore}%</Badge>
                 </div>
                 <Progress value={readinessScore} className="h-2" />
                 <div className="grid sm:grid-cols-2 gap-1.5 text-xs">
@@ -809,10 +809,10 @@ export default function CampaignDetail() {
               <WorkflowStatusPanel status={workflowStatus} />
               <div className="flex flex-wrap gap-2 pt-1">
                 <Link href="/strategy">
-                  <Button variant="outline" size="sm">صفحة الاستراتيجية</Button>
+                        <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700">صفحة الاستراتيجية</Button>
                 </Link>
                 <Link href="/campaigns">
-                  <Button variant="outline" size="sm">مكتبة الأصول الإعلانية</Button>
+                        <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700">مكتبة الأصول الإعلانية</Button>
                 </Link>
               </div>
             </CardContent>
@@ -825,7 +825,7 @@ export default function CampaignDetail() {
                 <Sparkles className="h-4 w-4 text-emerald-600" />
                 مساعد الذكاء الاصطناعي
               </CardTitle>
-              <CardDescription>اقتراحات مسودة فقط — بدايات، نصوص إعلانية، CTAs.</CardDescription>
+              <CardDescription>مسودة فقط — لا يعتمد المحتوى ولا ينشر الحملة.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button
@@ -848,20 +848,20 @@ export default function CampaignDetail() {
               {aiAssistResult ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   {[
-                    ["Hooks", aiAssistResult.hooks],
-                    ["Ad copy variants", aiAssistResult.adCopyVariants],
-                    ["Captions", aiAssistResult.captions],
-                    ["CTAs", aiAssistResult.ctas],
-                    ["Improvement notes", aiAssistResult.improvementNotes],
-                    ["Missing context", aiAssistResult.missingContextWarnings],
-                    ["Safety notes", aiAssistResult.safetyNotes],
+                    ["الخطافات", aiAssistResult.hooks],
+                    ["نسخ إعلانية", aiAssistResult.adCopyVariants],
+                    ["التعليقات", aiAssistResult.captions],
+                    ["النداءات إلى الإجراء", aiAssistResult.ctas],
+                    ["ملاحظات التحسين", aiAssistResult.improvementNotes],
+                    ["السياق الناقص", aiAssistResult.missingContextWarnings],
+                    ["ملاحظات السلامة", aiAssistResult.safetyNotes],
                   ].map(([label, items]) => (
                     <div key={String(label)} className="rounded-xl border border-emerald-100 bg-white p-4">
                       <p className="font-medium mb-2 text-sm">{label}</p>
                       <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
                         {(items as string[]).length > 0
                           ? (items as string[]).map((item) => <li key={item}>{item}</li>)
-                          : <li>No suggestions returned.</li>}
+                          : <li>لا توجد اقتراحات.</li>}
                       </ul>
                     </div>
                   ))}

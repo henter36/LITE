@@ -658,7 +658,7 @@ function TextSuggestionsStep({
   const handleGenerate = async () => {
     if (isViewer) {
       setStatus("error");
-      setErrMsg("View-only access: ask an editor to generate AI suggestions.");
+      setErrMsg("وضع العرض فقط: اطلب من محرر توليد اقتراحات الذكاء الاصطناعي.");
       return;
     }
     setLoading(true);
@@ -700,7 +700,7 @@ function TextSuggestionsStep({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {status === "unavailable" && <UnavailableBanner message="AI text suggestions unavailable until OPENAI_API_KEY is configured." />}
+        {status === "unavailable" && <UnavailableBanner message="اقتراحات الذكاء الاصطناعي النصية غير متاحة حتى يتم إعداد OPENAI_API_KEY." />}
         {status === "error" && errMsg && <ErrorBanner message={errMsg} />}
         {result ? (
           <>
@@ -726,7 +726,7 @@ function TextSuggestionsStep({
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Generate text suggestions to get draft hooks, copy variants, captions, and CTAs.
+            ولّد اقتراحات النصوص للحصول على مسودات الخطافات والنسخ الإعلانية والتعليقات والنداءات إلى الإجراء.
           </p>
         )}
       </CardContent>
@@ -812,7 +812,7 @@ function ImagePromptSpecsStep({
           <>
             <DraftBanner />
             <div className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-              These are prompt specifications only. No images are generated or uploaded.
+            هذه مواصفات فقط، ولا يتم توليد صور أو رفعها.
             </div>
             <div className="space-y-3">
               <CollapseCard title="مطالبات الصورة" icon={Image} defaultOpen>
@@ -837,7 +837,7 @@ function ImagePromptSpecsStep({
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Generate image prompt specs to see prompt text, style direction, composition notes, and channel format requirements.
+            ولّد مواصفات مطالبة الصورة لعرض نص المطالبة واتجاه الأسلوب وملاحظات التكوين ومتطلبات تنسيق القنوات.
           </p>
         )}
       </CardContent>
@@ -923,7 +923,7 @@ function VideoScriptSpecsStep({
           <>
             <DraftBanner />
             <div className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-              These are script and storyboard specs only. No video is generated or uploaded.
+            هذه خطة نصية فقط، ولا يتم توليد فيديو أو رفع ملفات.
             </div>
             <div className="space-y-3">
               <CollapseCard title="مفهوم الفيديو" icon={Video} defaultOpen>
@@ -951,7 +951,7 @@ function VideoScriptSpecsStep({
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Generate video script specs to see concept, script, storyboard, voiceover draft, and platform notes.
+            ولّد نص الفيديو لعرض المفهوم والنص ولوحة المشاهد ومسودة التعليق الصوتي وملاحظات المنصة.
           </p>
         )}
       </CardContent>
