@@ -1,19 +1,36 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { auditLogsTable, campaignsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { auditLogsTable, strategyIntakesTable, strategyDiagnosesTable } from "@workspace/db";
+import { desc, eq } from "drizzle-orm";
 import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
+import { getAIProvider, MockAIProvider } from "../lib/ai-provider";
 
 const router = Router();
 
-function parseJson(value: string | null) {
-  if (!value) return null;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
+async function requireWorkspaceEditor(userId: number, workspaceId: number) {
+  const role = await getMemberRole(userId, workspaceId);
+  if (!role) return null;
+  return hasMinRole(role, "editor") ? role : null;
 }
+
+router.get("/strategy/intake", requireAuth, async (req, res): Promise<void> => {
+  const workspaceId = Number(req.query.workspaceId);
+  if (!workspaceId) {
+    res.status(400).json({ error: "workspaceId is required" });
+    return;
+  }
+  const role = await getMemberRole(req.session.userId!, workspaceId);
+  if (!role) {
+    res.status(403).json({ error: "Access denied" });
+    return;
+  }
+  const [intake] = await db.select().from(strategyIntakesTable).where(eq(strategyIntakesTable.workspaceId, workspaceId)).orderBy(desc(strategyIntakesTable.updatedAt));
+  if (!intake) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  res.json(intake);
+});
 
 router.post("/strategy/intake", requireAuth, async (req, res): Promise<void> => {
   const { workspaceId, ...input } = req.body ?? {};
@@ -21,162 +38,133 @@ router.post("/strategy/intake", requireAuth, async (req, res): Promise<void> => 
     res.status(400).json({ error: "workspaceId is required" });
     return;
   }
-  const role = await getMemberRole(req.session.userId!, Number(workspaceId));
+  const role = await requireWorkspaceEditor(req.session.userId!, Number(workspaceId));
   if (!role) {
-    res.status(403).json({ error: "Access denied" });
-    return;
-  }
-  if (!hasMinRole(role, "editor")) {
     res.status(403).json({ error: "Requires editor role or above" });
     return;
   }
-  const payload = {
+  const [created] = await db.insert(strategyIntakesTable).values({
     workspaceId: Number(workspaceId),
-    ...input,
-    currentChannels: Array.isArray(input.currentChannels) ? input.currentChannels : [],
-  };
-  await db.insert(auditLogsTable).values({
-    workspaceId: Number(workspaceId),
-    action: "strategy_intake_saved",
-    entityType: "strategy",
-    entityId: 0,
-    actor: actor(req),
-    details: `Strategy intake saved for workspace ${workspaceId}`,
-  });
-  res.status(201).json(payload);
-});
-
-router.post("/strategy/diagnose", requireAuth, async (req, res): Promise<void> => {
-  const { workspaceId, intake } = req.body ?? {};
-  if (!workspaceId || !intake) {
-    res.status(400).json({ error: "workspaceId and intake are required" });
-    return;
-  }
-  const role = await getMemberRole(req.session.userId!, Number(workspaceId));
-  if (!role) {
-    res.status(403).json({ error: "Access denied" });
-    return;
-  }
-  const audienceClarity = intake.targetCustomers ? "Moderate" : "Low";
-  const offerStrength = intake.currentOffers ? "Moderate" : "Low";
-  const channelReadiness = Array.isArray(intake.currentChannels) && intake.currentChannels.length > 0 ? "Moderate" : "Low";
-  const diagnosis = {
-    currentSituation: "The business has a defined offer and can now translate it into a testable strategy.",
-    audienceClarity,
-    offerStrength,
-    channelReadiness,
-    funnelGaps: ["Strategy definition", "Creative brief clarity", "Measurement discipline"],
-    risks: ["Broad messaging", "Weak differentiation", "Insufficient human review"],
-    opportunities: ["Sharper positioning", "Better channel fit", "Reusable approved creative"],
-  };
-  await db.insert(auditLogsTable).values({
-    workspaceId: Number(workspaceId),
-    action: "strategy_diagnosis_generated",
-    entityType: "strategy",
-    entityId: 0,
-    actor: actor(req),
-    details: `Strategy diagnosis generated for workspace ${workspaceId}`,
-  });
-  res.json(diagnosis);
-});
-
-router.post("/strategy/drafts", requireAuth, async (req, res): Promise<void> => {
-  const { workspaceId, intake, diagnosis, audienceAnalysis } = req.body ?? {};
-  if (!workspaceId || !intake || !diagnosis || !audienceAnalysis) {
-    res.status(400).json({ error: "workspaceId, intake, diagnosis, and audienceAnalysis are required" });
-    return;
-  }
-  const role = await getMemberRole(req.session.userId!, Number(workspaceId));
-  if (!role) {
-    res.status(403).json({ error: "Access denied" });
-    return;
-  }
-  if (!hasMinRole(role, "editor")) {
-    res.status(403).json({ error: "Requires editor role or above" });
-    return;
-  }
-  const strategyDraft = {
-    positioningStatement: `For ${intake.targetCustomers || "the target audience"}, ${intake.businessOverview || "the business"} is the best choice because it clearly connects the offer to the audience need.`,
-    recommendedChannels: Array.isArray(intake.currentChannels) && intake.currentChannels.length > 0 ? intake.currentChannels.slice(0, 4) : ["instagram", "youtube"],
-    contentPillars: [
-      "Problem awareness",
-      "Offer clarity",
-      "Proof and trust",
-    ],
-    campaignIdeas: [
-      "Launch a clear-value test campaign",
-      "Use audience-specific proof points",
-      "Create one message per segment",
-    ],
-    actionPlan30Days: [
-      "Week 1: finalize messaging and offer angle",
-      "Week 2: prepare campaign assets and approval",
-      "Week 3: launch approved campaign",
-      "Week 4: review results and iterate",
-    ],
-    measurementPlan: [
-      "Track approved assets",
-      "Measure link clicks and conversions",
-      "Review audience resonance",
-    ],
-    objective: "leads",
-    audience: intake.targetCustomers || "",
-    productService: intake.currentOffers || intake.productsServices || "",
-    channels: Array.isArray(intake.currentChannels) ? intake.currentChannels : [],
-    messagingAngle: audienceAnalysis.messagingAngle || "Lead with clarity and trust",
-  };
-  await db.insert(auditLogsTable).values({
-    workspaceId: Number(workspaceId),
-    action: "strategy_draft_created",
-    entityType: "strategy",
-    entityId: 0,
-    actor: actor(req),
-    details: `Strategy draft created for workspace ${workspaceId}`,
-  });
-  res.status(201).json(strategyDraft);
-});
-
-router.post("/strategy/drafts/:id/create-campaign", requireAuth, async (req, res): Promise<void> => {
-  const draftId = Number(req.params.id);
-  const { workspaceId, name } = req.body ?? {};
-  if (!workspaceId || !name) {
-    res.status(400).json({ error: "workspaceId and name are required" });
-    return;
-  }
-  const role = await getMemberRole(req.session.userId!, Number(workspaceId));
-  if (!role) {
-    res.status(403).json({ error: "Access denied" });
-    return;
-  }
-  if (!hasMinRole(role, "editor")) {
-    res.status(403).json({ error: "Requires editor role or above" });
-    return;
-  }
-  const [workspaceCampaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, draftId));
-  const strategy = parseJson(req.body.strategy ?? null) ?? req.body.strategy;
-  const [campaign] = await db.insert(campaignsTable).values({
-    workspaceId: Number(workspaceId),
-    name,
-    objective: strategy?.objective || "leads",
-    productService: strategy?.productService || "",
-    audience: strategy?.audience || "",
-    geography: req.body.geography || workspaceCampaign?.geography || "",
-    budgetSuggestion: req.body.budgetSuggestion || 0,
-    startDate: req.body.startDate || new Date().toISOString().slice(0, 10),
-    endDate: req.body.endDate || new Date().toISOString().slice(0, 10),
-    channels: JSON.stringify(strategy?.channels || []),
-    landingUrl: req.body.landingUrl || "",
-    status: "draft",
+    businessCategory: input.businessCategory || "",
+    currentOffer: input.currentOffer || "",
+    targetAudience: input.targetAudience || "",
+    geography: input.geography || "",
+    budgetRange: input.budgetRange || "",
+    primaryGoal: input.primaryGoal || "",
+    brandVoice: input.brandVoice || "",
+    painPoints: input.painPoints || "",
+    availableAssets: input.availableAssets || "",
+    previousLearnings: input.previousLearnings || "",
   }).returning();
-  await db.insert(auditLogsTable).values({
-    workspaceId: Number(workspaceId),
-    action: "campaign_created_from_strategy",
-    entityType: "campaign",
-    entityId: campaign.id,
-    actor: actor(req),
-    details: `Campaign "${name}" created from strategy draft ${draftId}`,
+  await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "strategy_intake_created", entityType: "strategy_intake", entityId: created.id, actor: actor(req), details: `Strategy intake created for workspace ${workspaceId}` });
+  res.status(201).json(created);
+});
+
+router.put("/strategy/intake", requireAuth, async (req, res): Promise<void> => {
+  const { workspaceId, ...input } = req.body ?? {};
+  if (!workspaceId) {
+    res.status(400).json({ error: "workspaceId is required" });
+    return;
+  }
+  const role = await requireWorkspaceEditor(req.session.userId!, Number(workspaceId));
+  if (!role) {
+    res.status(403).json({ error: "Requires editor role or above" });
+    return;
+  }
+  const [existing] = await db.select().from(strategyIntakesTable).where(eq(strategyIntakesTable.workspaceId, Number(workspaceId))).orderBy(desc(strategyIntakesTable.updatedAt));
+  if (!existing) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  const [updated] = await db.update(strategyIntakesTable).set({
+    businessCategory: input.businessCategory ?? existing.businessCategory,
+    currentOffer: input.currentOffer ?? existing.currentOffer,
+    targetAudience: input.targetAudience ?? existing.targetAudience,
+    geography: input.geography ?? existing.geography,
+    budgetRange: input.budgetRange ?? existing.budgetRange,
+    primaryGoal: input.primaryGoal ?? existing.primaryGoal,
+    brandVoice: input.brandVoice ?? existing.brandVoice,
+    painPoints: input.painPoints ?? existing.painPoints,
+    availableAssets: input.availableAssets ?? existing.availableAssets,
+    previousLearnings: input.previousLearnings ?? existing.previousLearnings,
+    updatedAt: new Date(),
+  }).where(eq(strategyIntakesTable.id, existing.id)).returning();
+  await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "strategy_intake_updated", entityType: "strategy_intake", entityId: updated.id, actor: actor(req), details: `Strategy intake updated for workspace ${workspaceId}` });
+  res.json(updated);
+});
+
+router.post("/strategy/diagnosis", requireAuth, async (req, res): Promise<void> => {
+  const { workspaceId } = req.body ?? {};
+  if (!workspaceId) {
+    res.status(400).json({ error: "workspaceId is required" });
+    return;
+  }
+  const role = await requireWorkspaceEditor(req.session.userId!, Number(workspaceId));
+  if (!role) {
+    res.status(403).json({ error: "Requires editor role or above" });
+    return;
+  }
+  const [intake] = await db.select().from(strategyIntakesTable).where(eq(strategyIntakesTable.workspaceId, Number(workspaceId))).orderBy(desc(strategyIntakesTable.updatedAt));
+  if (!intake) {
+    res.status(404).json({ error: "No strategy intake found" });
+    return;
+  }
+  const { provider } = getAIProvider();
+  const ai = provider ?? new MockAIProvider();
+  const result = await ai.generate({
+    campaign: {
+      name: `Strategy for workspace ${workspaceId}`,
+      objective: intake.primaryGoal,
+      productService: intake.currentOffer,
+      audience: intake.targetAudience,
+      geography: intake.geography,
+    },
   });
-  res.status(201).json(campaign);
+  const diagnosis = {
+    workspaceId: Number(workspaceId),
+    intakeId: intake.id,
+    summary: `Focus on ${intake.primaryGoal} with clearer positioning.`,
+    whatIsMissing: intake.painPoints || "More detail on constraints and objections.",
+    whatToTestFirst: `Test ${intake.currentOffer} with ${intake.targetAudience}.`,
+    likelyCreativeDirection: result.output.headline,
+    audienceSummary: intake.targetAudience,
+    offerSummary: intake.currentOffer,
+    topObjections: intake.painPoints || "",
+    suggestedCTA: result.output.cta,
+  };
+  const [created] = await db.insert(strategyDiagnosesTable).values({
+    workspaceId: Number(workspaceId),
+    intakeId: intake.id,
+    summary: diagnosis.summary,
+    whatIsMissing: diagnosis.whatIsMissing,
+    whatToTestFirst: diagnosis.whatToTestFirst,
+    likelyCreativeDirection: diagnosis.likelyCreativeDirection,
+    audienceSummary: diagnosis.audienceSummary,
+    offerSummary: diagnosis.offerSummary,
+    topObjections: diagnosis.topObjections,
+    suggestedCTA: diagnosis.suggestedCTA,
+  }).returning();
+  await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "strategy_diagnosis_created", entityType: "strategy_diagnosis", entityId: created.id, actor: actor(req), details: `Strategy diagnosis created for workspace ${workspaceId}` });
+  res.status(201).json(created);
+});
+
+router.get("/strategy/diagnosis/latest", requireAuth, async (req, res): Promise<void> => {
+  const workspaceId = Number(req.query.workspaceId);
+  if (!workspaceId) {
+    res.status(400).json({ error: "workspaceId is required" });
+    return;
+  }
+  const role = await getMemberRole(req.session.userId!, workspaceId);
+  if (!role) {
+    res.status(403).json({ error: "Access denied" });
+    return;
+  }
+  const [diagnosis] = await db.select().from(strategyDiagnosesTable).where(eq(strategyDiagnosesTable.workspaceId, workspaceId)).orderBy(desc(strategyDiagnosesTable.createdAt));
+  if (!diagnosis) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  res.json(diagnosis);
 });
 
 export default router;

@@ -10,3 +10,5 @@ export * from "./trackingLinks";
 export * from "./metrics";
 export * from "./recommendations";
 export * from "./auditLogs";
+export * from "./strategyIntakes";
+export * from "./strategyDiagnoses";
