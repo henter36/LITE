@@ -1,0 +1,215 @@
+Implement AI Text Runtime + Campaign Detail UI Polish only.
+
+Current baseline:
+Campaign Completion Wiring is already implemented and hardened.
+Manual publish is blocked at both UI and handler level.
+Viewer cannot publish, mark ready, update assets, or approve assets.
+Readiness panel, publish checklist, and missing requirements share one local completion state object.
+Do not break or replace this logic.
+
+Do not implement image generation.
+Do not implement video generation.
+Do not implement upload.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget changes.
+Do not implement autonomous optimization.
+Do not create new standalone pages.
+Do not replace Campaign Detail with a new workflow.
+Do not expose API keys in frontend code.
+Do not commit any API key.
+Do not make broad OpenAPI or generated-client changes unless strictly required.
+
+Objective:
+Make the existing Marketing OS Lite feel like a real working AI-powered product by connecting text-only AI generation safely through backend/server-side logic and improving the existing Campaign Detail screen.
+
+Use Replit Secrets / environment variables.
+
+Required secret:
+OPENAI_API_KEY
+
+Scope:
+Text-only AI assistance for campaign content and strategy-to-content suggestions inside existing Campaign Detail.
+
+Allowed AI outputs:
+- campaign hook suggestions
+- ad copy variants
+- caption variants
+- CTA suggestions
+- campaign improvement notes
+- strategy-to-content suggestions
+- missing context warnings
+
+Forbidden AI outputs:
+- image generation
+- video generation
+- file upload
+- asset upload
+- live publishing
+- auto-approval
+- autonomous optimization
+- budget changes
+- payment changes
+- real ad platform API execution
+
+Implementation requirements:
+
+1. Server-side AI integration
+
+Create or reuse the existing backend/service layer for AI text generation.
+
+The API key must be loaded only from:
+process.env.OPENAI_API_KEY
+
+Never expose the key in frontend code.
+Never call the AI provider directly from browser/client code.
+Never hardcode the key.
+If OPENAI_API_KEY is missing, fail safely with a clear UI message.
+
+2. AI text generation action
+
+Add a minimal backend action/route only if the existing architecture already supports that pattern.
+If an AI text flow already exists, extend it instead of creating a parallel system.
+
+Input should use existing campaign context where available:
+- campaign id
+- campaign name
+- campaign objective
+- strategy summary if available
+- selected channels
+- brand/voice context if available
+- existing content/ad drafts if available
+- approved content if available
+- completion/missing requirements context if available
+
+Output must be structured JSON:
+- hooks: string[]
+- adCopyVariants: string[]
+- captions: string[]
+- ctas: string[]
+- improvementNotes: string[]
+- missingContextWarnings: string[]
+- safetyNotes: string[]
+
+3. Governance
+
+AI output must remain draft-only.
+AI must not approve content.
+AI must not mark campaign ready.
+AI must not publish.
+AI must not modify budget.
+AI must not update assets.
+AI must not change readiness state directly.
+AI must not bypass the manual publish guard.
+
+Users must review generated text manually.
+
+4. Campaign Detail integration only
+
+Inside the existing Campaign Detail screen:
+- Add an AI Assist card or section
+- Add “Generate text suggestions” action for allowed roles
+- Show loading, success, and safe error states
+- Render AI suggestions clearly under Campaign Detail context
+- Make suggestions copyable or usable as draft only if an existing draft/content flow supports it
+- Do not auto-approve generated suggestions
+- Do not create a new AI page
+
+The AI Assist section should help the user answer:
+- What should I write?
+- What angle should I use?
+- What CTA fits this campaign?
+- What is missing before publishing?
+- How can I improve the campaign manually?
+
+5. Campaign Detail UI polish
+
+Improve only the existing Campaign Detail screen.
+
+Enhance:
+- visual hierarchy
+- completion panel prominence
+- readiness score clarity
+- missing requirements visibility
+- publish checklist readability
+- strategy summary display
+- creative asset/reference count display
+- AI suggestions presentation
+- empty states
+- disabled-state explanations
+
+Do not redesign the whole app.
+Do not add new standalone pages.
+Do not move the campaign workflow out of Campaign Detail.
+
+6. Preserve existing completion wiring
+
+Do not weaken or bypass:
+- unified completion panel
+- readiness score
+- publish checklist requirements
+- handler-level manual publish guard
+- viewer restrictions
+- external/manual-only publishing model
+
+Manual publish must remain external/manual only.
+
+7. Role restrictions
+
+Viewer cannot:
+- publish
+- mark campaign ready
+- approve content
+- approve assets
+- update assets
+- alter publish checklist state
+
+If existing policy allows viewers to see AI suggestions, they may view only.
+If not already allowed, do not grant new viewer actions.
+
+8. Documentation
+
+Create:
+docs/ai_text_runtime_and_campaign_detail_polish_report.md
+
+Report must include:
+- changed files
+- AI provider integration approach
+- how OPENAI_API_KEY is loaded
+- proof that API key is server-side only
+- frontend/backend separation
+- AI output schema
+- governance constraints
+- UI polish changes
+- role restrictions
+- verification results
+- remaining gaps
+- readiness decision
+
+Also update docs/campaign_completion_wiring_report.md only if needed to note that the AI text runtime does not change publish readiness or manual publish guards.
+
+Verification:
+- TypeScript zero errors
+- app builds
+- no API key in frontend code
+- no API key committed
+- AI call fails safely if OPENAI_API_KEY is missing
+- AI output remains draft-only
+- viewer cannot trigger restricted actions
+- manual publish guard still works at UI and handler level
+- Campaign Detail completion panel still works
+- readiness score still changes based on missing/available requirements
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no new standalone pages
+- no broad OpenAPI/generated client change unless strictly required
+
+Final output:
+- changed files
+- AI integration implemented
+- UI improvements implemented
+- verification results
+- remaining gaps
+- readiness decision
