@@ -537,7 +537,7 @@ function Stage2Content({
 
     setLoading(false);
 
-    if (stratRes.httpStatus === 503 || stratRes.status === 503) {
+    if (stratRes.status === 503) {
       setStatus("unavailable");
       if ((stratRes.body as { draft?: unknown }).draft) {
         setBrief(normalizeStrategyBrief((stratRes.body as { draft: Record<string, unknown> }).draft));
@@ -692,6 +692,25 @@ function Stage3Content({
   const [status, setStatus] = useState<"idle" | "ready" | "unavailable" | "error">("idle");
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+
+  useEffect(() => {
+    wfFetch(`/api/strategy/text-assist?workspaceId=${workspaceId}&campaignId=${campaignId}`).then(({ ok, body }) => {
+      if (ok && body && typeof body === "object") {
+        const draft = body as { hooks?: string[]; adCopyVariants?: string[]; captions?: string[]; ctas?: string[]; improvementNotes?: string[]; missingContextWarnings?: string[]; safetyNotes?: string[]; status?: string };
+        setResult({
+          hooks: draft.hooks ?? [],
+          adCopyVariants: draft.adCopyVariants ?? [],
+          captions: draft.captions ?? [],
+          ctas: draft.ctas ?? [],
+          improvementNotes: draft.improvementNotes ?? [],
+          missingContextWarnings: draft.missingContextWarnings ?? [],
+          safetyNotes: draft.safetyNotes ?? [],
+        });
+        setStatus(draft.status === "draft" ? "ready" : "idle");
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleGenerate = async () => {
     if (isViewer) {

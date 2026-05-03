@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { auditLogsTable, strategyIntakesTable, strategyDiagnosesTable, campaignsTable } from "@workspace/db";
+import { auditLogsTable, strategyIntakesTable, strategyDiagnosesTable, campaignsTable, campaignTextSuggestionsTable } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
 import { getAIProvider, getAITextAssistProvider, MockAIProvider } from "../lib/ai-provider";
@@ -240,7 +240,66 @@ router.post("/strategy/text-assist", requireAuth, async (req, res): Promise<void
     existingDrafts: {},
   });
 
-  res.json(result);
+  const source = selectedProvider === "openai" ? "real" : "mock";
+  const [saved] = await db.insert(campaignTextSuggestionsTable).values({
+    workspaceId: Number(workspaceId),
+    campaignId: campaign.id,
+    generatedByUserId: req.session.userId ?? null,
+    status: "draft",
+    source,
+    hooks: JSON.stringify(result.output.hooks),
+    adCopyVariants: JSON.stringify(result.output.adCopyVariants),
+    captions: JSON.stringify(result.output.captions),
+    ctas: JSON.stringify(result.output.ctas),
+    improvementNotes: JSON.stringify(result.output.improvementNotes),
+    missingContextWarnings: JSON.stringify(result.output.missingContextWarnings),
+    safetyNotes: JSON.stringify(result.output.safetyNotes),
+  }).returning();
+  await db.update(campaignTextSuggestionsTable).set({ updatedAt: new Date() }).where(eq(campaignTextSuggestionsTable.id, saved.id));
+  await db.insert(auditLogsTable).values({
+    workspaceId: Number(workspaceId),
+    action: "campaign_text_suggestions_created",
+    entityType: "campaign_text_suggestion",
+    entityId: saved.id,
+    actor: actor(req),
+    details: `Text suggestions created for campaign ${campaign.id} with source ${source}`,
+  });
+  res.json({ ...result.output, source, status: "draft" });
+});
+
+router.get("/strategy/text-assist", requireAuth, async (req, res): Promise<void> => {
+  const workspaceId = Number(req.query.workspaceId);
+  const campaignId = Number(req.query.campaignId);
+  if (!workspaceId || !campaignId) {
+    res.status(400).json({ error: "workspaceId and campaignId are required" });
+    return;
+  }
+  const role = await getMemberRole(req.session.userId!, workspaceId);
+  if (!role) {
+    res.status(403).json({ error: "Access denied" });
+    return;
+  }
+  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, campaignId));
+  if (!campaign || campaign.workspaceId !== workspaceId) {
+    res.status(404).json({ error: "Campaign not found" });
+    return;
+  }
+  const [draft] = await db.select().from(campaignTextSuggestionsTable).where(eq(campaignTextSuggestionsTable.workspaceId, workspaceId)).where(eq(campaignTextSuggestionsTable.campaignId, campaignId)).orderBy(desc(campaignTextSuggestionsTable.createdAt));
+  if (!draft) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  res.json({
+    hooks: JSON.parse(draft.hooks),
+    adCopyVariants: JSON.parse(draft.adCopyVariants),
+    captions: JSON.parse(draft.captions),
+    ctas: JSON.parse(draft.ctas),
+    improvementNotes: JSON.parse(draft.improvementNotes),
+    missingContextWarnings: JSON.parse(draft.missingContextWarnings),
+    safetyNotes: JSON.parse(draft.safetyNotes),
+    source: draft.source,
+    status: draft.status,
+  });
 });
 
 router.get("/strategy/diagnosis/latest", requireAuth, async (req, res): Promise<void> => {

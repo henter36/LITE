@@ -11,7 +11,9 @@
 |---|---|
 | `artifacts/api-server/src/lib/ai-provider.ts` | Added `WorkflowAIProvider` interface, `OpenAIWorkflowProvider` class (4 methods), `getWorkflowAIProvider()` factory, and all supporting input/output interfaces |
 | `artifacts/api-server/src/routes/campaignWorkflow.ts` | Fixed all 4 POST handlers to call real OpenAI when key is present; removed `void provider` bug; updated audit log `details` to include `source`; added `source` field to all POST responses |
-| `artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx` | Added `onGenerated` prop to `Stage3Content`; wired `onGenerated()` on text-assist success; passes `onGenerated` from main component with correct stage/status updates |
+| `artifacts/api-server/src/routes/strategy.ts` | Added Stage 3 text-suggestions persistence GET/POST flow, workspace/editor guards, draft-only save, and reload support |
+| `artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx` | Added Stage 3 reload-on-mount from saved drafts; kept `onGenerated` flow for fresh generation |
+| `lib/db/src/schema/campaignTextSuggestions.ts` | Added minimal draft-only persistence table for Stage 3 text suggestions |
 
 ---
 
@@ -132,7 +134,7 @@
 | Stage 1 | `campaign_workflow_intakes` | Upsert — full intake fields |
 | Stage 2 (Campaign adaptation) | `campaign_strategy_briefs` | Insert new row per generation |
 | Stage 2 (Creative) | `campaign_creative_briefs` | Insert new row per generation |
-| Stage 3 | None (transient) | **GAP — see §13** |
+| Stage 3 | `campaign_text_suggestions` | Draft-only insert + reload on mount |
 | Stage 4 (Image) | `campaign_image_prompt_specs` | Insert new row per generation |
 | Stage 4 (Video) | `campaign_video_script_specs` | Insert new row per generation |
 
@@ -157,12 +159,12 @@
 - **Audit**: `campaign_strategy_brief_generated` / `campaign_creative_brief_generated` (details include source)
 
 ### Stage 3 — تجهيز المحتوى (Content Preparation)
-- **GET**: None (transient only)
-- **POST**: Calls `/api/strategy/text-assist` (pre-existing OpenAI wiring, unchanged)
-  - If key missing → 503 with `code: "AI_TEXT_UNAVAILABLE"`
-  - If `AI_PROVIDER=openai` + key → `OpenAITextAssistProvider.generateText()` → `source: "real"`
-  - If mock → `MockAITextAssistProvider.generateText()` → `source: "mock"`
-- **Frontend**: On success, calls `onGenerated()` → updates stage status to "generated"
+- **GET**: Loads latest saved draft from `campaign_text_suggestions`
+- **POST**: Calls `/api/strategy/text-assist`
+  - If key missing → 503 with `code: "AI_TEXT_UNAVAILABLE"` and no fake success
+  - If `AI_PROVIDER=openai` + key → generate, save draft row, return `source: "real"`
+  - If mock → generate, save draft row, return `source: "mock"`
+- **Frontend**: Reloads saved draft on mount; fresh generation still calls `onGenerated()`
 
 ### Stage 4 — المواصفات الإبداعية (Creative Specs)
 - **GET**: Return latest image prompt specs and video script specs from DB
@@ -252,15 +254,13 @@ Each stage supports:
 
 ## 13. Remaining Gaps
 
-1. **Stage 3 persistence:** Text suggestions (`/api/strategy/text-assist`) are transient — not saved to DB. Refresh loses results. No existing `campaignTextSuggestions` table. Creating a new table was out of scope; user must regenerate after refresh.
+1. **Stage 3 audit log:** The `/api/strategy/text-assist` route now writes draft creation logs, but the reload GET path remains log-free.
 
-2. **Stage 3 audit log:** The `/api/strategy/text-assist` route does not write to `audit_logs`. This is pre-existing behavior; fixing it was out of scope.
+2. **Mock vs real visual distinction:** Frontend still shows both sources as the same draft card. Could add a source badge in a future slice.
 
-3. **Mock vs real visual distinction:** Frontend does not show whether output came from `source: "mock"` or `source: "real"`. Both are shown with `DraftBanner`. Could add a badge in a future slice.
+3. **Intake constraints not forwarded to Creative Brief generation:** The creative brief POST fetches the strategy brief but does not fetch the intake to retrieve `constraintsForbiddenClaims`. Constraints are passed as `""` for the creative brief OpenAI call. The strategy brief (which IS constrained) informs the creative brief via `strategyRisks`. Full constraint propagation is a future improvement.
 
-4. **Intake constraints not forwarded to Creative Brief generation:** The creative brief POST fetches the strategy brief but does not fetch the intake to retrieve `constraintsForbiddenClaims`. Constraints are passed as `""` for the creative brief OpenAI call. The strategy brief (which IS constrained) informs the creative brief via `strategyRisks`. Full constraint propagation is a future improvement.
-
-5. **No streaming:** All AI calls are blocking request/response. Long generation times may hit gateway timeouts in production.
+4. **No streaming:** All AI calls are blocking request/response. Long generation times may hit gateway timeouts in production.
 
 ---
 
@@ -274,7 +274,7 @@ Each stage supports:
 | No frontend OpenAI/provider SDK import | ✅ Confirmed |
 | Missing key path returns 503 | ✅ Implemented — `keyMissing` check before any AI call |
 | Real key path calls backend AI | ✅ `OpenAIWorkflowProvider` called when `AI_PROVIDER=openai` + key present |
-| Generated outputs persist and reload | ✅ Stages 1, 2, 4 saved to DB; GET routes reload on mount |
+| Generated outputs persist and reload | ✅ Stages 1, 2, 3, 4 saved to DB; GET routes reload on mount |
 | Viewer cannot generate | ✅ `resolveEditorCampaign` returns 403 for viewer |
 | Editor can generate | ✅ Editor role passes `hasMinRole(role, "editor")` |
 | No image generation | ✅ Image specs are text-only prompt specs |
@@ -292,4 +292,4 @@ Each stage supports:
 
 Without a key: safe 503 fallback with no mock output shown as success.  
 With `AI_PROVIDER=mock` (default/dev): mock outputs saved to DB and displayed correctly.  
-Stage 3 persistence gap is documented and accepted for this slice.
+Stage 3 persistence is implemented with draft-only reload.

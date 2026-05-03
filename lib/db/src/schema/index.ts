@@ -19,3 +19,4 @@ export * from "./campaignStrategyBriefs";
 export * from "./campaignCreativeBriefs";
 export * from "./campaignImagePromptSpecs";
 export * from "./campaignVideoScriptSpecs";
+export * from "./campaignTextSuggestions";

@@ -132,4 +132,4 @@ The redesigned AI Workflow now uses real server-side AI calls and database persi
 - Missing-key → 503 + `source: "unavailable"`: ✅ implemented
 - Real-key path → `OpenAIWorkflowProvider` called: ✅ implemented
 - Mock path → `buildMock*()` called + saved to DB: ✅ implemented
-- Stage 3 persistence gap: documented (transient, no DB table)
+- Stage 3 persistence: implemented with reload on mount
