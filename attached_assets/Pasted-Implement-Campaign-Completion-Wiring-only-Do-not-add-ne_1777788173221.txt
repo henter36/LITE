@@ -1,0 +1,68 @@
+Implement Campaign Completion Wiring only.
+
+Do not add new standalone pages.
+Do not implement image/video generation.
+Do not implement upload.
+Do not connect new APIs.
+Do not implement live publishing, payments, budget changes, or autonomous optimization.
+
+Objective:
+Make Campaign Detail show whether the campaign is complete enough to manually publish.
+
+Implement only:
+
+1. Campaign Detail completion panel
+Show one unified panel containing:
+- strategy summary status
+- content approval status
+- creative asset approval status
+- tracking link status
+- campaign ready status
+- manual publish status
+
+2. Readiness score update
+Include approved creative asset/reference in readiness score.
+Include strategy context in readiness score.
+Show missing requirements clearly.
+
+3. Publish checklist update
+Manual publish checklist must require:
+- at least one approved ad
+- campaign marked ready
+- at least one approved creative asset/reference with usage rights notes
+- tracking link or landing URL
+- selected channels
+
+4. Strategy + asset visibility
+In Campaign Detail, show:
+- compact strategy summary if available
+- approved creative asset count
+- link to Strategy page
+- link to Creative Assets tab
+
+5. Safety
+Manual publish remains external/manual only.
+No real ad APIs.
+No media generation.
+No upload.
+
+6. Documentation
+Create:
+docs/campaign_completion_wiring_report.md
+
+Verification:
+- TypeScript zero errors.
+- Codegen clean if changed.
+- Campaign Detail shows unified completion panel.
+- Readiness score changes when approved asset exists/missing.
+- Publish checklist blocks manual publish without approved creative asset/reference.
+- Publish checklist blocks manual publish without approved ad.
+- Viewer cannot publish or update assets.
+- Existing campaign cycle, strategy, asset library, AI text, Meta read-only, auth, roles, and safety guards still work.
+
+Final output:
+- changed files
+- completion logic implemented
+- verification results
+- remaining gaps
+- readiness decision

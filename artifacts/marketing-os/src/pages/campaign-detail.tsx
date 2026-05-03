@@ -532,6 +532,27 @@ export default function CampaignDetail() {
   const hasApprovedAd = approvedAdCount > 0;
   const isApproved = campaign.status === "approved" || campaign.status === "active";
   const isPublished = campaign.status === "active" && !!campaign.publishedAt;
+  const approvedCreativeAssetCount = 0;
+  const hasApprovedCreativeAsset = approvedCreativeAssetCount > 0;
+  const hasUsageRightsNotes = hasApprovedCreativeAsset;
+  const hasTrackingLink = (trackingLinks?.length ?? 0) > 0;
+  const hasSelectedChannels = (campaign.channels?.length ?? 0) > 0;
+  const strategySummary =
+    campaign.objective && campaign.audience && campaign.productService
+      ? `${campaign.objective} • ${campaign.audience} • ${campaign.productService}`
+      : "";
+  const hasStrategyContext = Boolean(strategySummary);
+  const readinessRequirements = [
+    { label: "Strategy context", ok: hasStrategyContext },
+    { label: "Approved ads", ok: hasApprovedAd },
+    { label: "Campaign marked ready", ok: isApproved },
+    { label: "Approved creative asset/reference", ok: hasApprovedCreativeAsset && hasUsageRightsNotes },
+    { label: "Tracking link or landing URL", ok: hasTrackingLink || Boolean(campaign.landingUrl) },
+    { label: "Selected channels", ok: hasSelectedChannels },
+  ];
+  const readinessScore = Math.round(
+    (readinessRequirements.filter((item) => item.ok).length / readinessRequirements.length) * 100,
+  );
 
   // 5-step flow: Create (0) → Generate Ads (1) → Approve (2) → Publish (3) → Performance (4)
   const completedSteps = [true, hasAssets, isApproved, isPublished, hasMetrics];
@@ -567,6 +588,13 @@ export default function CampaignDetail() {
   ];
 
   const activeStep = effectiveStep < FLOW_STEPS.length ? FLOW_STEPS[effectiveStep] : null;
+  const manualPublishReady =
+    hasApprovedAd &&
+    isApproved &&
+    hasApprovedCreativeAsset &&
+    hasUsageRightsNotes &&
+    (hasTrackingLink || Boolean(campaign.landingUrl)) &&
+    hasSelectedChannels;
 
   return (
     <SidebarLayout>
@@ -580,6 +608,87 @@ export default function CampaignDetail() {
           </span>
         </div>
       )}
+
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5" />
+              Campaign Completion
+            </CardTitle>
+            <Badge variant="outline" className={manualPublishReady ? "bg-green-500/10 text-green-700" : ""}>
+              {manualPublishReady ? "Ready for manual publish" : "Not ready"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {strategySummary && (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Strategy summary:</span> {strategySummary}
+            </p>
+          )}
+          <div className="grid md:grid-cols-3 gap-3 text-sm">
+            <div className="rounded-lg border p-3">
+              <p className="text-muted-foreground">Strategy summary status</p>
+              <p className="font-medium">{hasStrategyContext ? "Present" : "Missing"}</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-muted-foreground">Content approval status</p>
+              <p className="font-medium">{hasApprovedAd ? "Approved ads available" : "No approved ads yet"}</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-muted-foreground">Creative asset approval status</p>
+              <p className="font-medium">
+                {hasApprovedCreativeAsset ? `${approvedCreativeAssetCount} approved` : "Missing approved asset/reference"}
+              </p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-muted-foreground">Tracking link status</p>
+              <p className="font-medium">{hasTrackingLink || campaign.landingUrl ? "Available" : "Missing"}</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-muted-foreground">Campaign ready status</p>
+              <p className="font-medium">{isApproved ? "Ready" : "Not ready"}</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-muted-foreground">Manual publish status</p>
+              <p className="font-medium">{manualPublishReady ? "Allowed" : "Blocked"}</p>
+            </div>
+          </div>
+          <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-medium">Readiness score</p>
+              <Badge variant="outline">{readinessScore}%</Badge>
+            </div>
+            <Progress value={readinessScore} className="h-2" />
+            <div className="grid sm:grid-cols-2 gap-2 text-xs">
+              {readinessRequirements.map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between rounded-md border bg-background px-3 py-2"
+                >
+                  <span>{item.label}</span>
+                  <span className={item.ok ? "text-green-600" : "text-red-600"}>
+                    {item.ok ? "Complete" : "Missing"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/strategy">
+              <Button variant="outline" size="sm">
+                Strategy page
+              </Button>
+            </Link>
+            <Link href="/campaigns">
+              <Button variant="outline" size="sm">
+                Creative Assets tab
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       <div>
         <Link href="/campaigns">
@@ -624,12 +733,16 @@ export default function CampaignDetail() {
                   </TooltipContent>
                 </Tooltip>
                 <p className="text-xs text-muted-foreground text-right">
-                  Approve individual ads first in the Content page
+                  Approve ads, creative assets, tracking, and channels before manual publish
                 </p>
               </div>
             )}
             {isApproved && !isPublished && !isViewer && (
-              <Button onClick={openPublishDialog} className="bg-green-600 hover:bg-green-700 text-white">
+              <Button
+                onClick={openPublishDialog}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={!manualPublishReady}
+              >
                 <Rocket className="mr-2 h-4 w-4" />
                 Publish Campaign
               </Button>
@@ -1000,8 +1113,11 @@ export default function CampaignDetail() {
                       {[
                         { label: "Campaign created", done: true },
                         { label: "Ad content generated", done: hasAssets },
-                        { label: "Content reviewed in Content Studio", done: hasAssets && (assets?.some(a => a.status === "approved") ?? false) },
+                        { label: "Content reviewed in Content Studio", done: hasAssets && (assets?.some((a) => a.status === "approved") ?? false) },
                         { label: "Campaign marked as ready (approved)", done: isApproved },
+                        { label: "Approved creative asset/reference with usage rights", done: hasApprovedCreativeAsset && hasUsageRightsNotes },
+                        { label: "Tracking link or landing URL", done: hasTrackingLink || Boolean(campaign.landingUrl) },
+                        { label: "Selected channels", done: hasSelectedChannels },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-3 text-sm">
                           <div
@@ -1028,7 +1144,8 @@ export default function CampaignDetail() {
                       <p className="font-medium mb-1">Campaign not yet approved</p>
                       <p className="text-amber-700/80 dark:text-amber-400/80">
                         You need to mark the campaign as ready before publishing. Review and approve
-                        individual ads in the Content page first, then click "Mark Campaign Ready".
+                        individual ads in the Content page first, then add an approved creative asset/reference
+                        with usage rights notes, tracking, and channels before clicking "Mark Campaign Ready".
                       </p>
                     </div>
                   ) : !hasApprovedAd ? (
@@ -1045,6 +1162,17 @@ export default function CampaignDetail() {
                         before publishing.
                       </p>
                     </div>
+                  ) : !hasApprovedCreativeAsset ? (
+                    <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-4 text-sm text-amber-800 dark:text-amber-400">
+                      <p className="font-medium mb-1">No approved creative asset/reference yet</p>
+                      <p className="text-amber-700/80 dark:text-amber-400/80">
+                        Add and approve a creative asset/reference with usage rights notes in the{" "}
+                        <Link href="#creative-assets" className="font-semibold underline underline-offset-2">
+                          Creative Assets
+                        </Link>{" "}
+                        tab before publishing.
+                      </p>
+                    </div>
                   ) : !isViewer ? (
                     <div className="space-y-4">
                       <div className="rounded-lg border bg-muted/10 p-4 text-sm text-muted-foreground flex items-start gap-2">
@@ -1055,7 +1183,11 @@ export default function CampaignDetail() {
                           purposes.
                         </span>
                       </div>
-                      <Button onClick={openPublishDialog} className="bg-green-600 hover:bg-green-700 text-white">
+                      <Button
+                        onClick={openPublishDialog}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        disabled={!manualPublishReady}
+                      >
                         <Rocket className="mr-2 h-4 w-4" />
                         Publish Campaign
                       </Button>
