@@ -1,0 +1,65 @@
+
+System Admin Slice A Recovery Review
+1. Files changed so far
+lib/db/src/schema/system-admin-users.ts — partial
+lib/db/src/schema/index.ts — partial
+artifacts/api-server/src/middleware/auth.ts — broken
+artifacts/api-server/src/routes/systemAdmin.ts — broken
+artifacts/api-server/src/routes/index.ts — broken
+docs/system_admin_slice_a_report.md — partial
+docs/system_admin_console_plan.md — complete
+scripts/package.json — complete
+scripts/src/check-openapi-parity.ts — complete
+scripts/src/check-codegen-fresh.ts — complete
+scripts/src/install-hooks.ts — complete
+scripts/hooks/pre-commit — complete
+docs/recovery_playbook.md — complete
+2. Current build state
+TypeScript status: not clean. API server typecheck is currently failing on artifacts/api-server/src/middleware/auth.ts because the platform role export/import path is unresolved.
+Backend startup status: uncertain / likely broken. The API server route wiring depends on the broken auth middleware and system admin route.
+Frontend startup status: likely still running, but no frontend changes were made in this slice; current UI behavior should be unchanged.
+3. Broken/incomplete areas
+DB schema/export
+system-admin-users.ts exists, but the export chain is not stable enough for the API server to consume cleanly.
+The schema is incomplete as a platform-role foundation until migrations and verified export resolution are finished.
+Auth middleware
+requireSystemAdmin / requireSuperAdmin were added, but the current implementation is not type-clean.
+The middleware import path for systemAdminUsersTable is unresolved in the API server build.
+Session typing was touched during the attempt and may still need a dedicated type extension later.
+System admin route
+GET /api/system-admin/status was added, but it depends on the broken middleware path and is not verified.
+Audit logging for this endpoint was attempted, but the route is not yet trustworthy until typecheck passes.
+Audit logging
+Access logging for the status endpoint was started, but not verified end-to-end.
+No dedicated provider audit-log model exists yet.
+Seed/dev role assignment
+Not implemented.
+No safe dev-only assignment path exists yet for system_admin or super_admin.
+Documentation
+docs/system_admin_slice_a_report.md exists, but it reflects an incomplete slice and should be treated as provisional.
+docs/system_admin_slice_a_recovery_review.md is the authoritative recovery note for the current stop point.
+4. Safety check
+Confirmed no changes were made to these product behaviors:
+
+workspace role behavior
+live publishing
+payments
+budget changes
+autonomous optimization
+Meta read-only safety
+AI fallback safety
+5. Recovery recommendation
+split smaller
+
+The slice is too broad for one pass. The safest path is to break it into smaller increments and verify each one separately.
+
+6. If split smaller, recommend
+Slice A1: DB schema only
+Slice A2: auth guards only
+Slice A3: status endpoint only
+Slice A4: seed/dev assignment only
+Final output
+changed files: listed above
+broken files: artifacts/api-server/src/middleware/auth.ts, artifacts/api-server/src/routes/systemAdmin.ts, artifacts/api-server/src/routes/index.ts
+current risk: platform-role foundation is partially wired but not build-safe
+recommended next action: split smaller and recover each part independently
