@@ -1,0 +1,143 @@
+Dashboard Visual Polish Slice 1.4 only.
+
+The Shell/Main layout overlap is now structurally improved and acceptable. Do not modify the shell unless a tiny dashboard-specific containment issue appears.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/dashboard.tsx
+- docs/ui_alignment_dashboard_slice_report.md
+
+Objective:
+Improve the Dashboard visual quality so it feels closer to the provided Arabic RTL reference dashboard, now that the shell/sidebar overlap issue is resolved.
+
+Focus on visual polish only, not layout contract or business logic.
+
+Required improvements:
+
+1. Header polish
+Improve the top dashboard header:
+- make "مرحبًا، أحمد" larger and more prominent
+- place subtitle clearly below it
+- align date/help/notification controls neatly on the opposite side
+- reduce awkward empty spacing
+- make the header feel executive and premium
+
+2. KPI cards polish
+Refine the four KPI cards:
+- softer shadows
+- consistent padding
+- larger metric numbers
+- clearer Arabic labels
+- better icon bubbles
+- subtle green/teal accents
+- red only for negative metric
+- no clipping
+- no harsh borders
+
+3. Performance chart polish
+Replace the current heavy/basic bar chart feel with a cleaner visual:
+- prefer a simple SVG/CSS line chart using existing static/dashboard trend data if possible
+- title: "أداء المحتوى (آخر 7 أيام)"
+- show metric pills below:
+  - الوصول
+  - معدل التفاعل
+  - النقرات
+  - التفاعلات
+- keep it fully contained
+- do not add new chart libraries unless already available
+
+4. Workflow funnel polish
+Make "مخطط سير العمل" look visually like a workflow/funnel:
+- soft layered blocks
+- stages:
+  - إجمالي الحملات
+  - قيد التنفيذ
+  - قيد المراجعة
+  - معتمد
+  - مرفوض
+- use green/yellow/red soft tones
+- avoid plain list appearance
+
+5. Recent campaigns polish
+Improve the "أحدث الحملات" card:
+- softer row cards
+- clearer Arabic status badges
+- better spacing
+- keep existing campaign names/data
+- no fake live analytics
+
+6. Supporting cards polish
+Improve:
+- النشاط الأخير
+- اكتمال ملف العلامة التجارية
+- موجز الحملة النشطة
+- المراجعات المعلقة
+
+They should look compact, premium, and consistent with the reference.
+
+7. Remove prototype feel
+Avoid:
+- generic SaaS look
+- awkward empty boxes
+- English chart labels where avoidable
+- purple visual dominance
+- harsh borders
+- oversized chart bars
+
+8. Preserve functionality
+Do not change data sources or actions.
+Preserve:
+- existing metrics
+- campaigns
+- recommendation/dismiss flow
+- current route behavior
+- no unsupported live behavior
+
+Documentation:
+Update:
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- Dashboard Visual Polish 1.4 summary
+- visual improvements made
+- what now matches the reference more closely
+- remaining gaps
+- confirmation only dashboard/report files changed
+- verification results
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+- provide screenshot or explicit visual inspection after polish
+
+Final output:
+- changed files
+- visual polish completed
+- screenshot/visual evidence status
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision
