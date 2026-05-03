@@ -1,0 +1,151 @@
+Dashboard Layout Fix Slice 1.2 only.
+
+The current post-shell Dashboard is still not visually acceptable. The screenshot shows horizontal clipping, weak layout balance, and incomplete reference parity.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+
+Scope:
+Only modify:
+- artifacts/marketing-os/src/pages/dashboard.tsx
+- artifacts/marketing-os/src/components/layout/sidebar-layout.tsx only if absolutely required to fix shell width/overflow
+- docs/ui_alignment_dashboard_slice_report.md
+- docs/ui_shell_alignment_report.md only if shell file is touched
+
+Objective:
+Fix the Dashboard layout so it becomes visually reviewable and much closer to the provided Arabic RTL dashboard reference.
+
+Critical issues to fix from the screenshot:
+
+1. Horizontal clipping / overflow
+The dashboard content is currently clipped horizontally. KPI cards and chart content are cut off.
+Fix layout width, grid columns, containers, and overflow.
+No content should be hidden off-screen at common desktop width.
+
+2. Main content width
+The dashboard content should sit cleanly beside the right sidebar.
+Use a max-width layout similar to the reference.
+Avoid huge awkward empty spaces and avoid content extending behind or under the sidebar.
+
+3. RTL structure
+Ensure the Dashboard is truly RTL:
+- right-to-left content flow
+- Arabic labels aligned naturally
+- cards ordered logically from right to left
+- side panels placed consistently
+
+4. Header balance
+Improve the dashboard header:
+- greeting area should be prominent and aligned like the reference
+- workspace/date/help controls should not float awkwardly
+- reduce excessive empty space
+- keep the header visually calm and premium
+
+5. KPI cards
+Make KPI cards closer to the reference:
+- 4 balanced cards
+- no clipping
+- icon blocks
+- large number
+- Arabic label
+- trend text
+- soft white background
+- subtle shadow/border
+- green/teal identity
+- red only for negative metric
+
+6. Performance chart
+The current chart is too basic and clipped.
+Improve the card visually:
+- full visible chart area
+- Arabic title: "أداء المحتوى (آخر 7 أيام)"
+- metric pills below the chart
+- if line chart is feasible with existing code, use line-style visual
+- if not, make the existing chart visually cleaner without new libraries
+
+7. Workflow funnel
+Replace the plain workflow list with a more visual funnel block:
+- layered soft blocks or stepped layout
+- stages:
+  إجمالي الحملات
+  قيد التنفيذ
+  قيد المراجعة
+  معتمد
+  مرفوض
+- should look like a funnel/workflow, not a plain table
+
+8. Right-side cards
+Keep/support these reference-like cards:
+- اكتمال ملف العلامة التجارية
+- موجز الحملة النشطة
+- المراجعات المعلقة
+- النشاط الأخير
+
+Place them in a balanced grid/side column.
+Do not let them create overflow.
+
+9. Sidebar polish
+Only if needed:
+- adjust sidebar width so content does not clip
+- keep it right-side light navigation
+- keep Arabic labels
+- keep Marketing OS Lite branding
+- do not affect routes or logic
+
+10. Functional preservation
+Preserve:
+- existing dashboard metrics/campaign/recommendation data
+- dismiss/recommendation flow if present
+- no fake live analytics
+- no unsupported live behavior
+
+Documentation:
+Update:
+docs/ui_alignment_dashboard_slice_report.md
+
+If sidebar-layout.tsx is modified, also update:
+docs/ui_shell_alignment_report.md
+
+Report must include:
+- layout clipping fixed
+- dashboard width/grid fixes
+- what changed visually
+- what remains different from the reference
+- confirmation that only dashboard/shell visual files were touched
+- verification results
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+- Dashboard screenshot or explicit visual inspection result after fix
+
+Final output:
+- changed files
+- layout/overflow fixes completed
+- screenshot/visual evidence status
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision

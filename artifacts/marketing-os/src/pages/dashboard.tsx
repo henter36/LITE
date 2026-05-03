@@ -61,62 +61,69 @@ export default function Dashboard() {
         { label: "مرفوض", value: Math.max(0, Math.round(metrics.totalConversions / 4)).toLocaleString() },
       ]
     : [];
+  const latestCampaigns = topCampaigns.slice(0, 3);
+  const activityItems = recommendations?.slice(0, 3) ?? [];
 
   return (
     <SidebarLayout>
-      <div className="space-y-6" dir="rtl">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground"><PanelRight className="h-4 w-4" />Marketing OS Lite</div>
-            <h1 className="text-4xl font-bold tracking-tight">مرحبًا، أحمد</h1>
-            <p className="text-muted-foreground mt-2 text-base">هذا ملخص أداء التسويق لليوم مع أحدث الحالات والمراجعات.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2 text-sm"><ChevronDown className="h-4 w-4 text-muted-foreground" /> آخر 7 أيام</div>
-            </div>
-            <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2 text-sm"><Bell className="h-4 w-4 text-muted-foreground" /> تنبيهات</div>
-            </div>
-            <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2 text-sm"><HelpCircle className="h-4 w-4 text-muted-foreground" /> المساعدة</div>
-            </div>
-          </div>
+      <div className="space-y-6 overflow-x-hidden" dir="rtl">
+        <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+          <Card className="border-emerald-200/70 bg-gradient-to-br from-white to-emerald-50/40 shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><PanelRight className="h-4 w-4 text-emerald-600" />Marketing OS Lite</div>
+                  <h1 className="text-4xl font-bold tracking-tight">مرحبًا، أحمد</h1>
+                  <p className="max-w-2xl text-muted-foreground text-base">هذا ملخص أداء التسويق لليوم مع أحدث الحالات والمراجعات.</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-2 text-sm"><ChevronDown className="h-4 w-4 text-muted-foreground" /> آخر 7 أيام</div>
+                  </div>
+                  <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-2 text-sm"><Bell className="h-4 w-4 text-muted-foreground" /> تنبيهات</div>
+                  </div>
+                  <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
+                    <div className="flex items-center gap-2 text-sm"><HelpCircle className="h-4 w-4 text-muted-foreground" /> المساعدة</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-primary/15 bg-primary/5 shadow-sm">
+            <CardContent className="p-4 flex h-full items-center justify-between gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">مساحة العمل</p>
+                <p className="font-semibold">{activeWorkspaceId || "workspace"}</p>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><ChevronDown className="h-4 w-4" /> تبديل</div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Card className="border-primary/15 bg-primary/5">
-          <CardContent className="p-4 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">مساحة العمل</p>
-              <p className="font-semibold">{activeWorkspaceId || "workspace"}</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground"><ChevronDown className="h-4 w-4" /> تبديل</div>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {isMetricsLoading ? (
             Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
           ) : metrics ? (
             <>
               {kpis.map((item, index) => {
                 const Icon = item.icon;
-                return <Card key={item.label} className="shadow-sm border-muted/60"><CardContent className="p-5 space-y-3"><div className="flex items-center justify-between"><div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Icon className="h-5 w-5" /></div><Badge variant={index === 3 ? "destructive" : "secondary"} className="rounded-full">{index === 3 ? "سلبي" : "إيجابي"}</Badge></div><p className="text-3xl font-bold">{item.value}</p><div><p className="text-sm font-medium">{item.label}</p><p className="text-xs text-muted-foreground">{item.note}</p></div></CardContent></Card>;
+                return <Card key={item.label} className="shadow-sm border-muted/60"><CardContent className="p-5 space-y-3"><div className="flex items-center justify-between"><div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Icon className="h-5 w-5" /></div><Badge variant={index === 3 ? "destructive" : "secondary"} className="rounded-full">{index === 3 ? "سلبي" : "إيجابي"}</Badge></div><p className="text-3xl font-bold leading-none">{item.value}</p><div><p className="text-sm font-medium">{item.label}</p><p className="text-xs text-muted-foreground">{item.note}</p></div></CardContent></Card>;
               })}
             </>
           ) : null}
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-3">
-          <Card className="xl:col-span-2">
+        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
+          <Card className="min-w-0">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">أداء المحتوى (آخر 7 أيام)</CardTitle>
             </CardHeader>
-            <CardContent className="h-[360px] space-y-4">
+            <CardContent className="min-w-0 h-[340px] space-y-4">
               {metrics ? (
                 <>
-                  <ResponsiveContainer width="100%" height="78%">
-                    <BarChart data={chartData}>
+                  <ResponsiveContainer width="100%" height="72%">
+                    <BarChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="name" tickLine={false} axisLine={false} />
                       <YAxis tickLine={false} axisLine={false} />
@@ -124,7 +131,7 @@ export default function Dashboard() {
                       <Bar dataKey="value" fill="hsl(164 73% 35%)" radius={[10, 10, 10, 10]} />
                     </BarChart>
                   </ResponsiveContainer>
-                  <div className="grid grid-cols-4 gap-2 text-xs">
+                  <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                     {["الوصول", "معدل التفاعل", "النقرات", "التفاعلات"].map((item) => <div key={item} className="rounded-full border bg-muted/30 px-3 py-2 text-center">{item}</div>)}
                   </div>
                 </>
@@ -133,7 +140,7 @@ export default function Dashboard() {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">مخطط سير العمل</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               {stageRows.map((step, index) => (
@@ -145,11 +152,11 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-3">
-          <Card>
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">أحدث الحملات</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {isCampaignsLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />) : topCampaigns.length > 0 ? topCampaigns.map((campaign) => (
+              {isCampaignsLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />) : latestCampaigns.length > 0 ? latestCampaigns.map((campaign) => (
                 <div key={campaign.id} className="flex items-center gap-3 rounded-2xl border px-3 py-3">
                   <div className="h-10 w-10 rounded-xl bg-primary/10" />
                   <div className="min-w-0 flex-1">
@@ -162,7 +169,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">اكتمال ملف العلامة التجارية</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>الملف</span><Badge>مكتمل</Badge></div>
@@ -171,7 +178,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">المراجعات المعلقة</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>مسودة إعلان</span><Badge variant="outline">1</Badge></div>

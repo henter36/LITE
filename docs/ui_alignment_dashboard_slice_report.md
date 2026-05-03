@@ -4,44 +4,37 @@
 - `artifacts/marketing-os/src/pages/dashboard.tsx`
 - `docs/ui_alignment_dashboard_slice_report.md`
 
-## Dashboard Slice 1.1 recovery status
-- The interrupted dashboard run was recovered successfully.
-- The dashboard page is now clean, buildable, and reviewable again.
+## Dashboard Slice 1.2 layout fix summary
+- Fixed the post-shell dashboard clipping and width balance.
+- The dashboard now uses wider, safer grid layouts with `min-w-0`, overflow guards, and balanced card regions.
+- Header, KPI cards, chart card, workflow funnel, campaign list, support cards, and activity card now fit cleanly at desktop widths.
 
-## Dashboard Slice 1.1 visual upgrade summary
-- Dashboard was visually reworked toward the Arabic RTL reference style.
-- The page now uses Arabic-first labels, RTL layout direction, softer cards, and greener/teal visual accents.
-- The top area now includes a greeting, subtitle, date filter chip, workspace card, and utility controls.
-- KPI cards were restyled into larger premium summary cards with icon blocks and trend text.
-- The performance chart card was cleaned up and given supporting metric pills.
-- Recent campaigns, workflow funnel, recent activity, brand completion, and pending reviews were all reformatted to better match the reference.
+## What changed visually
+- Header content is grouped into a premium left hero card and a workspace card.
+- KPI cards now sit in a balanced 4-up grid without clipping.
+- The performance chart card now has a stable visible area and improved metric pills.
+- The workflow funnel remains visual and stepped rather than tabular.
+- Right-side support cards remain balanced and contained.
+- Horizontal overflow was addressed with layout and width constraints.
 
-## What changed to better match the reference
-- Arabic labels replaced the English dashboard surface.
-- RTL layout was applied within the dashboard page.
-- A light executive-dashboard visual treatment replaced the prototype-like layout.
-- Workflow and support cards were made more visual and less list-like.
-- Existing campaign and recommendation data still drives the displayed content.
+## What remains different from the reference
+- The dashboard is close to the reference but not pixel-perfect.
+- Some typography, spacing, and chart styling still differ from the screenshot.
+- The chart uses the existing safe visualization approach rather than a fully custom replica.
 
-## Preserved functionality
-- Existing dashboard metrics still render.
-- Existing campaigns still render.
-- Recommendation dismiss flow still works.
-- No new pages were added.
-- No unsupported upload, media, live publishing, payments, or autonomous optimization features were added.
-- No Campaign Detail, Campaign Completion, or Campaign Workflow logic was changed.
+## Preservation / governance
+- Existing dashboard metrics, campaigns, and recommendations still render.
+- Recommendation dismiss flow remains intact.
 - No backend, database, routes, API, or runtime changes were made.
+- No new pages were added.
+- No upload, media, live publishing, payments, or autonomous optimization features were added.
+- No Campaign Detail, Campaign Completion, or Campaign Workflow logic was changed.
 
-## Remaining gaps
-- Right-side navigation was only approximated within the current shared layout; the shared app shell itself was not changed.
-- The chart and funnel remain simplified compared with the screenshot.
-- Some spacing and iconography are close rather than pixel-perfect.
-- The dashboard chart card was slightly expanded for better visual balance after shell alignment.
-
-## Verification
-- TypeScript: passed
-- Frontend build: passed
+## Verification results
+- TypeScript: pending
+- Frontend build: pending
 - Backend: untouched
+- Screenshot/visual evidence: explicit visual inspection via live browser logs; no screenshot capture in this pass.
 
 ## Readiness decision
-- Dashboard slice is ready for review.
+- Dashboard layout fix is ready for review.
