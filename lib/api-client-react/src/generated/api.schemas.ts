@@ -5,60 +5,138 @@
  * Marketing OS Lite API
  * OpenAPI spec version: 0.1.0
  */
-export type MediaAssetType =
-  (typeof MediaAssetType)[keyof typeof MediaAssetType];
+export type HealthCheckResponseStatus =
+  (typeof HealthCheckResponseStatus)[keyof typeof HealthCheckResponseStatus];
 
-export const MediaAssetType = {
-  image: "image",
-  video: "video",
-  document: "document",
-  other: "other",
+export const HealthCheckResponseStatus = {
+  healthy: "healthy",
 } as const;
 
-export type MediaAssetStatus =
-  (typeof MediaAssetStatus)[keyof typeof MediaAssetStatus];
+export interface HealthCheckResponse {
+  status: HealthCheckResponseStatus;
+}
 
-export const MediaAssetStatus = {
-  draft: "draft",
-  needs_review: "needs_review",
-  approved: "approved",
-  rejected: "rejected",
-} as const;
-
-export interface MediaAsset {
+export interface Workspace {
   id: number;
-  workspaceId: number;
-  campaignId?: number | null;
-  title: string;
-  type: MediaAssetType;
-  urlOrReference: string;
-  description: string;
-  channel?: string | null;
-  status: MediaAssetStatus;
-  createdBy: number;
+  name: string;
+  slug: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateMediaAssetBody {
-  workspaceId: number;
-  campaignId?: number | null;
-  title: string;
-  type: MediaAssetType;
-  urlOrReference: string;
-  description?: string;
-  channel?: string | null;
-  status?: MediaAssetStatus;
+export interface CreateWorkspaceBody {
+  name: string;
+  slug: string;
 }
 
-export interface UpdateMediaAssetBody {
-  campaignId?: number | null;
-  title?: string;
-  type?: MediaAssetType;
-  urlOrReference?: string;
-  description?: string;
-  channel?: string | null;
-  status?: MediaAssetStatus;
+export type WorkspaceMemberRole =
+  (typeof WorkspaceMemberRole)[keyof typeof WorkspaceMemberRole];
+
+export const WorkspaceMemberRole = {
+  admin: "admin",
+  member: "member",
+  viewer: "viewer",
+} as const;
+
+export interface WorkspaceMember {
+  id: number;
+  workspaceId: number;
+  userId: number;
+  role: WorkspaceMemberRole;
+  createdAt: string;
+}
+
+export type AddMemberBodyRole =
+  (typeof AddMemberBodyRole)[keyof typeof AddMemberBodyRole];
+
+export const AddMemberBodyRole = {
+  admin: "admin",
+  member: "member",
+  viewer: "viewer",
+} as const;
+
+export interface AddMemberBody {
+  userId: number;
+  role: AddMemberBodyRole;
+}
+
+export type UpdateMemberBodyRole =
+  (typeof UpdateMemberBodyRole)[keyof typeof UpdateMemberBodyRole];
+
+export const UpdateMemberBodyRole = {
+  admin: "admin",
+  member: "member",
+  viewer: "viewer",
+} as const;
+
+export interface UpdateMemberBody {
+  role: UpdateMemberBodyRole;
+}
+
+export interface BrandProfile {
+  id: number;
+  workspaceId: number;
+  name: string;
+  logoUrl?: string | null;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  fontFamily?: string | null;
+  toneOfVoice?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBrandProfileBody {
+  workspaceId: number;
+  name: string;
+  logoUrl?: string | null;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
+  fontFamily?: string | null;
+  toneOfVoice?: string | null;
+}
+
+export type CampaignStatus =
+  (typeof CampaignStatus)[keyof typeof CampaignStatus];
+
+export const CampaignStatus = {
+  draft: "draft",
+  active: "active",
+  paused: "paused",
+  completed: "completed",
+  archived: "archived",
+} as const;
+
+export interface Campaign {
+  id: number;
+  workspaceId: number;
+  name: string;
+  status: CampaignStatus;
+  startDate?: string | null;
+  endDate?: string | null;
+  budget?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateCampaignBodyStatus =
+  (typeof CreateCampaignBodyStatus)[keyof typeof CreateCampaignBodyStatus];
+
+export const CreateCampaignBodyStatus = {
+  draft: "draft",
+  active: "active",
+  paused: "paused",
+  completed: "completed",
+  archived: "archived",
+} as const;
+
+export interface CreateCampaignBody {
+  workspaceId: number;
+  name: string;
+  status?: CreateCampaignBodyStatus;
+  startDate?: string | null;
+  endDate?: string | null;
+  budget?: number | null;
 }
 
 export type ListBrandProfilesParams = {
@@ -68,9 +146,4 @@ export type ListBrandProfilesParams = {
 export type ListCampaignsParams = {
   workspaceId?: number;
   status?: string;
-};
-
-export type ListMediaAssetsParams = {
-  workspaceId?: number;
-  campaignId?: number;
 };

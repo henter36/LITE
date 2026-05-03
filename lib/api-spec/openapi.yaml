@@ -18,24 +18,6 @@ tags:
     description: Brand profile management
   - name: campaigns
     description: Campaign management
-  - name: assets
-    description: Generated content assets
-  - name: media-assets
-    description: Media asset references
-  - name: approvals
-    description: Approval workflow
-  - name: connections
-    description: Ad platform connections
-  - name: tracking
-    description: UTM tracking links
-  - name: metrics
-    description: Performance metrics
-  - name: recommendations
-    description: Rules-based recommendations
-  - name: audit
-    description: Audit log
-  - name: strategy
-    description: Strategy planning
 
 paths:
   /healthz:
@@ -49,7 +31,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                $ref: "#/components/schemas/HealthCheckResponse"
 
   # Workspaces
   /workspaces:
@@ -409,168 +391,172 @@ paths:
         "204":
           description: Deleted
 
-  # Media Assets
-  /media-assets:
-    get:
-      operationId: listMediaAssets
-      tags: [media-assets]
-      summary: List media asset references
-      parameters:
-        - name: workspaceId
-          in: query
-          schema:
-            type: integer
-        - name: campaignId
-          in: query
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: List of media assets
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MediaAsset"
-    post:
-      operationId: createMediaAsset
-      tags: [media-assets]
-      summary: Create a media asset reference
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateMediaAssetBody"
-      responses:
-        "201":
-          description: Created media asset
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MediaAsset"
-
-  /media-assets/{id}:
-    patch:
-      operationId: updateMediaAsset
-      tags: [media-assets]
-      summary: Update a media asset reference
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateMediaAssetBody"
-      responses:
-        "200":
-          description: Updated media asset
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MediaAsset"
-    delete:
-      operationId: deleteMediaAsset
-      tags: [media-assets]
-      summary: Delete a media asset reference
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "204":
-          description: Deleted
-
-  # ... rest unchanged ...
 components:
   schemas:
-    # ... existing schemas unchanged ...
-    MediaAssetType:
-      type: string
-      enum: [image, video, document, other]
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy]
+      required: [status]
 
-    MediaAssetStatus:
-      type: string
-      enum: [draft, needs_review, approved, rejected]
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, name, slug, createdAt, updatedAt]
 
-    MediaAsset:
+    CreateWorkspaceBody:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+      required: [name, slug]
+
+    WorkspaceMember:
       type: object
       properties:
         id:
           type: integer
         workspaceId:
           type: integer
-        campaignId:
+        userId:
           type: integer
-          nullable: true
-        title:
+        role:
           type: string
-        type:
-          $ref: "#/components/schemas/MediaAssetType"
-        urlOrReference:
+          enum: [admin, member, viewer]
+        createdAt:
           type: string
-        description:
-          type: string
-        channel:
-          type: string
-          nullable: true
-        status:
-          $ref: "#/components/schemas/MediaAssetStatus"
-        createdBy:
+      required: [id, workspaceId, userId, role, createdAt]
+
+    AddMemberBody:
+      type: object
+      properties:
+        userId:
           type: integer
+        role:
+          type: string
+          enum: [admin, member, viewer]
+      required: [userId, role]
+
+    UpdateMemberBody:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [admin, member, viewer]
+      required: [role]
+
+    BrandProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        name:
+          type: string
+        logoUrl:
+          type: string
+          nullable: true
+        primaryColor:
+          type: string
+          nullable: true
+        secondaryColor:
+          type: string
+          nullable: true
+        fontFamily:
+          type: string
+          nullable: true
+        toneOfVoice:
+          type: string
+          nullable: true
         createdAt:
           type: string
         updatedAt:
           type: string
-      required: [id, workspaceId, title, type, urlOrReference, description, status, createdBy, createdAt, updatedAt]
+      required: [id, workspaceId, name, createdAt, updatedAt]
 
-    CreateMediaAssetBody:
+    CreateBrandProfileBody:
       type: object
       properties:
         workspaceId:
           type: integer
-        campaignId:
-          type: integer
-          nullable: true
-        title:
+        name:
           type: string
-        type:
-          $ref: "#/components/schemas/MediaAssetType"
-        urlOrReference:
-          type: string
-        description:
-          type: string
-        channel:
+        logoUrl:
           type: string
           nullable: true
-        status:
-          $ref: "#/components/schemas/MediaAssetStatus"
-      required: [workspaceId, title, type, urlOrReference]
+        primaryColor:
+          type: string
+          nullable: true
+        secondaryColor:
+          type: string
+          nullable: true
+        fontFamily:
+          type: string
+          nullable: true
+        toneOfVoice:
+          type: string
+          nullable: true
+      required: [workspaceId, name]
 
-    UpdateMediaAssetBody:
+    Campaign:
       type: object
       properties:
-        campaignId:
+        id:
           type: integer
-          nullable: true
-        title:
+        workspaceId:
+          type: integer
+        name:
           type: string
-        type:
-          $ref: "#/components/schemas/MediaAssetType"
-        urlOrReference:
-          type: string
-        description:
-          type: string
-        channel:
-          type: string
-          nullable: true
         status:
-          $ref: "#/components/schemas/MediaAssetStatus"
+          type: string
+          enum: [draft, active, paused, completed, archived]
+        startDate:
+          type: string
+          nullable: true
+        endDate:
+          type: string
+          nullable: true
+        budget:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, workspaceId, name, status, createdAt, updatedAt]
+
+    CreateCampaignBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        name:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, paused, completed, archived]
+        startDate:
+          type: string
+          nullable: true
+        endDate:
+          type: string
+          nullable: true
+        budget:
+          type: number
+          nullable: true
+      required: [workspaceId, name]
