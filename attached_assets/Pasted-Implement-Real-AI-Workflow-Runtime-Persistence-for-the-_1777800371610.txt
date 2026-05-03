@@ -1,0 +1,328 @@
+Implement Real AI Workflow Runtime + Persistence for the redesigned 4-stage AI Workflow only.
+
+Current baseline:
+- AI Workflow UX has been redesigned into a 4-stage Arabic RTL Campaign Launch Assistant.
+- Stage 1: فهم الحملة
+- Stage 2: بناء الاستراتيجية
+- Stage 3: تجهيز المحتوى
+- Stage 4: المواصفات الإبداعية
+- Campaign Detail and AI Workflow UI must not be redesigned in this slice.
+- React setState/render warnings have been fixed.
+- Frontend build currently passes.
+
+Do not redesign UI.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Content.
+Do not touch Review.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget automation.
+Do not implement autonomous optimization.
+Do not expose API keys in frontend.
+Do not change Campaign Completion logic.
+Do not change manual publish guards.
+Do not change OpenAPI or generated client unless strictly required by existing architecture.
+
+Objective:
+Make the redesigned AI Workflow actually work end-to-end using real server-side AI calls and database persistence. No fake generation. No mock success in production.
+
+Allowed scope:
+- existing AI workflow backend routes/actions
+- existing AI provider/server-side runtime
+- existing workflow persistence tables
+- redesigned AI Workflow frontend wiring only where needed to call real runtime and display saved outputs
+- documentation
+
+Required principle:
+Every workflow action must either:
+1. call the real backend runtime and save real output, or
+2. fail safely with AI_UNAVAILABLE / missing-key state.
+
+No UI action may show fake success.
+
+1. Server-side AI only
+
+All AI calls must happen on the API server.
+
+Use only:
+process.env.OPENAI_API_KEY
+
+Never:
+- call OpenAI from frontend
+- expose API key in frontend
+- log API key
+- commit API key
+
+2. Missing-key behavior
+
+If OPENAI_API_KEY is missing:
+- return a safe structured unavailable response
+- frontend shows a clear unavailable message
+- do not crash
+- do not show mock output as if it were real AI
+
+3. Mock fallback rules
+
+Mock output is allowed only for explicit local/dev mode if already supported.
+
+If mock output is used:
+- response must include source: "mock"
+- production must never use mock as success
+- UI/report must distinguish mock from real AI if surfaced
+
+4. Structured outputs
+
+Use structured JSON outputs for each generated stage.
+
+All generated outputs must be predictable enough to save and render.
+
+5. Stage 1 — فهم الحملة
+
+Ensure intake save works and persists to the existing intake table.
+
+Input:
+- business/product description
+- campaign objective
+- target audience
+- offer/value proposition
+- brand tone
+- selected channels
+- landing URL/tracking link
+- constraints/forbidden claims
+- available creative assets/references
+- missing information
+
+Persist to:
+campaignWorkflowIntakes
+
+6. Stage 2 — بناء الاستراتيجية
+
+This stage may generate both:
+- Strategy Brief
+- Creative Brief
+
+Use existing backend routes if already separated.
+Do not create duplicate systems.
+
+Input:
+- campaign data
+- saved intake
+- brand profile if available
+- campaign channels/objective/audience/offer
+- constraints and missing context
+
+Strategy output:
+- objective
+- positioning
+- keyMessage
+- audience
+- recommendedChannels
+- contentAngles
+- ctaDirection
+- risks
+- missingContextWarnings
+- safetyNotes
+
+Persist to:
+campaignStrategyBriefs
+
+Creative output:
+- coreMessage
+- tone
+- textDirection
+- visualDirection
+- videoDirection
+- channelAdaptations
+- usageRightsReminders
+- prohibitedElements
+- safetyNotes
+
+Persist to:
+campaignCreativeBriefs
+
+7. Stage 3 — تجهيز المحتوى
+
+Generate real text suggestions from the server-side AI runtime.
+
+Input:
+- campaign data
+- intake
+- strategy brief
+- creative brief
+- brand voice
+- selected channels
+
+Output:
+- hooks
+- adCopyVariants
+- captions
+- ctas
+- improvementNotes
+- missingContextWarnings
+- safetyNotes
+
+Output remains draft-only.
+
+Persistence:
+- If an existing content/ad draft storage exists, save there.
+- If no appropriate storage exists, do not create new tables unless necessary.
+- If transient only, document this clearly as a remaining gap.
+
+8. Stage 4 — المواصفات الإبداعية
+
+Generate text specs only.
+
+A. Image Prompt Specs
+
+Input:
+- campaign data
+- creative brief
+- brand profile
+- available creative references
+
+Output:
+- promptText
+- compositionNotes
+- styleDirection
+- productSceneNotes
+- channelFormatNotes
+- usageRightsReminders
+- prohibitedElements
+- safetyNotes
+
+Persist to:
+campaignImagePromptSpecs
+
+Do not generate images.
+
+B. Video Script / Storyboard Specs
+
+Input:
+- campaign data
+- creative brief
+- brand profile
+- selected channels
+
+Output:
+- videoConcept
+- shortScript
+- storyboardOutline
+- sceneList
+- voiceoverDraft
+- captionDraft
+- platformNotes
+- safetyNotes
+
+Persist to:
+campaignVideoScriptSpecs
+
+Do not generate video.
+Do not upload files.
+
+9. Frontend behavior
+
+Use the redesigned AI Workflow UI.
+
+Each stage should:
+- show loading state
+- call the correct backend route/action
+- render saved output after success
+- reload persisted output on page refresh
+- show missing-key/unavailable error safely
+- show draft-only status
+- not alter readiness/publish/approval state
+
+10. Governance
+
+AI must not:
+- approve content
+- approve assets
+- mark campaign ready
+- publish
+- modify budget
+- update assets
+- change readiness score
+- bypass manual publish guards
+- bypass role guards
+- bypass workspace scoping
+
+11. Role and workspace guards
+
+All generation routes must:
+- require authenticated user
+- require editor or above
+- verify campaign belongs to workspace
+- deny viewer generation
+- allow read-only access only according to existing policy
+
+12. Audit / activity
+
+If an existing activity/audit pattern exists, record:
+- generation requested
+- generation completed
+- generation failed
+- stage name
+- campaign id
+- user id
+- provider/model if available
+- source: real | mock | unavailable
+
+If no audit pattern exists, document it as a gap.
+
+13. Documentation
+
+Create:
+docs/real_ai_workflow_runtime_persistence_report.md
+
+Report must include:
+- changed files
+- routes/actions used
+- AI provider/model approach
+- API key handling
+- structured output schemas
+- persistence tables used
+- stage-by-stage runtime behavior
+- missing-key behavior
+- mock behavior
+- role/scoping guards
+- governance constraints
+- frontend states
+- verification results
+- remaining gaps
+- readiness decision
+
+Also update:
+docs/ui_alignment_campaign_slice_report.md
+
+Only if needed to state that the redesigned AI Workflow now uses real runtime/persistence.
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no API key in frontend
+- no frontend OpenAI/provider call
+- missing key fails safely
+- real key path calls backend AI provider
+- generated outputs persist and reload
+- viewer cannot generate
+- editor can generate
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no Campaign Completion regression
+- no manual publish guard regression
+
+Final output:
+- changed files
+- real AI workflow runtime implemented
+- persistence implemented
+- verification results
+- remaining gaps
+- readiness decision
