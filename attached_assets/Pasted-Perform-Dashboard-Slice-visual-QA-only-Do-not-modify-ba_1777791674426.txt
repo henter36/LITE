@@ -1,0 +1,76 @@
+Perform Dashboard Slice visual QA only.
+
+Do not modify backend.
+Do not modify database.
+Do not modify routes.
+Do not modify AI runtime.
+Do not modify Campaign Detail.
+Do not modify Campaign Completion logic.
+Do not modify Campaign Workflow logic.
+Do not add pages.
+Do not implement upload/media/live publishing.
+Do not continue Brand/Content/Review alignment yet.
+
+Objective:
+Verify that the Dashboard-only UI alignment is visually and functionally acceptable before moving to the next screen.
+
+Tasks:
+
+1. Visual comparison
+Compare the current Dashboard against the provided dashboard reference screenshot.
+
+Check:
+- right-side navigation position and spacing
+- top header
+- KPI cards
+- performance chart/card
+- recent campaigns area
+- workflow funnel
+- recent activity
+- brand completion card
+- pending reviews card
+- RTL alignment
+- spacing/radius/shadow consistency
+- green/teal identity consistency
+
+2. Functional preservation
+Verify:
+- existing dashboard metrics still render
+- recent campaigns still render
+- recommendation/dismiss flow still works
+- no broken imports
+- no missing cards that existed before recovery
+- no fake live analytics were introduced
+
+3. Minimal fixes only
+Only fix obvious visual or functional issues in dashboard.tsx.
+Do not redesign other screens.
+Do not touch any other page unless required by a shared component import issue.
+
+4. Documentation
+Update:
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- visual QA findings
+- what matches the reference
+- what remains not pixel-perfect
+- functional preservation status
+- screenshots/visual notes if available
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no new pages
+- no unsupported features
+
+Final output:
+- changed files
+- visual QA result
+- functional preservation result
+- verification results
+- remaining visual gaps
+- readiness decision
