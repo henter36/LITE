@@ -1,0 +1,93 @@
+Perform Campaign Detail visual and functional QA only.
+
+Do not start Content alignment.
+Do not start Review alignment.
+Do not modify Dashboard.
+Do not modify Brand.
+Do not modify backend.
+Do not modify database.
+Do not modify routes.
+Do not modify AI runtime.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Objective:
+Verify that the Campaign Detail redesign is visually acceptable and did not break completion, publish, role, or AI workflow behavior.
+
+Tasks:
+
+1. Visual QA
+Open the existing Campaign Detail screen and provide a screenshot if possible.
+If screenshot is not possible, state that clearly.
+
+Check:
+- Arabic RTL layout
+- same light right-side shell
+- green/teal identity
+- premium white cards
+- hero header
+- campaign status badges
+- Campaign Completion card
+- AI Assist card
+- flow indicator
+- campaign brief/budget card
+- all five tabs
+- no overlap/clipping
+- no awkward empty sections
+- no unsupported upload/media/live publishing UI
+
+2. Functional QA
+Verify:
+- readiness score still works
+- missing requirements list still works
+- publish checklist still works
+- manual publish guard blocks at UI and handler level
+- tracking link dialog still works
+- publish dialog still works
+- approve/publish/create-link mutations still wired
+- viewer restrictions still work
+- AI suggestions remain draft-only
+- AI cannot approve, publish, mark ready, modify budget, update assets, or change readiness
+
+3. Scope QA
+Confirm:
+- no backend/db/routes/API/runtime changes
+- no OpenAPI/generated client changes
+- no Dashboard changes
+- no Brand changes
+- no Content/Review changes
+- no new pages
+- no upload/image/video/live publishing
+
+4. Documentation
+Create or update:
+docs/ui_alignment_campaign_slice_report.md
+
+Include:
+- changed files
+- visual QA findings
+- screenshot/visual evidence status
+- functional QA findings
+- preserved guards/roles/workflows
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+
+Final output:
+- changed files
+- screenshot/visual evidence status
+- Campaign visual QA result
+- Campaign functional QA result
+- verification results
+- remaining gaps
+- readiness decision
