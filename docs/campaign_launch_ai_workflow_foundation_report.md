@@ -16,6 +16,19 @@
 - `artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx` — new component file
 - `artifacts/marketing-os/src/pages/campaign-detail.tsx` — wires in workflow tab and status panel
 
+## Migration / reproducibility status
+- Reproducible from repository state: yes.
+- The new workflow tables are declared in `lib/db/src/schema/*.ts` and exported from `lib/db/src/schema/index.ts`.
+- The tables were also created directly in the database during this session so the live environment matches the schema.
+- No hidden manual SQL is required for future rebuilds; clean-environment recreation is driven by the schema files.
+
+## Drizzle conflict root cause
+- `drizzle-kit push` failed because an existing database constraint already existed in the target database:
+  - `system_admin_users_user_id_unique`
+- The failure was an existing-schema conflict, not caused by the new workflow tables.
+- The new workflow tables themselves do not introduce a naming conflict.
+- The accepted fix was to create the new workflow tables directly with SQL so the live database matched the committed schema while the pre-existing constraint drift remains documented.
+
 ## Workflow implemented
 
 7-step campaign launch cockpit, all inside existing Campaign Detail as a new "AI Workflow" tab:
@@ -83,6 +96,21 @@
 - Mock fallback is used in dev/test; production mock-as-success is blocked.
 - Missing key returns `AI_UNAVAILABLE` code with safe draft fallback.
 
+## Route-by-route security table
+
+| Method | Path | Purpose | Auth | Role | Scope check | Writes | AI | Affects readiness/publish |
+|---|---|---|---|---|---|---|---|---|
+| GET | `/campaign-workflow/intake` | Load latest intake | yes | any workspace role | yes | no | no | no |
+| POST | `/campaign-workflow/intake` | Save/update intake | yes | editor+ | yes | yes | no | no |
+| GET | `/campaign-workflow/strategy-brief` | Load latest strategy brief | yes | any workspace role | yes | no | no | no |
+| POST | `/campaign-workflow/strategy-brief` | Generate/save strategy brief | yes | editor+ | yes | yes | yes | no |
+| GET | `/campaign-workflow/creative-brief` | Load latest creative brief | yes | any workspace role | yes | no | no | no |
+| POST | `/campaign-workflow/creative-brief` | Generate/save creative brief | yes | editor+ | yes | yes | yes | no |
+| GET | `/campaign-workflow/image-prompt-specs` | Load latest image prompt specs | yes | any workspace role | yes | no | no | no |
+| POST | `/campaign-workflow/image-prompt-specs` | Generate/save prompt specs | yes | editor+ | yes | yes | yes | no |
+| GET | `/campaign-workflow/video-script-specs` | Load latest video script specs | yes | any workspace role | yes | no | no | no |
+| POST | `/campaign-workflow/video-script-specs` | Generate/save video script specs | yes | editor+ | yes | yes | yes | no |
+
 ## API key safety
 - `OPENAI_API_KEY` read only from `process.env.OPENAI_API_KEY` server-side.
 - No key in frontend code.
@@ -109,6 +137,12 @@
 - Viewer restrictions on publish/approve/mark-ready untouched.
 - `WorkflowStatusPanel` added to Campaign Completion card to show AI workflow step progress.
 
+## Page / route verification
+- `artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx` is not registered as a route.
+- There is no standalone workflow page added.
+- AI Workflow appears only as a tab inside existing Campaign Detail.
+- Campaign Detail remains the operating cockpit.
+
 ## Governance
 AI outputs cannot:
 - approve content
@@ -134,6 +168,11 @@ All AI outputs are marked as draft-only. Every step renders a DraftBanner UI com
 - Exact command: `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`
 - `PORT` was required by the Vite config.
 - Result: passed
+
+### DB reproducibility
+- Schema files are committed.
+- New tables exist in the live database.
+- The only unresolved database drift noted during sync was the pre-existing unique constraint conflict on `system_admin_users_user_id_unique`.
 
 ### Security
 - No API key in frontend code — verified by inspection.

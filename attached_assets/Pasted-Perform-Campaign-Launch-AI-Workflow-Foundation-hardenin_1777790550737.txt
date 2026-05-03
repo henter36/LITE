@@ -1,0 +1,168 @@
+Perform Campaign Launch AI Workflow Foundation hardening and migration verification only.
+
+Do not add new product features.
+Do not add new pages.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement upload.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget changes.
+Do not implement autonomous optimization.
+Do not weaken Campaign Completion Wiring.
+Do not weaken AI route auth/role/workspace scoping.
+
+Current implementation added:
+- lib/db/src/schema/campaignWorkflowIntakes.ts
+- lib/db/src/schema/campaignStrategyBriefs.ts
+- lib/db/src/schema/campaignCreativeBriefs.ts
+- lib/db/src/schema/campaignImagePromptSpecs.ts
+- lib/db/src/schema/campaignVideoScriptSpecs.ts
+- artifacts/api-server/src/routes/campaignWorkflow.ts
+- artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx
+- Campaign Detail wiring
+- docs/campaign_launch_ai_workflow_foundation_report.md
+
+Objective:
+Make the workflow implementation reproducible, migration-safe, route-safe, and aligned with the existing architecture.
+
+Tasks:
+
+1. Database migration/reproducibility review
+
+The previous implementation created tables directly with SQL after drizzle push hit an existing constraint conflict.
+
+This must be reviewed and fixed safely.
+
+Verify:
+- schema files match the actual database tables
+- indexes/foreign keys/constraints are represented in code
+- the new tables can be recreated from repository state on a clean environment
+- no hidden manual SQL-only state is required
+- no existing constraint was bypassed unsafely
+
+If the project uses migrations, create the proper migration file.
+If the project does not use migrations, document the exact accepted schema-sync approach and the constraint conflict cause.
+
+Do not leave undocumented manual SQL as the only source of truth.
+
+2. Drizzle conflict analysis
+
+Identify:
+- what constraint conflicted
+- why drizzle push failed
+- whether the conflict is related to existing schema drift
+- whether the new workflow tables introduced the conflict
+- whether any constraint name needs to be adjusted
+- whether schema/index naming should be normalized
+
+Document the finding.
+
+3. Route surface review
+
+Review artifacts/api-server/src/routes/campaignWorkflow.ts.
+
+For every route, document:
+- method
+- path
+- purpose
+- auth guard
+- role requirement
+- workspace/campaign scoping
+- whether it writes data
+- whether it calls AI
+- whether it can affect readiness/publish/approval state
+
+Confirm:
+- all POST routes require requireAuth + editor or above
+- all GET routes require requireAuth + valid workspace role
+- every campaign operation validates campaign.workspaceId === workspaceId
+- viewers cannot trigger AI generation
+- no route can publish
+- no route can approve content/assets
+- no route can mark campaign ready
+- no route can modify budget
+- no route can alter manual publish checklist
+- no route can bypass Campaign Completion guards
+
+4. UI route/page verification
+
+Verify:
+- campaign-workflow-tab.tsx is not registered as a standalone page/route
+- AI Workflow appears only as a tab inside existing Campaign Detail
+- no new route was added for a standalone workflow page
+- Campaign Detail remains the campaign operating cockpit
+
+If the file location under pages creates route ambiguity in the app framework, move it to an existing components area with minimal changes.
+
+5. Draft-only governance
+
+Verify:
+- Strategy Brief is draft-only
+- Creative Brief is draft-only
+- Text Suggestions are draft-only
+- Image Prompt Specs are draft-only
+- Video Script Specs are draft-only
+- none of these outputs modify readiness score directly
+- none of these outputs approve content/assets
+- none of these outputs publish
+- none of these outputs change campaign ready state
+
+6. Completion wiring preservation
+
+Verify:
+- existing Campaign Completion panel still renders
+- WorkflowStatusPanel does not replace the existing completion logic
+- readiness score still uses the existing completion requirements
+- publish checklist still requires approved ad, campaign ready, approved creative asset/reference with usage rights notes, tracking link/landing URL, selected channels
+- manual publish guard still blocks at UI and handler level
+- viewer restrictions still work
+
+7. API key and AI provider safety
+
+Verify:
+- OPENAI_API_KEY is still server-side only
+- no frontend AI provider call exists
+- no key is logged
+- no key is committed
+- missing key returns safe structured unavailable response
+- mock fallback cannot masquerade as real AI success in production
+
+8. Documentation update
+
+Update:
+docs/campaign_launch_ai_workflow_foundation_report.md
+
+Add:
+- migration/reproducibility status
+- Drizzle conflict root cause
+- whether manual SQL was converted to migration or otherwise made reproducible
+- route-by-route security table
+- page/route verification
+- draft-only governance verification
+- Campaign Completion preservation
+- exact build commands and results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- Marketing OS frontend build passes with required PORT/BASE_PATH
+- DB schema/migration state is reproducible or explicitly documented
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no new standalone pages
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- migration/reproducibility decision
+- Drizzle conflict finding
+- route-by-route security summary
+- page/route verification
+- build/typecheck verification
+- remaining gaps
+- readiness decision
