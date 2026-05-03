@@ -1,0 +1,65 @@
+Campaign hard cleanup patch only.
+
+Do not redesign.
+Do not touch backend, database, routes, AI runtime, Dashboard, Brand, Content, Review, or Campaign Completion logic.
+Do not add pages.
+Do not implement upload, image generation, video generation, or live publishing.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/campaign-detail.tsx
+- artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx
+- docs/ui_alignment_campaign_slice_report.md
+
+Objective:
+Patch the exact remaining visible English labels and purple legacy buttons shown in the latest screenshots.
+
+In campaign-detail.tsx, search and replace these exact visible labels:
+- Performance -> الأداء
+- Publish -> النشر اليدوي
+- Approve -> اعتماد
+- Generate Ads -> توليد نصوص إعلانية
+- Create Campaign -> إعداد الحملة
+- Approved ads -> الإعلانات المعتمدة
+- Strategy context -> سياق الاستراتيجية
+- Approved creative asset/reference -> أصل/مرجع إبداعي معتمد
+- Campaign marked ready -> الحملة معلّمة كجاهزة
+- Tracking link or landing URL -> رابط تتبع أو صفحة هبوط
+- Selected channels -> القنوات المحددة
+
+Also replace visible button styles for these action buttons from purple to emerald/teal where safe.
+Do not change handlers.
+
+In campaign-workflow-tab.tsx, search and replace the remaining English helper descriptions:
+- Generate a strategy brief to see objective, positioning, key message, content angles, and safety notes.
+  -> ولّد موجز الاستراتيجية لعرض الهدف والتموضع والرسالة الرئيسية وزوايا المحتوى وملاحظات السلامة.
+- Generate a creative brief to see core message, tone, text/visual/video direction, and prohibited elements.
+  -> ولّد الموجز الإبداعي لعرض الرسالة الأساسية والنبرة واتجاه النص والصورة والفيديو والعناصر المحظورة.
+- Generate image prompt specs to see prompt text, style direction, composition notes, and channel format requirements.
+  -> ولّد مواصفات الصورة النصية لعرض نص المطالبة واتجاه الأسلوب وملاحظات التكوين ومتطلبات القناة. هذه مواصفات فقط ولا يتم توليد صور.
+- Generate video script specs to see concept, script, storyboard, voiceover draft, and platform notes.
+  -> ولّد نص الفيديو ولوحة المشاهد لعرض الفكرة والنص وتسلسل المشاهد ومسودة التعليق الصوتي وملاحظات المنصة. هذه خطة نصية فقط ولا يتم توليد فيديو أو رفع ملفات.
+
+Replace remaining visible buttons:
+- Generate Strategy Brief -> توليد موجز الاستراتيجية
+- Generate Creative Brief -> توليد الموجز الإبداعي
+- Generate Image Prompt Specs -> توليد مواصفات الصورة
+- Generate Video Script Specs -> توليد نص الفيديو
+
+Change the workflow generation buttons from purple to emerald/teal where safe.
+Do not change any function calls or disabled states.
+
+Verification:
+- run rg for the exact English strings above in the two allowed files
+- if any remain, fix them
+- TypeScript zero errors
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+
+Final output:
+- changed files
+- rg result for remaining English strings
+- purple button cleanup result
+- build result
+- remaining gaps
+- readiness decision
