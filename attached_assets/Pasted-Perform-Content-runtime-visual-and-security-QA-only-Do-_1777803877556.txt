@@ -1,0 +1,79 @@
+Perform Content runtime visual and security QA only.
+
+Do not add features.
+Do not redesign.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Review.
+Do not touch AI runtime.
+Do not touch database.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+
+Objective:
+Verify the Content screen now correctly displays persisted Stage 3 draft text suggestions and that the new read-only API is safe.
+
+Tasks:
+
+1. Visual QA
+Open the Content screen and provide a screenshot if possible.
+If screenshot is not possible, state that clearly.
+
+Check:
+- Arabic RTL layout
+- green/teal design consistency
+- persisted Stage 3 suggestions appear if records exist
+- draft-only labels visible
+- source labels visible if available
+- empty state is clear if no records exist
+- no unsupported media/upload/live publishing UI
+
+2. Runtime QA
+Verify:
+- Content reads persisted Stage 3 suggestions
+- suggestions survive refresh
+- Content does not call OpenAI
+- Content does not generate new text
+- Content does not approve anything
+- Content does not change readiness
+
+3. Route security QA
+For the new read-only route:
+- require authenticated user
+- enforce workspace scoping
+- do not expose cross-workspace data
+- no write behavior
+- no approval/publish behavior
+
+4. Documentation
+Update:
+docs/ui_alignment_content_slice_report.md
+docs/content_runtime_connection_report.md if it exists
+
+Add:
+- visual QA result
+- runtime connection result
+- read-only route security result
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes if route was touched
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched unless fixing route security
+- no upload/media/live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- screenshot/visual evidence status
+- Content runtime QA result
+- route security QA result
+- verification results
+- remaining gaps
+- readiness decision
