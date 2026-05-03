@@ -1,0 +1,79 @@
+Review Page Decision Patch only.
+
+Do not add features.
+Do not redesign UI.
+Do not touch backend.
+Do not touch database.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change Campaign Completion logic.
+Do not change Campaign Workflow logic.
+
+Current state:
+A new Review page was added even though no preexisting Review screen existed.
+A reconciliation report was created and found:
+- no preexisting Review screen
+- sidebar route should be removed if staying strict to original scope
+
+Objective:
+Make an explicit implementation decision and apply the smallest safe patch.
+
+Decision:
+Use option C unless the current Review page is already connected to real persisted Stage 3 drafts and does not fake approval.
+
+Option C:
+Keep the review.tsx file as a future V1 surface, but remove the /review route and sidebar navigation entry for now.
+
+Tasks:
+
+1. Inspect Review page behavior
+Confirm:
+- whether review.tsx reads persisted Stage 3 suggestions
+- whether approval actions are real or fake
+- whether it adds any unsupported approval/publish behavior
+- whether it is safe to expose in nav now
+
+2. If Review is not fully real:
+- remove /review route from App.tsx
+- remove Review item from sidebar-layout.tsx
+- keep review.tsx file only if harmless and documented as future surface
+- do not delete it unless necessary
+
+3. If Review is fully real:
+- keep route/sidebar
+- create docs/ui_alignment_review_slice_report.md
+- document data source, actions, role behavior, and governance
+
+4. Documentation
+Update:
+docs/review_scope_reconciliation_report.md
+
+Add:
+- final decision A/B/C
+- exact files changed
+- whether Review remains exposed in navigation
+- whether approval behavior is real or deferred
+- readiness decision
+
+5. Verification
+- TypeScript zero errors
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no upload/media/live publishing
+
+Final output:
+- final decision
+- changed files
+- route/sidebar status
+- verification results
+- remaining gaps
+- readiness decision

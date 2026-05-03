@@ -12,12 +12,13 @@
 - `artifacts/marketing-os/src/App.tsx`
 - `artifacts/marketing-os/src/components/layout/sidebar-layout.tsx`
 - `docs/ui_alignment_content_slice_report.md`
+- `docs/review_scope_reconciliation_report.md`
 
 ### Route added
-- `/review`
+- none
 
 ### Sidebar/nav changes
-- Added/retargeted the sidebar “المراجعة” item to `/review`
+- Removed the sidebar “المراجعة” item from navigation
 
 ### Docs changed
 - `docs/ui_alignment_content_slice_report.md`
@@ -76,9 +77,10 @@ Reason: the page is a harmless read-only shell, but the sidebar route makes it l
 - Review actions are still not wired to real text-suggestion approval records
 - The sidebar route overstates workflow completeness
 - No dedicated backend review workflow exists for Stage 3 suggestions
+- Review page file remains in the codebase as a future V1 surface, but it is not exposed
 
 ## 7. Readiness Decision
 
-**Scope reconciliation: PARTIAL PASS**
+**Scope reconciliation: PASS**
 
-The new Review page is a valid read-only placeholder, but the navigation exposure should be reconsidered until the review workflow is real.
+The Review page is kept as a future surface, but it is no longer exposed in navigation or routing.
