@@ -1,0 +1,112 @@
+Run measurable browser layout verification and fix only if it fails.
+
+Do not do visual polish.
+Do not redesign Dashboard.
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only if fixes are required:
+- artifacts/marketing-os/src/components/layout/sidebar-layout.tsx
+- artifacts/marketing-os/src/pages/dashboard.tsx
+- docs/ui_shell_alignment_report.md
+- docs/ui_alignment_dashboard_slice_report.md
+
+Objective:
+Prove with browser DOM measurements that the main content no longer overlaps the right sidebar and that no horizontal clipping remains. If the measurements fail, fix the layout contract until they pass.
+
+Required browser verification:
+Open Dashboard in the running app and execute or otherwise collect these measurements:
+
+1. Horizontal overflow
+Report:
+- document.documentElement.scrollWidth
+- document.documentElement.clientWidth
+Pass condition:
+scrollWidth <= clientWidth + 2
+
+2. Main/sidebar separation
+Identify the main content container and the sidebar container.
+Report:
+- mainRect.left
+- mainRect.right
+- sidebarRect.left
+- sidebarRect.right
+- gap between main right edge and sidebar left edge
+
+Pass condition:
+mainRect.right <= sidebarRect.left - 8
+
+3. Dashboard cards visibility
+Check representative visible cards:
+- first KPI card
+- last KPI card
+- performance chart card
+- recent campaigns card
+
+Report whether each card’s bounding rect is fully inside the main content rect.
+
+Pass condition:
+No card is partially hidden behind the sidebar.
+No card extends outside the main content rect.
+
+4. No claim without measurement
+Do not report “ready for review” unless the measurement values are included and pass.
+
+If browser measurement tools are unavailable:
+- state that explicitly
+- provide a fresh screenshot after the fix
+- do not claim final readiness without evidence
+
+Potential fixes if measurements fail:
+- ensure sidebar is in a real grid column, not overlay
+- ensure shell grid is width: 100%, not 100vw
+- ensure main has min-width: 0
+- ensure dashboard root has max-width <= available main width
+- ensure all dashboard grids use minmax(0, 1fr)
+- reduce dashboard max-width if needed
+- remove fixed/min widths causing overflow
+
+Documentation:
+Update:
+docs/ui_shell_alignment_report.md
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- exact DOM measurements
+- pass/fail result
+- any fix applied
+- screenshot/visual evidence status
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no backend/db/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+
+Final output:
+- changed files
+- DOM measurements
+- pass/fail status
+- fixes applied if any
+- screenshot/visual evidence status
+- verification results
+- readiness decision

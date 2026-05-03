@@ -118,7 +118,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
       <div
         dir="rtl"
         className="grid min-h-screen w-full grid-cols-[minmax(0,1fr)_280px] bg-[#f6faf8]"
-        style={{ gridTemplateAreas: '"main sidebar"' }}
+        style={{ gridTemplateAreas: `"main sidebar"` }}
       >
         <main className="min-w-0 overflow-x-hidden bg-[#f6faf8]" style={{ gridArea: "main", width: "100%", maxWidth: "100%" }}>
           <div className="bg-white text-muted-foreground text-xs px-4 py-1.5 text-center border-b flex items-center justify-center gap-1.5 shadow-sm">
