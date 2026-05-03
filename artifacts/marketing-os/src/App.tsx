@@ -11,6 +11,7 @@ import Campaigns from "@/pages/campaigns";
 import NewCampaign from "@/pages/campaigns-new";
 import CampaignDetail from "@/pages/campaign-detail";
 import ContentStudio from "@/pages/content-studio";
+import StrategyPage from "@/pages/strategy";
 import Reports from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/campaigns/new" component={() => <ProtectedRoute component={NewCampaign} />} />
       <Route path="/campaigns/:id" component={() => <ProtectedRoute component={CampaignDetail} />} />
       <Route path="/content-studio" component={() => <ProtectedRoute component={ContentStudio} />} />
+      <Route path="/strategy" component={() => <ProtectedRoute component={StrategyPage} />} />
       <Route path="/reports" component={() => <ProtectedRoute component={Reports} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
       {/* Legacy routes kept for direct access */}

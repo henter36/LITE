@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Megaphone,
   PenTool,
+  Lightbulb,
   BarChart3,
   Settings,
   LogOut,
@@ -29,6 +30,7 @@ const navItems = [
   { title: "Dashboard",   url: "/",              icon: LayoutDashboard },
   { title: "Campaigns",   url: "/campaigns",     icon: Megaphone },
   { title: "Content",     url: "/content-studio",icon: PenTool },
+  { title: "Strategy",    url: "/strategy",      icon: Lightbulb },
   { title: "Performance", url: "/reports",       icon: BarChart3 },
   { title: "Settings",    url: "/settings",      icon: Settings },
 ];
