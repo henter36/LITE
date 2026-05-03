@@ -27,6 +27,10 @@ import {
 } from "recharts";
 import { Link } from "wouter";
 
+function getRecommendationSource(rec: { source?: string | null }) {
+  return rec.source === "strategy" || rec.source === "mixed" ? rec.source : "performance";
+}
+
 export default function Dashboard() {
   const { activeWorkspaceId, user } = useAuth();
   const isViewer = user?.role === "viewer";
@@ -82,8 +86,17 @@ export default function Dashboard() {
                 <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">
                   Today's Action
                 </p>
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">
+                  Source: {getRecommendationSource(topRec as { source?: string | null })}
+                </p>
                 <p className="text-lg font-semibold leading-snug">{topRec.title}</p>
                 <p className="text-sm text-muted-foreground mt-1">{topRec.description}</p>
+                {topRec.campaignId ? (
+                  <p className="text-xs text-muted-foreground mt-2">Campaign #{topRec.campaignId}</p>
+                ) : null}
+                {(topRec as { linkedStrategyId?: number | null }).linkedStrategyId ? (
+                  <p className="text-xs text-muted-foreground mt-1">Strategy #{(topRec as { linkedStrategyId?: number | null }).linkedStrategyId}</p>
+                ) : null}
               </div>
               <div className="flex flex-col gap-2 shrink-0">
                 <Link href="/campaigns">
@@ -319,6 +332,45 @@ export default function Dashboard() {
                       </Link>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            ))}
+            {recommendations?.slice(0, 3).map((rec) => (
+              <Card key={`rec-${rec.id}`} className="border-dashed">
+                <CardContent className="p-4 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="capitalize">
+                        {getRecommendationSource(rec as { source?: string | null })}
+                      </Badge>
+                      {rec.campaignId ? (
+                        <span className="text-xs text-muted-foreground">Campaign #{rec.campaignId}</span>
+                      ) : (rec as { linkedStrategyId?: number | null }).linkedStrategyId ? (
+                        <span className="text-xs text-muted-foreground">Strategy #{(rec as { linkedStrategyId?: number | null }).linkedStrategyId}</span>
+                      ) : null}
+                    </div>
+                    <p className="font-medium mt-2">{rec.title}</p>
+                    <p className="text-sm text-muted-foreground">{rec.description}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="shrink-0"
+                    disabled={dismissRec.isPending}
+                    onClick={() =>
+                      dismissRec.mutate(
+                        { id: rec.id, data: { isRead: true } },
+                        {
+                          onSuccess: () =>
+                            queryClient.invalidateQueries({
+                              queryKey: getListRecommendationsQueryKey({ workspaceId: activeWorkspaceId }),
+                            }),
+                        },
+                      )
+                    }
+                  >
+                    Dismiss
+                  </Button>
                 </CardContent>
               </Card>
             ))}

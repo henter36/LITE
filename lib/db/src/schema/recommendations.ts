@@ -7,10 +7,12 @@ export const recommendationsTable = pgTable("recommendations", {
   id: serial("id").primaryKey(),
   workspaceId: integer("workspace_id").notNull().references(() => workspacesTable.id, { onDelete: "cascade" }),
   campaignId: integer("campaign_id"),
+  linkedStrategyId: integer("linked_strategy_id"),
   type: text("type").notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   priority: text("priority").notNull().default("medium"),
+  source: text("source").notNull().default("performance"),
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
