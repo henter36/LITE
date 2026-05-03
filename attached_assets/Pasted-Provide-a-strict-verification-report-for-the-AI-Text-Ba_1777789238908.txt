@@ -1,0 +1,80 @@
+Provide a strict verification report for the AI Text Backend Runtime implementation.
+
+Do not make new feature changes unless required to fix verification failures.
+Do not modify Campaign Detail UI.
+Do not add pages.
+Do not add image/video/upload/live publishing.
+Do not change OpenAPI or generated client unless already changed and required to report.
+
+Report and verify:
+
+1. Changed files
+List every changed file exactly.
+
+2. Backend AI runtime
+Confirm:
+- where the backend AI text runtime lives
+- which route/action exposes it
+- whether it reuses the existing AI provider
+- whether output is structured JSON with:
+  hooks
+  adCopyVariants
+  captions
+  ctas
+  improvementNotes
+  missingContextWarnings
+  safetyNotes
+
+3. API key safety
+Confirm:
+- OPENAI_API_KEY is read only from process.env.OPENAI_API_KEY
+- no API key is hardcoded
+- no API key is exposed to frontend
+- no frontend/browser AI provider call exists
+- no key is logged
+
+4. Missing-key behavior
+Verify by code inspection or test:
+- app does not crash when OPENAI_API_KEY is missing
+- route returns a safe structured unavailable/error response
+- response is usable by future UI
+
+5. Governance
+Confirm AI runtime cannot:
+- approve content
+- mark campaign ready
+- publish
+- modify budget
+- update assets
+- change readiness state
+- bypass manual publish guards
+
+6. Existing campaign completion
+Confirm unchanged:
+- Campaign Detail UI was not touched
+- manual publish guard remains unchanged
+- viewer restrictions remain unchanged
+- Campaign Completion Wiring remains unchanged
+
+7. Verification
+Run or confirm:
+- TypeScript zero errors
+- API server build passes
+- no OpenAPI/generated client changes unless explicitly listed
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no new standalone pages
+
+8. Documentation
+Confirm:
+- docs/ai_text_backend_runtime_report.md exists
+- report includes changed files, API key handling, missing-key behavior, output schema, governance, verification, remaining gaps, readiness decision
+
+Final output:
+- changed files
+- verification results
+- any fixes made
+- remaining gaps
+- readiness decision
