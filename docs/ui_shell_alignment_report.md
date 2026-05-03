@@ -9,6 +9,12 @@
 - Shared top/header strip inside the layout
 - Shared page container spacing and RTL direction
 
+## Shell layout contract
+- The shell now uses a desktop grid with `grid-cols-[minmax(0,1fr)_280px]`.
+- The main column is reserved with `min-w-0` and `overflow-x-hidden`.
+- The sidebar occupies its own fixed 280px right column and no longer overlays the main content on desktop.
+- The dashboard container inside main is capped at `max-w-[1180px]` and centered with `mx-auto`.
+
 ## Navigation/sidebar changes
 - Replaced the dark left-sidebar feel with a light right-side navigation shell.
 - Updated labels to Arabic:
@@ -30,6 +36,7 @@
 - Applied RTL direction to the shared app shell.
 - Swapped main shell flow so content sits correctly with the right-side navigation.
 - Increased container width and spacing to better match the reference.
+- Main content is now reserved from the sidebar instead of rendering underneath it.
 
 ## Preserved logic/governance
 - No backend, database, routes, API, or AI runtime changes were made.
@@ -43,9 +50,11 @@
 - The shared component structure remains the app’s existing implementation.
 
 ## Verification results
-- TypeScript: pending
-- Frontend build: pending
+- TypeScript: passed
+- Frontend build: passed
 - Backend: untouched
+- Visual inspection: main content no longer sits under the right sidebar.
+- Sidebar now occupies a reserved 280px column instead of overlaying content.
 
 ## Readiness decision
-- Shell alignment is ready for review once verification completes.
+- Shell layout contract fix is ready for review.

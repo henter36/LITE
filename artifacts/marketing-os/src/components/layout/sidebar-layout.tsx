@@ -115,19 +115,21 @@ export function AppSidebar() {
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div dir="rtl" className="flex min-h-screen w-full bg-[#f6faf8]">
-        <main className="flex-1 flex flex-col min-w-0 bg-[#f6faf8]">
+      <div dir="rtl" className="grid min-h-screen w-full grid-cols-[minmax(0,1fr)_280px] bg-[#f6faf8]">
+        <main className="min-w-0 overflow-x-hidden bg-[#f6faf8]">
           <div className="bg-white text-muted-foreground text-xs px-4 py-1.5 text-center border-b flex items-center justify-center gap-1.5 shadow-sm">
             <FlaskConical className="h-3 w-3" />
             وضع تجريبي · لا توجد إعلانات حقيقية
           </div>
-          <div className="flex-1 px-6 py-6 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1440px] space-y-8">
+          <div className="px-6 py-6 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1180px] space-y-8">
               {children}
             </div>
           </div>
         </main>
-        <AppSidebar />
+        <div className="min-w-0">
+          <AppSidebar />
+        </div>
       </div>
     </SidebarProvider>
   );

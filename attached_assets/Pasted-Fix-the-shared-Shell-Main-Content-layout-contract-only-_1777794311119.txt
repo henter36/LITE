@@ -1,0 +1,124 @@
+Fix the shared Shell/Main Content layout contract only.
+
+The latest screenshot proves the main content still renders underneath or behind the right sidebar. This is a blocking layout bug.
+
+Do not continue Dashboard visual polish.
+Do not modify Dashboard visual styling except tiny containment changes if absolutely required.
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/components/layout/sidebar-layout.tsx
+- artifacts/marketing-os/src/pages/dashboard.tsx only if required to remove hard-coded overflow widths
+- docs/ui_shell_alignment_report.md
+- docs/ui_alignment_dashboard_slice_report.md
+
+Objective:
+Fix the app layout contract so the right sidebar occupies reserved layout space and the main content can never render under it.
+
+Required implementation:
+
+1. Replace overlay-style sidebar layout
+If the sidebar is fixed/absolute/overlaying the page, replace it with a real layout container.
+
+Use a robust structure:
+- root shell: display grid or flex
+- direction: rtl
+- sidebar column on the right
+- main column on the left
+- sidebar fixed width: 260px or 280px
+- main column: minmax(0, 1fr)
+- main must have min-width: 0
+
+Example target concept:
+- outer shell: grid-template-columns: minmax(0, 1fr) 280px
+- sidebar assigned to the right column
+- main assigned to the left column
+- no fixed overlay for desktop
+
+2. Main content containment
+Main content must:
+- not use width: 100vw
+- not extend under sidebar
+- use width: 100%
+- use min-width: 0
+- use overflow-x: hidden as a safety guard only
+- contain an inner content wrapper with max-width and margin-inline auto
+
+3. Sidebar containment
+Sidebar must:
+- occupy its own column
+- not float above content on desktop
+- not cover content
+- keep right-side position
+- keep Arabic labels and light theme
+- keep existing route links
+
+4. Dashboard containment check
+After shell fix, ensure dashboard.tsx does not force overflow:
+- remove any hard-coded width that exceeds container
+- remove any min-width causing horizontal clipping
+- all grids should use minmax(0, 1fr)
+- KPI row must fit inside the available main column
+- chart card must fit inside the available main column
+
+5. No business logic changes
+Do not change:
+- routes
+- auth
+- roles
+- campaign data
+- AI runtime
+- Campaign Completion
+- Campaign Workflow
+- publish/readiness logic
+
+6. Documentation
+Update:
+docs/ui_shell_alignment_report.md
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- exact shell layout contract used
+- whether sidebar was fixed/overlay before
+- how main content width is now reserved
+- dashboard clipping status after fix
+- screenshot/visual inspection result
+- verification result
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no backend/db/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+- visually inspect Dashboard after fix
+- confirm content no longer sits under sidebar
+- confirm no horizontal clipping remains
+
+Final output:
+- changed files
+- shell layout contract fix completed
+- dashboard clipping result
+- screenshot/visual evidence status
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision
