@@ -5,60 +5,14 @@
  * Marketing OS Lite API
  * OpenAPI spec version: 0.1.0
  */
-export type MediaAssetType =
-  (typeof MediaAssetType)[keyof typeof MediaAssetType];
+export type HealthStatus = (typeof HealthStatus)[keyof typeof HealthStatus];
 
-export const MediaAssetType = {
-  image: "image",
-  video: "video",
-  document: "document",
-  other: "other",
+export const HealthStatus = {
+  healthy: "healthy",
 } as const;
 
-export type MediaAssetStatus =
-  (typeof MediaAssetStatus)[keyof typeof MediaAssetStatus];
-
-export const MediaAssetStatus = {
-  draft: "draft",
-  needs_review: "needs_review",
-  approved: "approved",
-  rejected: "rejected",
-} as const;
-
-export interface MediaAsset {
-  id: number;
-  workspaceId: number;
-  campaignId?: number | null;
-  title: string;
-  type: MediaAssetType;
-  urlOrReference: string;
-  description: string;
-  channel?: string | null;
-  status: MediaAssetStatus;
-  createdBy: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateMediaAssetBody {
-  workspaceId: number;
-  campaignId?: number | null;
-  title: string;
-  type: MediaAssetType;
-  urlOrReference: string;
-  description?: string;
-  channel?: string | null;
-  status?: MediaAssetStatus;
-}
-
-export interface UpdateMediaAssetBody {
-  campaignId?: number | null;
-  title?: string;
-  type?: MediaAssetType;
-  urlOrReference?: string;
-  description?: string;
-  channel?: string | null;
-  status?: MediaAssetStatus;
+export interface HealthCheckResponse {
+  status: HealthStatus;
 }
 
 export type ListBrandProfilesParams = {
@@ -68,9 +22,4 @@ export type ListBrandProfilesParams = {
 export type ListCampaignsParams = {
   workspaceId?: number;
   status?: string;
-};
-
-export type ListMediaAssetsParams = {
-  workspaceId?: number;
-  campaignId?: number;
 };
