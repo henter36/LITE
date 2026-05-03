@@ -130,7 +130,7 @@
 | Stage | Table | Storage |
 |---|---|---|
 | Stage 1 | `campaign_workflow_intakes` | Upsert — full intake fields |
-| Stage 2 (Strategy) | `campaign_strategy_briefs` | Insert new row per generation |
+| Stage 2 (Campaign adaptation) | `campaign_strategy_briefs` | Insert new row per generation |
 | Stage 2 (Creative) | `campaign_creative_briefs` | Insert new row per generation |
 | Stage 3 | None (transient) | **GAP — see §13** |
 | Stage 4 (Image) | `campaign_image_prompt_specs` | Insert new row per generation |
@@ -145,7 +145,7 @@
 - **POST**: Upsert intake fields; no AI call
 - **Audit**: `campaign_workflow_intake_created` / `campaign_workflow_intake_updated`
 
-### Stage 2 — بناء الاستراتيجية (Strategy Building)
+### Stage 2 — تكييف الاستراتيجية للحملة (Campaign Strategy Adaptation)
 - **GET**: Return latest strategy brief and creative brief from DB
 - **POST (strategy-brief + creative-brief in parallel)**:
   - Fetch intake from DB for context

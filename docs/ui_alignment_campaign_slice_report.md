@@ -117,7 +117,7 @@ AI Workflow redesign complete. 4-stage Arabic RTL Campaign Launch Assistant is r
 
 ## Update — Real AI Workflow Runtime + Persistence (2026-05-03)
 
-The redesigned AI Workflow now uses real server-side AI calls and database persistence for all 4 stages. See `docs/real_ai_workflow_runtime_persistence_report.md` for the full report.
+The redesigned AI Workflow now uses real server-side AI calls and database persistence for all 4 stages. Stage 2 is campaign adaptation, not full brand strategy. See `docs/real_ai_workflow_runtime_persistence_report.md` for the full report.
 
 ### Summary of changes
 

@@ -483,7 +483,7 @@ function Stage1Content({
   );
 }
 
-// ── Stage 2 content: بناء الاستراتيجية ───────────────────────────────────────
+// ── Stage 2 content: تكييف الاستراتيجية للحملة ───────────────────────────────────────
 
 function Stage2Content({
   workspaceId,
@@ -1023,7 +1023,7 @@ export function CampaignWorkflowTab({
   const progressPct = Math.round((completedCount / 4) * 100);
 
   const nextStageName = (() => {
-    const names = ["فهم الحملة", "بناء الاستراتيجية", "تجهيز المحتوى", "المواصفات الإبداعية"];
+    const names = ["فهم الحملة", "تكييف الاستراتيجية للحملة", "تجهيز المحتوى", "المواصفات الإبداعية"];
     const firstIncomplete = stageStatuses.findIndex((s) => s === "not_started");
     return firstIncomplete === -1 ? "اكتملت جميع المراحل" : names[firstIncomplete];
   })();
@@ -1034,7 +1034,7 @@ export function CampaignWorkflowTab({
     icon: React.ElementType;
   }[] = [
     { title: "فهم الحملة", subtitle: "معلومات النشاط، الهدف، الجمهور، القيود", icon: ClipboardList },
-    { title: "بناء الاستراتيجية", subtitle: "موجز الاستراتيجية والموجز الإبداعي", icon: BookOpen },
+    { title: "تكييف الاستراتيجية للحملة", subtitle: "تكييف الاستراتيجية للحملة والموجز الإبداعي", icon: BookOpen },
     { title: "تجهيز المحتوى", subtitle: "خطافات، نسخ إعلانية، تعليقات، نداءات إلى الإجراء", icon: Sparkles },
     { title: "المواصفات الإبداعية", subtitle: "مواصفات الصورة ونص الفيديو ولوحة المشاهد", icon: Layers },
   ];

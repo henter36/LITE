@@ -1,0 +1,141 @@
+Perform AI Workflow Runtime QA + Strategy Scope Reconciliation only.
+
+Do not add new product features.
+Do not redesign UI.
+Do not touch Dashboard.
+Do not touch Brand UI unless documentation references require it.
+Do not touch Content.
+Do not touch Review.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not change Campaign Completion logic.
+Do not change manual publish guards.
+Do not change OpenAPI or generated client unless strictly required.
+
+Current state:
+- WorkflowAIProvider was added.
+- Real AI is now wired for strategy brief, creative brief, image prompt specs, and video script specs.
+- Text suggestions route already used real AI.
+- AI Workflow UX is now a 4-stage Arabic Campaign Launch Assistant.
+- Stage 3 text suggestions are currently transient and not persisted.
+
+Objective:
+Verify the real AI runtime implementation and reconcile product logic so the platform does not incorrectly treat brand/growth strategy as something generated from scratch inside every campaign.
+
+Tasks:
+
+1. Runtime verification
+
+Verify and document for each stage:
+- route/action used
+- whether it calls real AI when OPENAI_API_KEY exists
+- whether it returns AI_UNAVAILABLE when key is missing
+- whether mock fallback is blocked from masquerading as production success
+- whether output includes source: real | mock | unavailable
+- whether output is persisted and reloads after refresh
+
+Stages:
+- Stage 1: فهم الحملة / intake
+- Stage 2: تكييف الاستراتيجية للحملة / campaign strategy adaptation
+- Stage 3: تجهيز المحتوى / text suggestions
+- Stage 4: المواصفات الإبداعية / image/video specs
+
+2. Strategy scope correction
+
+Do not present campaign-level generation as full brand strategy.
+
+Update wording/documentation so:
+- Brand/Growth Strategy belongs to onboarding or Brand setup.
+- Campaign workflow uses the existing/current brand strategy as context.
+- Campaign workflow generates campaign-specific adaptation, not a new brand strategy.
+- Stage 2 should be named or described as:
+  "تكييف الاستراتيجية للحملة"
+  or
+  "موجز الحملة"
+  not full reusable brand strategy.
+
+If UI copy currently says "بناء الاستراتيجية" in a way that implies full brand strategy, adjust visible copy only.
+
+Do not create a brand strategy module in this slice.
+
+3. Stage 3 persistence gap
+
+Document the current gap:
+- text suggestions are transient
+- they are lost on refresh
+- this is not acceptable for production workflow
+
+Do not create a new table in this slice unless an existing suitable content/ad draft table already exists and can be used safely.
+
+If existing draft storage exists, propose a minimal follow-up.
+If not, document the required future persistence model.
+
+4. Mock fallback policy
+
+Review the implementation:
+- mock may be allowed only in dev/local mode
+- production must not show mock as successful real AI
+- OpenAI error in production should return a safe failed/unavailable state
+- UI must not mislead the user
+
+Fix only if current code violates this.
+
+5. Governance verification
+
+Confirm AI cannot:
+- approve content
+- approve assets
+- mark campaign ready
+- publish
+- modify budget
+- update assets
+- change readiness score
+- bypass manual publish guards
+- bypass role guards
+- bypass workspace scoping
+
+6. Documentation
+
+Update or create:
+docs/ai_strategy_vs_campaign_workflow_reconciliation.md
+docs/real_ai_workflow_runtime_persistence_report.md
+
+Include:
+- what belongs to brand strategy
+- what belongs to campaign workflow
+- how campaign generation uses brand strategy as context
+- runtime route verification
+- persistence status per stage
+- Stage 3 text persistence gap
+- mock fallback policy
+- missing-key behavior
+- role/scoping guards
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no API key in frontend
+- no frontend OpenAI/provider call
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- runtime verification result
+- strategy scope reconciliation result
+- Stage 3 persistence decision/gap
+- mock fallback policy result
+- verification results
+- remaining gaps
+- readiness decision
