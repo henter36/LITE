@@ -30,17 +30,21 @@ import type {
   CreateBrandProfileBody,
   CreateCampaignBody,
   CreateConnectionBody,
+  CreateStrategyIntakeBody,
   CreateTrackingLinkBody,
   CreateWorkspaceBody,
   DashboardMetrics,
   GenerateAssetsBody,
   GenerateRecommendationsBody,
+  GenerateStrategyDiagnosisBody,
   GeneratedAsset,
   GetCampaignSummaryParams,
   GetChannelComparisonParams,
   GetDashboardMetricsParams,
+  GetLatestStrategyDiagnosisParams,
   GetMetaAccountsParams,
   GetMetaStatusParams,
+  GetStrategyIntakeParams,
   HealthStatus,
   ListApprovalsParams,
   ListAssetsParams,
@@ -58,11 +62,14 @@ import type {
   MetaSyncResult,
   PlatformConnection,
   Recommendation,
+  StrategyDiagnosis,
+  StrategyIntake,
   SyncJob,
   TrackingLink,
   UpdateAssetBriefBody,
   UpdateMemberBody,
   UpdateRecommendationBody,
+  UpdateStrategyIntakeBody,
   Workspace,
   WorkspaceMember,
 } from "./api.schemas";
@@ -1973,6 +1980,473 @@ export function useGetCampaignSummary<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetCampaignSummaryQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get the latest strategy intake for a workspace
+ */
+export const getGetStrategyIntakeUrl = (params: GetStrategyIntakeParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/strategy/intake?${stringifiedParams}`
+    : `/api/strategy/intake`;
+};
+
+export const getStrategyIntake = async (
+  params: GetStrategyIntakeParams,
+  options?: RequestInit,
+): Promise<StrategyIntake> => {
+  return customFetch<StrategyIntake>(getGetStrategyIntakeUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetStrategyIntakeQueryKey = (
+  params?: GetStrategyIntakeParams,
+) => {
+  return [`/api/strategy/intake`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetStrategyIntakeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStrategyIntake>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetStrategyIntakeParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStrategyIntake>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetStrategyIntakeQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getStrategyIntake>>
+  > = ({ signal }) => getStrategyIntake(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStrategyIntake>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStrategyIntakeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStrategyIntake>>
+>;
+export type GetStrategyIntakeQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the latest strategy intake for a workspace
+ */
+
+export function useGetStrategyIntake<
+  TData = Awaited<ReturnType<typeof getStrategyIntake>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetStrategyIntakeParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStrategyIntake>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStrategyIntakeQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a strategy intake
+ */
+export const getCreateStrategyIntakeUrl = () => {
+  return `/api/strategy/intake`;
+};
+
+export const createStrategyIntake = async (
+  createStrategyIntakeBody: CreateStrategyIntakeBody,
+  options?: RequestInit,
+): Promise<StrategyIntake> => {
+  return customFetch<StrategyIntake>(getCreateStrategyIntakeUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createStrategyIntakeBody),
+  });
+};
+
+export const getCreateStrategyIntakeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStrategyIntake>>,
+    TError,
+    { data: BodyType<CreateStrategyIntakeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createStrategyIntake>>,
+  TError,
+  { data: BodyType<CreateStrategyIntakeBody> },
+  TContext
+> => {
+  const mutationKey = ["createStrategyIntake"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createStrategyIntake>>,
+    { data: BodyType<CreateStrategyIntakeBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createStrategyIntake(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateStrategyIntakeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createStrategyIntake>>
+>;
+export type CreateStrategyIntakeMutationBody =
+  BodyType<CreateStrategyIntakeBody>;
+export type CreateStrategyIntakeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a strategy intake
+ */
+export const useCreateStrategyIntake = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStrategyIntake>>,
+    TError,
+    { data: BodyType<CreateStrategyIntakeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createStrategyIntake>>,
+  TError,
+  { data: BodyType<CreateStrategyIntakeBody> },
+  TContext
+> => {
+  return useMutation(getCreateStrategyIntakeMutationOptions(options));
+};
+
+/**
+ * @summary Update the latest strategy intake for a workspace
+ */
+export const getUpdateStrategyIntakeUrl = () => {
+  return `/api/strategy/intake`;
+};
+
+export const updateStrategyIntake = async (
+  updateStrategyIntakeBody: UpdateStrategyIntakeBody,
+  options?: RequestInit,
+): Promise<StrategyIntake> => {
+  return customFetch<StrategyIntake>(getUpdateStrategyIntakeUrl(), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateStrategyIntakeBody),
+  });
+};
+
+export const getUpdateStrategyIntakeMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStrategyIntake>>,
+    TError,
+    { data: BodyType<UpdateStrategyIntakeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateStrategyIntake>>,
+  TError,
+  { data: BodyType<UpdateStrategyIntakeBody> },
+  TContext
+> => {
+  const mutationKey = ["updateStrategyIntake"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateStrategyIntake>>,
+    { data: BodyType<UpdateStrategyIntakeBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateStrategyIntake(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateStrategyIntakeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateStrategyIntake>>
+>;
+export type UpdateStrategyIntakeMutationBody =
+  BodyType<UpdateStrategyIntakeBody>;
+export type UpdateStrategyIntakeMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update the latest strategy intake for a workspace
+ */
+export const useUpdateStrategyIntake = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStrategyIntake>>,
+    TError,
+    { data: BodyType<UpdateStrategyIntakeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateStrategyIntake>>,
+  TError,
+  { data: BodyType<UpdateStrategyIntakeBody> },
+  TContext
+> => {
+  return useMutation(getUpdateStrategyIntakeMutationOptions(options));
+};
+
+/**
+ * @summary Generate a strategy diagnosis from the latest intake
+ */
+export const getGenerateStrategyDiagnosisUrl = () => {
+  return `/api/strategy/diagnosis`;
+};
+
+export const generateStrategyDiagnosis = async (
+  generateStrategyDiagnosisBody: GenerateStrategyDiagnosisBody,
+  options?: RequestInit,
+): Promise<StrategyDiagnosis> => {
+  return customFetch<StrategyDiagnosis>(getGenerateStrategyDiagnosisUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateStrategyDiagnosisBody),
+  });
+};
+
+export const getGenerateStrategyDiagnosisMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateStrategyDiagnosis>>,
+    TError,
+    { data: BodyType<GenerateStrategyDiagnosisBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateStrategyDiagnosis>>,
+  TError,
+  { data: BodyType<GenerateStrategyDiagnosisBody> },
+  TContext
+> => {
+  const mutationKey = ["generateStrategyDiagnosis"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateStrategyDiagnosis>>,
+    { data: BodyType<GenerateStrategyDiagnosisBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateStrategyDiagnosis(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateStrategyDiagnosisMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateStrategyDiagnosis>>
+>;
+export type GenerateStrategyDiagnosisMutationBody =
+  BodyType<GenerateStrategyDiagnosisBody>;
+export type GenerateStrategyDiagnosisMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate a strategy diagnosis from the latest intake
+ */
+export const useGenerateStrategyDiagnosis = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateStrategyDiagnosis>>,
+    TError,
+    { data: BodyType<GenerateStrategyDiagnosisBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateStrategyDiagnosis>>,
+  TError,
+  { data: BodyType<GenerateStrategyDiagnosisBody> },
+  TContext
+> => {
+  return useMutation(getGenerateStrategyDiagnosisMutationOptions(options));
+};
+
+/**
+ * @summary Get the latest strategy diagnosis for a workspace
+ */
+export const getGetLatestStrategyDiagnosisUrl = (
+  params: GetLatestStrategyDiagnosisParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/strategy/diagnosis/latest?${stringifiedParams}`
+    : `/api/strategy/diagnosis/latest`;
+};
+
+export const getLatestStrategyDiagnosis = async (
+  params: GetLatestStrategyDiagnosisParams,
+  options?: RequestInit,
+): Promise<StrategyDiagnosis> => {
+  return customFetch<StrategyDiagnosis>(
+    getGetLatestStrategyDiagnosisUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetLatestStrategyDiagnosisQueryKey = (
+  params?: GetLatestStrategyDiagnosisParams,
+) => {
+  return [
+    `/api/strategy/diagnosis/latest`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetLatestStrategyDiagnosisQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLatestStrategyDiagnosis>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetLatestStrategyDiagnosisParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLatestStrategyDiagnosis>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetLatestStrategyDiagnosisQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getLatestStrategyDiagnosis>>
+  > = ({ signal }) =>
+    getLatestStrategyDiagnosis(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLatestStrategyDiagnosis>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetLatestStrategyDiagnosisQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLatestStrategyDiagnosis>>
+>;
+export type GetLatestStrategyDiagnosisQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the latest strategy diagnosis for a workspace
+ */
+
+export function useGetLatestStrategyDiagnosis<
+  TData = Awaited<ReturnType<typeof getLatestStrategyDiagnosis>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetLatestStrategyDiagnosisParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getLatestStrategyDiagnosis>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetLatestStrategyDiagnosisQueryOptions(
+    params,
+    options,
+  );
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

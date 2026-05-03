@@ -432,6 +432,110 @@ export const GetCampaignSummaryResponse = zod.object({
 });
 
 /**
+ * @summary Get the latest strategy intake for a workspace
+ */
+export const GetStrategyIntakeQueryParams = zod.object({
+  workspaceId: zod.coerce.number(),
+});
+
+export const GetStrategyIntakeResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  businessCategory: zod.string(),
+  currentOffer: zod.string(),
+  targetAudience: zod.string(),
+  geography: zod.string(),
+  budgetRange: zod.string(),
+  primaryGoal: zod.string(),
+  brandVoice: zod.string(),
+  painPoints: zod.string(),
+  availableAssets: zod.string(),
+  previousLearnings: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Create a strategy intake
+ */
+export const CreateStrategyIntakeBody = zod.object({
+  workspaceId: zod.number(),
+  businessCategory: zod.string(),
+  currentOffer: zod.string(),
+  targetAudience: zod.string(),
+  geography: zod.string(),
+  budgetRange: zod.string(),
+  primaryGoal: zod.string(),
+  brandVoice: zod.string(),
+  painPoints: zod.string().optional(),
+  availableAssets: zod.string().optional(),
+  previousLearnings: zod.string().optional(),
+});
+
+/**
+ * @summary Update the latest strategy intake for a workspace
+ */
+export const UpdateStrategyIntakeBody = zod.object({
+  workspaceId: zod.number(),
+  businessCategory: zod.string(),
+  currentOffer: zod.string(),
+  targetAudience: zod.string(),
+  geography: zod.string(),
+  budgetRange: zod.string(),
+  primaryGoal: zod.string(),
+  brandVoice: zod.string(),
+  painPoints: zod.string().optional(),
+  availableAssets: zod.string().optional(),
+  previousLearnings: zod.string().optional(),
+});
+
+export const UpdateStrategyIntakeResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  businessCategory: zod.string(),
+  currentOffer: zod.string(),
+  targetAudience: zod.string(),
+  geography: zod.string(),
+  budgetRange: zod.string(),
+  primaryGoal: zod.string(),
+  brandVoice: zod.string(),
+  painPoints: zod.string(),
+  availableAssets: zod.string(),
+  previousLearnings: zod.string(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Generate a strategy diagnosis from the latest intake
+ */
+export const GenerateStrategyDiagnosisBody = zod.object({
+  workspaceId: zod.number(),
+});
+
+/**
+ * @summary Get the latest strategy diagnosis for a workspace
+ */
+export const GetLatestStrategyDiagnosisQueryParams = zod.object({
+  workspaceId: zod.coerce.number(),
+});
+
+export const GetLatestStrategyDiagnosisResponse = zod.object({
+  id: zod.number(),
+  workspaceId: zod.number(),
+  intakeId: zod.number(),
+  summary: zod.string(),
+  whatIsMissing: zod.string(),
+  whatToTestFirst: zod.string(),
+  likelyCreativeDirection: zod.string(),
+  audienceSummary: zod.string(),
+  offerSummary: zod.string(),
+  topObjections: zod.string(),
+  suggestedCTA: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
  * @summary List generated assets
  */
 export const ListAssetsQueryParams = zod.object({

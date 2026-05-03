@@ -32,6 +32,8 @@ tags:
     description: Rules-based recommendations
   - name: audit
     description: Audit log
+  - name: strategy
+    description: Strategy planning
 
 paths:
   /healthz:
@@ -466,6 +468,97 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CampaignSummary"
+
+  /strategy/intake:
+    get:
+      operationId: getStrategyIntake
+      tags: [strategy]
+      summary: Get the latest strategy intake for a workspace
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Strategy intake
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyIntake"
+    post:
+      operationId: createStrategyIntake
+      tags: [strategy]
+      summary: Create a strategy intake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStrategyIntakeBody"
+      responses:
+        "201":
+          description: Strategy intake created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyIntake"
+    put:
+      operationId: updateStrategyIntake
+      tags: [strategy]
+      summary: Update the latest strategy intake for a workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStrategyIntakeBody"
+      responses:
+        "200":
+          description: Strategy intake updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyIntake"
+
+  /strategy/diagnosis:
+    post:
+      operationId: generateStrategyDiagnosis
+      tags: [strategy]
+      summary: Generate a strategy diagnosis from the latest intake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateStrategyDiagnosisBody"
+      responses:
+        "201":
+          description: Strategy diagnosis created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyDiagnosis"
+
+  /strategy/diagnosis/latest:
+    get:
+      operationId: getLatestStrategyDiagnosis
+      tags: [strategy]
+      summary: Get the latest strategy diagnosis for a workspace
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Strategy diagnosis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyDiagnosis"
 
   # Generated Assets
   /assets:
@@ -1703,3 +1796,106 @@ components:
         offset:
           type: integer
       required: [items, total, limit, offset]
+
+    StrategyIntake:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        businessCategory:
+          type: string
+        currentOffer:
+          type: string
+        targetAudience:
+          type: string
+        geography:
+          type: string
+        budgetRange:
+          type: string
+        primaryGoal:
+          type: string
+        brandVoice:
+          type: string
+        painPoints:
+          type: string
+        availableAssets:
+          type: string
+        previousLearnings:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, workspaceId, businessCategory, currentOffer, targetAudience, geography, budgetRange, primaryGoal, brandVoice, painPoints, availableAssets, previousLearnings, createdAt, updatedAt]
+
+    CreateStrategyIntakeBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+        businessCategory:
+          type: string
+        currentOffer:
+          type: string
+        targetAudience:
+          type: string
+        geography:
+          type: string
+        budgetRange:
+          type: string
+        primaryGoal:
+          type: string
+        brandVoice:
+          type: string
+        painPoints:
+          type: string
+        availableAssets:
+          type: string
+        previousLearnings:
+          type: string
+      required: [workspaceId, businessCategory, currentOffer, targetAudience, geography, budgetRange, primaryGoal, brandVoice]
+
+    UpdateStrategyIntakeBody:
+      allOf:
+        - $ref: "#/components/schemas/CreateStrategyIntakeBody"
+
+    StrategyDiagnosis:
+      type: object
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        intakeId:
+          type: integer
+        summary:
+          type: string
+        whatIsMissing:
+          type: string
+        whatToTestFirst:
+          type: string
+        likelyCreativeDirection:
+          type: string
+        audienceSummary:
+          type: string
+        offerSummary:
+          type: string
+        topObjections:
+          type: string
+        suggestedCTA:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, workspaceId, intakeId, summary, whatIsMissing, whatToTestFirst, likelyCreativeDirection, audienceSummary, offerSummary, topObjections, suggestedCTA, createdAt]
+
+    GenerateStrategyDiagnosisBody:
+      type: object
+      properties:
+        workspaceId:
+          type: integer
+      required: [workspaceId]

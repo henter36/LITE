@@ -520,6 +520,58 @@ export interface AuditLogPage {
   offset: number;
 }
 
+export interface StrategyIntake {
+  id: number;
+  workspaceId: number;
+  businessCategory: string;
+  currentOffer: string;
+  targetAudience: string;
+  geography: string;
+  budgetRange: string;
+  primaryGoal: string;
+  brandVoice: string;
+  painPoints: string;
+  availableAssets: string;
+  previousLearnings: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStrategyIntakeBody {
+  workspaceId: number;
+  businessCategory: string;
+  currentOffer: string;
+  targetAudience: string;
+  geography: string;
+  budgetRange: string;
+  primaryGoal: string;
+  brandVoice: string;
+  painPoints?: string;
+  availableAssets?: string;
+  previousLearnings?: string;
+}
+
+export type UpdateStrategyIntakeBody = CreateStrategyIntakeBody;
+
+export interface StrategyDiagnosis {
+  id: number;
+  workspaceId: number;
+  intakeId: number;
+  summary: string;
+  whatIsMissing: string;
+  whatToTestFirst: string;
+  likelyCreativeDirection: string;
+  audienceSummary: string;
+  offerSummary: string;
+  topObjections: string;
+  suggestedCTA: string;
+  createdAt: string;
+}
+
+export interface GenerateStrategyDiagnosisBody {
+  workspaceId: number;
+}
+
 export type ListBrandProfilesParams = {
   workspaceId?: number;
 };
@@ -531,6 +583,14 @@ export type ListCampaignsParams = {
 
 export type GetCampaignSummaryParams = {
   workspaceId?: number;
+};
+
+export type GetStrategyIntakeParams = {
+  workspaceId: number;
+};
+
+export type GetLatestStrategyDiagnosisParams = {
+  workspaceId: number;
 };
 
 export type ListAssetsParams = {
