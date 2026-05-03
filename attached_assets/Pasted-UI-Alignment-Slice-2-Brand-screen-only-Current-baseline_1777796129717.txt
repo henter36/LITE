@@ -1,0 +1,143 @@
+UI Alignment Slice 2: Brand screen only.
+
+Current baseline:
+- Dashboard shell/sidebar overlap is resolved.
+- Dashboard visual polish is acceptable for review.
+- Do not modify Dashboard in this slice.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/brand-profile.tsx
+- docs/ui_alignment_brand_slice_report.md
+
+Objective:
+Align only the existing Brand screen to the provided Arabic RTL Brand reference style while preserving current save/update behavior and existing fields.
+
+Target visual direction:
+- Arabic RTL-first
+- light right-side shell already exists; do not change it
+- green/teal identity
+- soft white cards
+- premium spacing
+- grouped brand setup sections
+- similar feel to the Brand reference screenshot
+
+Required Brand screen structure:
+
+1. Header
+- Arabic title: "العلامة التجارية"
+- subtitle explaining brand identity/content voice
+- clean top spacing
+- no awkward empty areas
+
+2. Profile completion and brand summary
+Include reference-style cards:
+- "اكتمال ملف العلامة التجارية"
+- progress ring or progress bar if already feasible
+- "ملخص العلامة"
+- brand name
+- category
+- short summary
+- selected channels if available
+
+Use existing brand/profile data.
+
+3. Brand identity section
+Group:
+- brand name
+- business/category
+- short description
+- value proposition if existing
+- language preference if existing
+
+4. Voice and tone section
+Group:
+- tone choices
+- keywords
+- banned words
+- CTA style
+- audience style if existing
+
+5. Audience and channels section
+Group:
+- target audience
+- preferred channels
+- platform badges/icons if already available
+- do not add real integrations
+
+6. Preview/help card
+Add or preserve:
+- brand voice preview
+- AI guidance/help card if already safe
+- no AI generation changes
+- no backend calls added
+
+7. Save/update behavior
+Preserve existing:
+- load brand profile
+- update/save profile
+- validation
+- existing fields
+- existing API calls
+- existing role behavior
+
+8. Unsupported features
+Do not add:
+- upload
+- media generation
+- live publishing
+- new AI runtime
+- new backend behavior
+
+If a reference element is unsupported, adapt it visually or mark it as guidance only.
+
+Documentation:
+Update or create:
+docs/ui_alignment_brand_slice_report.md
+
+Report must include:
+- changed files
+- Brand visual alignment summary
+- preserved fields/actions
+- what matches the reference
+- what was adapted
+- unsupported features deferred
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard changes
+- no new pages
+- no upload/media/live publishing
+
+Final output:
+- changed files
+- Brand alignment completed
+- screenshot/visual evidence status
+- preserved behavior
+- verification results
+- remaining gaps
+- readiness decision
