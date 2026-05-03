@@ -1,0 +1,113 @@
+Campaign Detail/Workflow Arabic Cleanup Slice 3.3 only.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/pages/campaign-detail.tsx
+- artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx
+- docs/ui_alignment_campaign_slice_report.md
+
+Objective:
+Remove the remaining English UI labels and purple legacy styling from Campaign Detail and AI Workflow, while preserving all existing behavior.
+
+Required fixes:
+
+1. Translate remaining Campaign Detail action labels:
+- Performance → الأداء
+- Publish → النشر اليدوي
+- Approve → اعتماد
+- Generate Ads → توليد نصوص إعلانية
+- Create Campaign → إعداد الحملة
+
+2. Translate readiness/checklist labels:
+- Approved ads → الإعلانات المعتمدة
+- Strategy context → سياق الاستراتيجية
+- Approved creative asset/reference → أصل/مرجع إبداعي معتمد
+- Campaign marked ready → الحملة معلّمة كجاهزة
+- Tracking link or landing URL → رابط تتبع أو صفحة هبوط
+- Selected channels → القنوات المحددة
+- Complete → مكتمل
+- Missing → ناقص
+- Ready → جاهز
+- Not started → لم يبدأ
+
+3. Translate AI Workflow visible labels:
+- Step 1 — Client Intake → الخطوة 1 — مدخلات العميل
+- Step 2 — Strategy Brief → الخطوة 2 — موجز الاستراتيجية
+- Step 3 — Creative Brief → الخطوة 3 — الموجز الإبداعي
+- Step 4 — Text Suggestions → الخطوة 4 — اقتراحات النصوص
+- Step 5 — Image Prompt Specs → الخطوة 5 — مواصفات مطالبة الصورة
+- Step 6 — Video Script / Storyboard Specs → الخطوة 6 — نص الفيديو ولوحة المشاهد
+
+4. Translate AI Workflow buttons:
+- Save Intake → حفظ المدخلات
+- Generate Strategy Brief → توليد موجز الاستراتيجية
+- Generate Creative Brief → توليد الموجز الإبداعي
+- Generate Text Suggestions → توليد اقتراحات النصوص
+- Generate Image Prompt Specs → توليد مواصفات الصورة
+- Generate Video Script Specs → توليد نص الفيديو
+
+5. Translate helper texts in the AI Workflow tab.
+Use clear Arabic wording and preserve safety messages:
+- image prompt specs are text specs only, no image generation
+- video script/storyboard specs are text only, no video generation or upload
+
+6. Reduce purple legacy styling:
+- replace purple primary buttons/progress/badges with emerald/teal styling where safe
+- do not alter behavior or handlers
+- do not change route/API/backend logic
+
+7. Preserve all guards:
+- readiness score
+- publish checklist
+- manual publish guard at UI and handler level
+- viewer restrictions
+- tracking link dialog
+- publish dialog
+- approve/publish/create-link mutations
+- AI workflow auth/role/workspace scoping
+- AI outputs remain draft-only
+
+Documentation:
+Update docs/ui_alignment_campaign_slice_report.md with:
+- remaining English labels removed
+- purple styling reduced
+- preserved behavior
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard or Brand changes
+- no Content/Review changes
+- no new pages
+- no upload/media/live publishing
+
+Final output:
+- changed files
+- labels translated
+- purple styling reduced
+- preserved functionality
+- verification results
+- remaining gaps
+- readiness decision

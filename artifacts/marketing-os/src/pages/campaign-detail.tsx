@@ -730,7 +730,7 @@ export default function CampaignDetail() {
             {isApproved && !isPublished && !isViewer && (
               <Button
                 onClick={openPublishDialog}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 disabled={!manualPublishReady}
               >
                 <Rocket className="mr-2 h-4 w-4" />
@@ -799,7 +799,7 @@ export default function CampaignDetail() {
                   {readinessRequirements.map((item) => (
                     <div key={item.label} className="flex items-center justify-between rounded-lg border border-emerald-100 bg-white px-3 py-2">
                       <span className="text-muted-foreground">{item.label}</span>
-                      <span className={item.ok ? "text-green-600 font-medium" : "text-red-500 font-medium"}>
+                      <span className={item.ok ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>
                         {item.ok ? "مكتمل" : "ناقص"}
                       </span>
                     </div>
@@ -809,10 +809,10 @@ export default function CampaignDetail() {
               <WorkflowStatusPanel status={workflowStatus} />
               <div className="flex flex-wrap gap-2 pt-1">
                 <Link href="/strategy">
-                        <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700">صفحة الاستراتيجية</Button>
+                  <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700">صفحة الاستراتيجية</Button>
                 </Link>
                 <Link href="/campaigns">
-                        <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700">مكتبة الأصول الإعلانية</Button>
+                  <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-700">مكتبة الأصول الإعلانية</Button>
                 </Link>
               </div>
             </CardContent>

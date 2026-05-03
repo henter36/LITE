@@ -306,7 +306,7 @@ function IntakeStep({
           {saved && (
             <Badge variant="outline" className="text-green-700 border-green-500/30 bg-green-500/5">
               <CheckCircle2 className="h-3 w-3 mr-1" />
-              Saved
+              تم الحفظ
             </Badge>
           )}
         </div>
@@ -708,13 +708,13 @@ function TextSuggestionsStep({
             <div className="grid gap-4 lg:grid-cols-2">
               {(
                 [
-                  ["Hooks", result.hooks],
-                  ["Ad Copy Variants", result.adCopyVariants],
-                  ["Captions", result.captions],
-                  ["CTAs", result.ctas],
-                  ["Improvement Notes", result.improvementNotes],
-                  ["Missing Context", result.missingContextWarnings],
-                  ["Safety Notes", result.safetyNotes],
+                  ["الخطافات", result.hooks],
+                  ["نسخ إعلانية", result.adCopyVariants],
+                  ["التعليقات", result.captions],
+                  ["النداءات إلى الإجراء", result.ctas],
+                  ["ملاحظات التحسين", result.improvementNotes],
+                  ["السياق الناقص", result.missingContextWarnings],
+                  ["ملاحظات السلامة", result.safetyNotes],
                 ] as [string, string[]][]
               ).map(([label, items]) => (
                 <div key={label} className="rounded-lg border p-4">

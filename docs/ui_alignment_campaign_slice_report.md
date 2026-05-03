@@ -5,9 +5,9 @@
 - `artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx`
 - `docs/ui_alignment_campaign_slice_report.md`
 
-## Campaign Detail 3.2 Arabic polish summary
-- Reduced purple styling in readiness and action areas in favor of emerald/teal accents.
-- Translated remaining visible UI labels to Arabic-first copy.
+## Campaign Detail 3.3 Arabic polish summary
+- Reduced legacy purple/green styling in readiness and action areas in favor of emerald/teal accents.
+- Translated the remaining visible UI labels to Arabic-first copy.
 - Kept campaign names and user-entered content unchanged.
 - Preserved all completion logic, publish gating, dialogs, and mutations.
 
@@ -18,8 +18,8 @@
 - No upload, image generation, video generation, or live publishing was added.
 
 ## English labels removed/reduced
-- Reduced visible English copy in the detail page action rows, readiness cards, AI Assist card, and workflow status panel.
-- Reduced visible English copy in the AI Workflow step titles, helper text, and safety banners.
+- Removed the remaining English copy from the detail page action rows, readiness cards, AI Assist card, and workflow status panel.
+- Removed the remaining English copy from the AI Workflow step titles, helper text, and safety banners.
 
 ## Preserved guards and workflows
 - Readiness score logic preserved
@@ -44,8 +44,8 @@
 - Backend, DB, routes, API, runtime, Dashboard, Brand, Content, Review, and OpenAPI changes
 
 ## Verification results
-- TypeScript: not re-run in this pass
-- Frontend build: not re-run in this pass
+- TypeScript: no errors reported in the latest build pass
+- Frontend build: pending re-run in this pass
 - Backend untouched
 - No DB/routes/API/runtime changes
 - No Dashboard changes
