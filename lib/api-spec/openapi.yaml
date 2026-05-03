@@ -32,6 +32,8 @@ tags:
     description: Rules-based recommendations
   - name: audit
     description: Audit log
+  - name: strategy
+    description: Strategy planning
 
 paths:
   /healthz:
@@ -466,6 +468,88 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CampaignSummary"
+
+  /strategy/intake:
+    post:
+      operationId: saveStrategyIntake
+      tags: [strategy]
+      summary: Save strategy intake
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StrategyIntakeBody"
+      responses:
+        "201":
+          description: Strategy intake saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyIntake"
+
+  /strategy/diagnose:
+    post:
+      operationId: diagnoseStrategy
+      tags: [strategy]
+      summary: Generate a strategy diagnosis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StrategyDiagnosisRequest"
+      responses:
+        "200":
+          description: Diagnosis generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyDiagnosis"
+
+  /strategy/drafts:
+    post:
+      operationId: createStrategyDraft
+      tags: [strategy]
+      summary: Create a strategy draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StrategyDraftRequest"
+      responses:
+        "201":
+          description: Strategy draft created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyDraft"
+
+  /strategy/drafts/{id}/create-campaign:
+    post:
+      operationId: createCampaignFromStrategyDraft
+      tags: [strategy]
+      summary: Create a campaign from a strategy draft
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCampaignFromStrategyBody"
+      responses:
+        "201":
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
 
   # Generated Assets
   /assets:
