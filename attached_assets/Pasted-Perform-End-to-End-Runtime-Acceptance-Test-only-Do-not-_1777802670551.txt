@@ -1,0 +1,97 @@
+Perform End-to-End Runtime Acceptance Test only.
+
+Do not add features.
+Do not redesign UI.
+Do not touch Dashboard.
+Do not touch Brand visual layout.
+Do not touch Campaign visual layout.
+Do not touch Content.
+Do not touch Review.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not change Campaign Completion logic.
+Do not change manual publish guards.
+Do not change OpenAPI or generated client.
+
+Objective:
+Verify the current Marketing OS Lite runtime end-to-end after Brand Strategy, Campaign AI Workflow, and Stage 3 persistence changes.
+
+Test and document:
+
+1. Brand Strategy
+- editor/admin can generate brand strategy
+- viewer cannot generate/update
+- generated brand strategy persists
+- current strategy reloads after refresh
+- old current strategy is archived when a new current strategy is generated
+- missing OPENAI_API_KEY returns safe unavailable state
+- mock does not masquerade as real production output
+
+2. Campaign Strategy Adaptation
+- Campaign Stage 2 reads current brand strategy as context
+- generated campaign adaptation is campaign-specific, not a new brand-level strategy
+- output persists and reloads
+- viewer cannot generate
+- editor can generate
+
+3. Text Suggestions
+- Stage 3 text suggestions generate via backend AI runtime
+- output persists to campaign_text_suggestions
+- output reloads after refresh
+- status remains draft
+- no approved ad is created automatically
+- no readiness state changes automatically
+
+4. Creative Specs
+- image prompt specs generate as text only
+- video script/storyboard specs generate as text only
+- both persist and reload
+- no actual image generation
+- no actual video generation
+- no upload
+
+5. Governance
+Confirm AI cannot:
+- approve content
+- approve assets
+- mark campaign ready
+- publish
+- modify budget
+- update assets
+- change readiness score
+- bypass manual publish guards
+- bypass role guards
+- bypass workspace scoping
+
+6. DB reproducibility
+Document:
+- brand_strategies is in committed schema
+- campaign_text_suggestions is in committed schema
+- schema index exports both
+- drizzle drift still exists on system_admin_users_user_id_unique
+- whether this drift blocks clean setup or only current push
+- required follow-up task to resolve DB drift before production
+
+7. Build and safety verification
+- API server build passes
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no API key in frontend
+- no frontend OpenAI/provider call
+- no upload/media/live publishing
+- no Campaign Completion regression
+
+Create:
+docs/end_to_end_runtime_acceptance_report.md
+
+Final output:
+- changed files
+- tests performed
+- pass/fail per area
+- blocking gaps
+- non-blocking gaps
+- readiness decision
