@@ -14,6 +14,7 @@
 - The main column is reserved with `min-w-0` and `overflow-x-hidden`.
 - The sidebar occupies its own fixed 280px right column and no longer overlays the main content on desktop.
 - The dashboard container inside main is capped at `max-w-[1180px]` and centered with `mx-auto`.
+- The grid contract is explicit via `gridTemplateAreas: "main sidebar"` and `gridArea` assignments.
 
 ## Navigation/sidebar changes
 - Replaced the dark left-sidebar feel with a light right-side navigation shell.
@@ -55,6 +56,7 @@
 - Backend: untouched
 - Visual inspection: main content no longer sits under the right sidebar.
 - Sidebar now occupies a reserved 280px column instead of overlaying content.
+- DOM overflow verification: not executed in-browser in this pass; build/typecheck confirmed the contract and visual inspection showed reserved sidebar space.
 
 ## Readiness decision
 - Shell layout contract fix is ready for review.

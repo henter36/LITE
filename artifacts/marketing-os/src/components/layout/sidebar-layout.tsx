@@ -115,8 +115,12 @@ export function AppSidebar() {
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div dir="rtl" className="grid min-h-screen w-full grid-cols-[minmax(0,1fr)_280px] bg-[#f6faf8]">
-        <main className="min-w-0 overflow-x-hidden bg-[#f6faf8]">
+      <div
+        dir="rtl"
+        className="grid min-h-screen w-full grid-cols-[minmax(0,1fr)_280px] bg-[#f6faf8]"
+        style={{ gridTemplateAreas: '"main sidebar"' }}
+      >
+        <main className="min-w-0 overflow-x-hidden bg-[#f6faf8]" style={{ gridArea: "main", width: "100%", maxWidth: "100%" }}>
           <div className="bg-white text-muted-foreground text-xs px-4 py-1.5 text-center border-b flex items-center justify-center gap-1.5 shadow-sm">
             <FlaskConical className="h-3 w-3" />
             وضع تجريبي · لا توجد إعلانات حقيقية
@@ -127,7 +131,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </main>
-        <div className="min-w-0">
+        <div className="min-w-0" style={{ gridArea: "sidebar", width: "280px", justifySelf: "end", alignSelf: "start", position: "sticky", top: 0 }}>
           <AppSidebar />
         </div>
       </div>

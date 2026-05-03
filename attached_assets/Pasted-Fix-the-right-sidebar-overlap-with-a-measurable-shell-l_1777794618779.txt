@@ -1,0 +1,139 @@
+Fix the right-sidebar overlap with a measurable shell layout contract.
+
+The latest screenshot proves the main content still extends underneath the right sidebar. Previous reports claiming this was fixed are not acceptable.
+
+Do not perform visual polish.
+Do not modify Dashboard styling except where needed to remove width/overflow bugs.
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- artifacts/marketing-os/src/components/layout/sidebar-layout.tsx
+- artifacts/marketing-os/src/pages/dashboard.tsx only if it has width/min-width rules causing overflow
+- docs/ui_shell_alignment_report.md
+- docs/ui_alignment_dashboard_slice_report.md
+
+Objective:
+Make it impossible for the main content to render behind or underneath the right sidebar on desktop.
+
+Required fix:
+
+1. Remove overlay sidebar behavior on desktop
+
+In sidebar-layout.tsx, the right sidebar must not be fixed/absolute/overlaying the main content on desktop.
+
+Use a real two-column layout:
+
+- shell root: display grid
+- grid-template-columns: minmax(0, 1fr) 280px
+- grid-template-areas: "main sidebar"
+- main area: grid-area: main
+- sidebar: grid-area: sidebar
+- main: min-width: 0
+- sidebar: width: 280px
+- no desktop overlay behavior
+
+Sticky sidebar is allowed only if it stays inside its grid column:
+- position: sticky
+- top: 0
+- align-self: start
+
+Do not use fixed right: 0 sidebar unless the main content has an explicit matching padding-inline-end or width calculation. Prefer grid.
+
+2. Main content must not use viewport width
+
+Search and remove/fix any dashboard or shell styles using:
+- width: 100vw
+- min-width larger than container
+- fixed pixel width wider than available space
+- negative margins
+- transform-based layout offsets
+- absolute positioning for page content
+
+Main must use:
+- width: 100%
+- max-width: 100%
+- min-width: 0
+- overflow-x: hidden only as a safety guard
+
+3. Dashboard container must fit inside main column
+
+In dashboard.tsx:
+- dashboard root must use width: 100%
+- max-width: 1180px or less
+- margin-inline: auto
+- box-sizing: border-box
+- no child grid/card should exceed parent width
+- all grid children should use min-width: 0
+
+If the right sidebar is 280px, the dashboard must fit inside:
+viewport width - 280px - shell padding
+
+4. Add measurable browser verification
+
+After the fix, verify in the browser console or equivalent:
+
+- document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2
+- main content right edge is less than or equal to sidebar left edge minus a safe gap
+- no KPI card is partially hidden behind sidebar
+- chart card is fully visible
+- recent campaigns card is fully visible
+
+If these checks cannot be run, state that explicitly and provide screenshot evidence.
+
+5. No fake success
+
+Do not report “ready for review” unless:
+- no horizontal overlap remains
+- no dashboard content is hidden by the sidebar
+- no horizontal scroll remains
+- screenshot or measurable DOM verification supports the claim
+
+6. Documentation
+
+Update:
+docs/ui_shell_alignment_report.md
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- exact shell grid/flex contract implemented
+- whether the sidebar was previously overlay/fixed/absolute
+- main content width behavior after fix
+- DOM overflow verification result
+- screenshot/visual evidence status
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- no backend/db/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+
+Final output:
+- changed files
+- exact shell layout contract implemented
+- whether fixed/absolute sidebar was removed
+- DOM overflow verification result
+- screenshot/visual evidence status
+- dashboard clipping result
+- verification results
+- remaining gaps
+- readiness decision
