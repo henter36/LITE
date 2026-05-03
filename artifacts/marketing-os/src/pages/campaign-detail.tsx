@@ -275,7 +275,7 @@ function CampaignCreativeAssets({
                       href={asset.urlOrReference.startsWith("http") ? asset.urlOrReference : undefined}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-primary flex items-center gap-1 hover:underline mt-1 max-w-xs truncate"
+                      className="text-xs text-emerald-700 flex items-center gap-1 hover:underline mt-1 max-w-xs truncate"
                     >
                       <ExternalLink className="h-3 w-3 shrink-0" />
                       <span className="truncate">{asset.urlOrReference}</span>
@@ -488,7 +488,7 @@ export default function CampaignDetail() {
             queryKey: getListTrackingLinksQueryKey({ campaignId }),
           });
           setLinkDialogOpen(false);
-          toast({ title: "Tracking link created", description: "Ready to copy and use." });
+          toast({ title: "تم إنشاء رابط التتبع", description: "جاهز للنسخ والاستخدام." });
         },
         onError: (err: unknown) => {
           const msg =
@@ -620,50 +620,50 @@ export default function CampaignDetail() {
   const hasSelectedChannels = completionState.hasSelectedChannels;
   const hasUsageRightsNotes = completionState.hasUsageRightsNotes;
   const readinessRequirements = [
-    { label: "Strategy context", ok: Boolean(completionState.strategySummary) },
-    { label: "Approved ads", ok: completionState.hasApprovedAd },
-    { label: "Campaign marked ready", ok: completionState.isReady },
+    { label: "سياق الاستراتيجية", ok: Boolean(completionState.strategySummary) },
+    { label: "الإعلانات المعتمدة", ok: completionState.hasApprovedAd },
+    { label: "الحملة معلّمة كجاهزة", ok: completionState.isReady },
     {
-      label: "Approved creative asset/reference",
+      label: "أصل/مرجع إبداعي معتمد",
       ok: completionState.hasApprovedCreativeAsset && completionState.hasUsageRightsNotes,
     },
-    { label: "Tracking link or landing URL", ok: completionState.hasTrackingLink || Boolean(campaign.landingUrl) },
-    { label: "Selected channels", ok: completionState.hasSelectedChannels },
+    { label: "رابط تتبع أو صفحة هبوط", ok: completionState.hasTrackingLink || Boolean(campaign.landingUrl) },
+    { label: "القنوات المحددة", ok: completionState.hasSelectedChannels },
   ];
   const readinessScore = Math.round(
     (readinessRequirements.filter((item) => item.ok).length / readinessRequirements.length) * 100,
   );
 
-  // 5-step flow: Create (0) → Generate Ads (1) → Approve (2) → Publish (3) → Performance (4)
+  // 5-step flow: إعداد (0) → توليد (1) → اعتماد (2) → نشر (3) → أداء (4)
   const completedSteps = [true, hasAssets, isApproved, isPublished, hasMetrics];
   const currentStep = completedSteps.findIndex((done) => !done);
   const effectiveStep = currentStep === -1 ? 5 : currentStep;
 
   const FLOW_STEPS = [
-    { label: "Create Campaign", icon: Megaphone, href: null, nextAction: null },
+    { label: "إعداد الحملة", icon: Megaphone, href: null, nextAction: null },
     {
-      label: "Generate Ads",
+      label: "توليد نصوص إعلانية",
       icon: PenTool,
       href: `/content-studio?campaignId=${campaignId}`,
-      nextAction: "Generate your ad content →",
+      nextAction: "انتقل إلى استوديو المحتوى لتوليد الإعلانات →",
     },
     {
-      label: "Approve",
+      label: "اعتماد",
       icon: CheckCircle,
       href: null,
-      nextAction: "Review ads, then click 'Mark Campaign Ready' above",
+      nextAction: "راجع الإعلانات ثم اضغط «تأكيد جاهزية الحملة» أعلاه",
     },
     {
-      label: "Publish",
+      label: "النشر اليدوي",
       icon: Send,
       href: null,
-      nextAction: "Campaign is approved — open the Publish tab to go live",
+      nextAction: "تم اعتماد الحملة — افتح تبويب النشر اليدوي",
     },
     {
-      label: "Performance",
+      label: "الأداء",
       icon: BarChart3,
       href: `/reports`,
-      nextAction: "View demo performance data →",
+      nextAction: "عرض بيانات الأداء التجريبية →",
     },
   ];
 
@@ -1031,6 +1031,7 @@ export default function CampaignDetail() {
             <CampaignWorkflowTab
               workspaceId={campaign.workspaceId}
               campaignId={campaignId}
+              campaignName={campaign.name}
               isViewer={isViewer}
               onStatusChange={setWorkflowStatus}
             />
@@ -1131,7 +1132,7 @@ export default function CampaignDetail() {
                 قائمة متطلبات النشر
               </CardTitle>
                   {isPublished && (
-                    <Badge className="bg-green-600 text-white hover:bg-green-600">
+                    <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
                       <Check className="h-3.5 w-3.5 mr-1" />
                       منشورة
                     </Badge>
@@ -1379,7 +1380,7 @@ export default function CampaignDetail() {
             <Button
               onClick={handleManualPublish}
               disabled={manualPublishCampaign.isPending || publishChannels.length === 0}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {manualPublishCampaign.isPending ? "جارٍ النشر…" : "تأكيد النشر"}
             </Button>

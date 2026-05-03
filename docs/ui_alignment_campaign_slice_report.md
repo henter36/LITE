@@ -5,57 +5,110 @@
 - `artifacts/marketing-os/src/pages/campaign-workflow-tab.tsx`
 - `docs/ui_alignment_campaign_slice_report.md`
 
-## Campaign Detail 3.3 Arabic polish summary
-- Reduced legacy purple/green styling in readiness and action areas in favor of emerald/teal accents.
-- Translated the remaining visible UI labels to Arabic-first copy.
-- Kept campaign names and user-entered content unchanged.
-- Preserved all completion logic, publish gating, dialogs, and mutations.
+---
 
-## AI Workflow tab Arabic polish summary
-- Translated the visible workflow steps, button labels, helper text, banners, and safety copy into Arabic-first phrasing.
-- Kept AI outputs draft-only.
-- Preserved the existing workflow auth / role / workspace scoping.
-- No upload, image generation, video generation, or live publishing was added.
+## AI Workflow tab redesign summary
 
-## English labels removed/reduced
-- Removed the remaining English copy from the detail page action rows, readiness cards, AI Assist card, and workflow status panel.
-- Removed the remaining English copy from the AI Workflow step titles, helper text, and safety banners.
+### What changed
+The previous 6-step technical AI Workflow UI (Client Intake, Strategy Brief, Creative Brief, Text Suggestions, Image Prompt Specs, Video Script Specs) was replaced with a simplified **4-stage Arabic RTL Campaign Launch Assistant** ("مساعد إطلاق الحملة").
 
-## Preserved guards and workflows
-- Readiness score logic preserved
-- Missing requirements list preserved
-- Publish checklist preserved
-- Manual publish guard preserved at UI and handler level
-- Viewer restrictions preserved
-- Tracking link dialog preserved
-- Publish dialog preserved
-- Approve/publish/create-link mutations preserved
-- AI workflow auth / role / workspace scoping preserved
-- Draft-only AI behavior preserved
-- Campaign Completion behavior preserved
+### New 4-stage structure
+
+| Stage | Arabic title | What it covers |
+|-------|-------------|----------------|
+| 1 | فهم الحملة | Client intake form — business description, objective, audience, offer, brand tone, landing URL, constraints, missing context |
+| 2 | بناء الاستراتيجية | Strategy brief + creative brief — generated together in one action |
+| 3 | تجهيز المحتوى | Text suggestions — hooks, ad copy variants, captions, CTAs, safety notes |
+| 4 | المواصفات الإبداعية | Image prompt specs + video script/storyboard specs — generated together |
+
+### New top summary card
+- Title: "مساعد إطلاق الحملة"
+- Subtitle explaining the assistant purpose
+- Shows current campaign name
+- Progress bar (completed stages / 4)
+- Next recommended stage label
+- Draft-only badge
+- "لا يتم الاعتماد أو النشر تلقائياً" note
+- Viewer restriction banner when `isViewer=true`
+
+### Active-stage accordion layout
+- One stage expanded at a time; others collapsed/compact
+- Each stage card shows index number, title, status badge, subtitle
+- Active stage highlighted with emerald border and shadow
+- Status badges: لم يبدأ / تم الحفظ / مسودة / مكتمل
+- On stage completion, automatically advances to next stage
+
+### Compact result cards
+- When outputs exist: shows a compact summary card with item counts and "مسودة فقط"
+- "عرض التفاصيل" button expands full output inline
+- "طيّ التفاصيل" collapses back to compact card
+
+### Governance banners
+Every generated section includes:
+- DraftBanner: "مسودة فقط — تتطلب مراجعة بشرية قبل الاستخدام. لا تعتمد أو تنشر مباشرةً من مخرجات الذكاء الاصطناعي."
+- GovernanceBanner: three bullet points — مسودة فقط / لا يتم اعتماد أو نشر تلقائياً / يجب مراجعة النتائج قبل استخدامها
+
+---
+
+## Campaign Detail Arabic polish summary
+- Readiness requirement labels fully translated to Arabic
+- 5-step flow labels (FLOW_STEPS) fully translated to Arabic
+- Tracking link toast translated to Arabic
+- All `bg-green-600` / `hover:bg-green-700` replaced with `bg-emerald-600` / `hover:bg-emerald-700`
+- `text-primary` link class replaced with `text-emerald-700`
+- `campaignName` prop now passed from `campaign-detail.tsx` to `CampaignWorkflowTab`
+
+---
+
+## Preserved behavior (not changed)
+- All existing API calls (`/api/campaign-workflow/intake`, `/api/campaign-workflow/strategy-brief`, `/api/campaign-workflow/creative-brief`, `/api/strategy/text-assist`, `/api/campaign-workflow/image-prompt-specs`, `/api/campaign-workflow/video-script-specs`)
+- Auth / role / workspace scoping
+- Draft-only AI behavior
+- Campaign Completion logic and readiness score
+- Publish checklist and manual publish guard
+- Viewer restrictions (all generate buttons disabled for viewers)
+- Tracking link dialog
+- Publish dialog
+- Approve / publish / create-link mutations
+- `WorkflowStatusSummary` type and `onStatusChange` callback
+- `WorkflowStatusPanel` exported component (used in campaign-detail)
+- `WorkflowSkeletonLoading` exported component
+- All normalizer functions (normalizeStrategyBrief, normalizeCreativeBrief, normalizeImagePromptSpecs, normalizeVideoScriptSpecs)
+
+---
 
 ## Unsupported features still deferred
-- Upload
-- Image generation
-- Video generation
-- Live publishing
+- Image generation (صور لا تُولَّد)
+- Video generation (فيديو لا يُولَّد)
+- File upload
+- Live publishing / auto-publishing
 - Autonomous optimization
 - Payment / budget automation
-- Backend, DB, routes, API, runtime, Dashboard, Brand, Content, Review, and OpenAPI changes
+- Backend, DB, routes, AI runtime changes
+- Dashboard, Brand, Content, Review page changes
+- OpenAPI / generated client changes
+- New pages
+
+---
 
 ## Verification results
-- TypeScript: no errors reported in the latest build pass
-- Frontend build: passed with `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`
+- TypeScript: zero errors
+- Frontend build: **passed** — `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`
+- rg check `campaign-detail.tsx`: no remaining English UI labels, no `bg-green-`, no `text-primary`
+- rg check `campaign-workflow-tab.tsx`: no `bg-green-`, no `text-primary`, no old English placeholder copy
 - Backend untouched
-- No DB/routes/API/runtime changes
-- No Dashboard changes
-- No Brand changes
-- No Content/Review changes
+- No DB / routes / API / runtime changes
+- No Dashboard / Brand / Content / Review changes
 - No new pages
+- No upload / media / live publishing
+
+---
 
 ## Remaining gaps
-- Authenticated screenshot evidence is still not captured in this environment.
-- Final visual QA still depends on preview inspection rather than a user-side screenshot.
+- Authenticated screenshot evidence not captured (preview requires login).
+- Final visual QA depends on preview inspection.
+
+---
 
 ## Readiness decision
-- Campaign Detail and AI Workflow Arabic polish is ready for preview review.
+AI Workflow redesign complete. 4-stage Arabic RTL Campaign Launch Assistant is ready for preview review.
