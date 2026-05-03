@@ -15,6 +15,7 @@ import StrategyPage from "@/pages/strategy";
 import Reports from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AssetLibraryPage from "@/pages/asset-library";
+import Review from "@/pages/review";
 
 // Legacy routes still accessible via direct URL
 import Workspaces from "@/pages/workspaces";
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/reports" component={() => <ProtectedRoute component={Reports} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={SettingsPage} />} />
       <Route path="/asset-library" component={() => <ProtectedRoute component={AssetLibraryPage} />} />
+      <Route path="/review" component={() => <ProtectedRoute component={Review} />} />
       {/* Legacy routes kept for direct access */}
       <Route path="/workspaces" component={() => <ProtectedRoute component={Workspaces} />} />
       <Route path="/brand-profile" component={() => <ProtectedRoute component={BrandProfile} />} />

@@ -31,7 +31,7 @@ const navItems = [
   { title: "العلامة التجارية", url: "/brand-profile", icon: PanelRight },
   { title: "الحملات", url: "/campaigns", icon: Megaphone },
   { title: "المحتوى", url: "/content-studio", icon: PenTool },
-  { title: "المراجعة", url: "/audit-log", icon: ShieldCheck },
+  { title: "المراجعة", url: "/review", icon: ShieldCheck },
   { title: "سجل النشاط", url: "/activity", icon: Activity },
 ];
 

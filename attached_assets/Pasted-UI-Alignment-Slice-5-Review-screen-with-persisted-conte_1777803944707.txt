@@ -1,0 +1,149 @@
+UI Alignment Slice 5: Review screen with persisted content connection only.
+
+Current baseline:
+- End-to-end runtime acceptance passed.
+- Brand Strategy exists and Campaign Stage 2 uses brand strategy context.
+- Stage 3 text suggestions persist and reload.
+- Content screen now reads persisted Stage 3 draft suggestions.
+- Drizzle drift remains a production blocker and must remain documented.
+
+Do not touch backend unless a minimal read/update review route already exists and needs UI wiring.
+Do not touch database.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not touch Content except if linking to Review requires a tiny navigation/reference fix.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+Do not change OpenAPI or generated client unless strictly required.
+
+Objective:
+Align the existing Review screen to the Arabic RTL premium design direction and connect it to real persisted draft campaign outputs where possible.
+
+Scope:
+Review screen only.
+
+Required product behavior:
+Review should review real persisted draft outputs, especially Stage 3 text suggestions, not placeholder cards.
+
+1. Review screen visual direction
+Arabic RTL-first.
+Use the same Dashboard/Brand/Campaign/Content design family:
+- light right-side shell
+- green/teal identity
+- soft white cards
+- premium spacing
+- clear review queue
+- center preview card
+- right-side audit/timeline/reviewer panel
+
+2. Review queue
+Show a review queue of persisted draft content where available:
+- campaign text suggestions
+- hooks
+- ad copy variants
+- captions
+- CTAs
+
+If existing approval/review data exists, use it.
+If there is no review-ready data source, show a clear Arabic empty state and document the gap.
+
+3. Review content preview
+For selected item, show:
+- campaign name
+- content type
+- draft content
+- source: real | mock if available
+- generated date
+- safety notes / missing context warnings
+- draft-only badge
+
+4. Review actions
+If existing approval workflow/actions already exist, preserve and visually polish:
+- اعتماد
+- طلب تعديل
+- رفض
+
+If actions are not wired to persisted text suggestions yet:
+- do not fake approval
+- show disabled or documented placeholder
+- document the gap clearly
+
+5. Governance
+Review screen must not:
+- auto-approve AI output
+- publish campaign
+- mark campaign ready
+- change budget
+- update assets
+- bypass role guards
+- bypass manual publish guard
+
+6. Role behavior
+Viewer:
+- can read only if existing policy allows
+- cannot approve/reject/request changes
+
+Editor/reviewer/admin:
+- can use existing review actions if already supported
+- otherwise view-only with documented gap
+
+7. Audit/timeline
+If existing audit logs are available, show recent review/generation activity.
+If not, use a safe empty state:
+"لا توجد أحداث مراجعة مسجلة بعد."
+
+Do not invent fake activity.
+
+8. Unsupported features
+Do not add:
+- upload
+- image generation
+- video generation
+- live publishing
+- auto approval
+- direct ad platform publishing
+
+9. Documentation
+Create:
+docs/ui_alignment_review_slice_report.md
+
+Report must include:
+- changed files
+- Review visual alignment summary
+- whether Review is connected to persisted Stage 3 suggestions
+- whether approval actions are real or deferred
+- role behavior
+- governance constraints
+- audit/timeline status
+- Drizzle drift noted as production blocker
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- API build passes if backend was touched
+- no DB/schema changes
+- no Dashboard/Brand/Campaign/Content regression
+- no upload/media/live publishing
+- no Campaign Completion regression
+- no fake approval/publish behavior
+
+Final output:
+- changed files
+- Review alignment completed
+- persisted content connection status
+- approval action status
+- screenshot/visual evidence status
+- verification results
+- remaining gaps
+- readiness decision

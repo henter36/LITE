@@ -8,6 +8,9 @@
 
 - `artifacts/marketing-os/src/pages/content-studio.tsx`
 - `artifacts/api-server/src/routes/strategy.ts`
+- `artifacts/marketing-os/src/pages/review.tsx`
+- `artifacts/marketing-os/src/App.tsx`
+- `artifacts/marketing-os/src/components/layout/sidebar-layout.tsx`
 - `docs/ui_alignment_content_slice_report.md`
 
 ---
@@ -47,8 +50,8 @@ The UI still avoids generation, upload, live publishing, and automatic approval.
 - Campaign Detail untouched
 - Campaign Workflow untouched
 - Campaign Completion untouched
-- Review untouched
-- No new pages
+- Review slice added as UI-only
+- No backend approval wiring changed
 - No upload/media/video/image/live-publishing changes
 - No OpenAPI or generated client changes
 - No automatic approval behavior added
@@ -81,8 +84,10 @@ This is a production blocker for clean schema sync / push hygiene, but it is not
   - `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build`
 - Backend restart/build: **PASS**
 - Read-only Stage 3 route added: **PASS**
+- Review route/UI shell added: **PASS**
+- Sidebar nav wired to Review: **PASS**
 - No Dashboard/Brand/Campaign changes: **PASS**
-- No new pages: **PASS**
+- No backend review mutations added: **PASS**
 - No upload/media/live publishing: **PASS**
 - No Campaign Completion regression: **PASS**
 
