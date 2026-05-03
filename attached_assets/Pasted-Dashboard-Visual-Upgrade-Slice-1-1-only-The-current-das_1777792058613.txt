@@ -1,0 +1,189 @@
+Dashboard Visual Upgrade Slice 1.1 only.
+
+The current dashboard is buildable but visually not close enough to the provided reference.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not touch Brand, Campaign, Content, or Review screens.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement autonomous optimization.
+
+Scope:
+Only modify:
+artifacts/marketing-os/src/pages/dashboard.tsx
+and the dashboard slice report if needed.
+
+Objective:
+Upgrade the Dashboard visually so it closely matches the provided Arabic RTL reference dashboard, while preserving existing dashboard data and safe behavior.
+
+The current dashboard problems to fix:
+- It is English/LTR; reference is Arabic/RTL.
+- It uses a dark left sidebar; reference uses a light right sidebar.
+- It uses purple as primary color; reference uses green/teal.
+- Cards are too generic and not visually premium.
+- The performance chart looks basic.
+- Workflow funnel is too plain.
+- Recent activity is not integrated like the reference.
+- Overall UI feels like a prototype, not a polished Marketing OS Lite product.
+
+Target visual direction:
+- Arabic RTL layout.
+- Light clean background.
+- Right-side navigation visually matching the reference.
+- Top header with user/avatar area, notification/help icons, and workspace selector style.
+- Marketing OS Lite branding.
+- Calm green/teal identity.
+- Rounded white cards with subtle shadow and light border.
+- Better spacing and visual hierarchy.
+- Executive dashboard feel.
+- No purple primary buttons unless still required by shared styling; prefer green/teal.
+
+Required dashboard sections:
+
+1. Top area
+Match the reference:
+- greeting in Arabic, e.g. "مرحبًا، أحمد"
+- short subtitle about today’s marketing performance
+- workspace selector card style near the top
+- date filter such as "آخر 7 أيام"
+
+2. KPI cards
+Use large soft cards like the reference:
+- إجمالي الحملات
+- قطع المحتوى المنشأة
+- المحتوى المعتمد
+- المحتوى المرفوض
+
+Each card should include:
+- icon block
+- large number
+- small trend line text
+- positive/negative indicator styling
+
+Use existing dashboard metrics/data where available.
+Do not invent unsupported live analytics.
+
+3. Performance chart card
+Create a cleaner reference-style performance card:
+- Arabic title: "أداء المحتوى (آخر 7 أيام)"
+- line chart or clean visual approximation using existing chart library if available
+- bottom metric pills:
+  - الوصول
+  - معدل التفاعل
+  - النقرات
+  - التفاعلات
+
+If the project currently only has simple chart capability, make the card visually close without adding new libraries unless already available.
+
+4. Latest campaigns card
+Match the reference style:
+- title: "أحدث الحملات"
+- rows with campaign thumbnail/placeholder, name, date, status badge
+- status badges in Arabic:
+  - نشطة
+  - تحتاج مراجعة
+  - مسودة
+  - مكتملة
+- keep existing campaign data if available
+
+5. Workflow funnel card
+Replace the plain list with a more visual funnel-like block:
+- title: "مخطط سير العمل"
+- stages:
+  - إجمالي الحملات
+  - قيد التنفيذ
+  - قيد المراجعة
+  - معتمد
+  - مرفوض
+- use soft layered visual blocks similar to the reference
+- do not add functionality; visual only
+
+6. Recent activity card
+Match the reference:
+- title: "النشاط الأخير"
+- show recent events in Arabic-style rows
+- use icon/status blocks
+- preserve existing activity/recommendation data if that is what currently exists
+
+7. Right-side supporting cards
+Add/reference-style supporting cards within the dashboard layout:
+- "اكتمال ملف العلامة التجارية"
+- "موجز الحملة النشطة"
+- "المراجعات المعلقة"
+
+Use existing data where available.
+If data is unavailable, use safe static/sample placeholders only if already acceptable in the current demo mode and clearly non-live.
+Do not imply real live publishing or real ad spend.
+
+8. Navigation visual
+For this dashboard page only, align visual feel with the right-side navigation reference as much as the current app structure allows.
+
+If the app has a shared left sidebar that cannot be safely changed in this slice:
+- do not modify shared layout
+- create a dashboard internal layout that visually approximates the reference
+- document the gap clearly
+
+If the dashboard page itself controls the navigation shell:
+- switch to right-side light navigation for this page only
+- do not affect other routes
+
+9. Language and RTL
+Dashboard visible labels should be Arabic.
+Use RTL alignment.
+Numbers can remain Latin digits if that matches existing app style, but labels must feel Arabic-first.
+
+10. Unsupported features
+Do not add:
+- real ad spend
+- live publishing
+- upload
+- image/video generation
+- real analytics integrations
+
+If demo values are used, keep them safe and not misleading.
+
+Preservation:
+- Preserve existing dashboard metrics/campaign/recommendation data and dismiss flow.
+- Do not break existing dashboard interactions.
+- Do not touch any non-dashboard screen.
+
+Documentation:
+Update:
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- Dashboard Slice 1.1 visual upgrade summary
+- what was changed to better match the reference
+- remaining gaps from the reference
+- whether right-side navigation was fully matched or only approximated
+- confirmation that no backend/db/routes/API/runtime changes were made
+- verification results
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no new pages
+- no unsupported features
+- no upload/media/live publishing
+- no Campaign Completion or Campaign Workflow changes
+
+Final output:
+- changed files
+- visual upgrade completed
+- reference gaps remaining
+- preserved functionality
+- verification results
+- readiness decision

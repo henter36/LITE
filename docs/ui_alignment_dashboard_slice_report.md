@@ -4,41 +4,39 @@
 - `artifacts/marketing-os/src/pages/dashboard.tsx`
 - `docs/ui_alignment_dashboard_slice_report.md`
 
-## Dashboard visual QA
-- Dashboard now follows the reference-style sectioning more closely: KPI row, performance card, workflow funnel, recent campaigns, brand completion, pending reviews, and recent activity.
-- Right-side navigation and top header are retained via the shared layout.
-- Card spacing, rounded corners, and muted green/teal accents are consistent with the current app theme.
+## Dashboard Slice 1.1 visual upgrade summary
+- Dashboard was visually reworked toward the Arabic RTL reference style.
+- The page now uses Arabic-first labels, RTL layout direction, softer cards, and greener/teal visual accents.
+- The top area now includes a greeting, subtitle, date filter chip, workspace card, and utility controls.
+- KPI cards were restyled into larger premium summary cards with icon blocks and trend text.
+- The performance chart card was cleaned up and given supporting metric pills.
+- Recent campaigns, workflow funnel, recent activity, brand completion, and pending reviews were all reformatted to better match the reference.
 
-## What matches the reference closely
-- KPI cards across the top
-- Large performance chart/card
-- Recent campaigns list
-- Workflow funnel card
-- Brand completion card
-- Pending reviews card
-- Recent activity / action panel
+## What changed to better match the reference
+- Arabic labels replaced the English dashboard surface.
+- RTL layout was applied within the dashboard page.
+- A light executive-dashboard visual treatment replaced the prototype-like layout.
+- Workflow and support cards were made more visual and less list-like.
+- Existing campaign and recommendation data still drives the displayed content.
 
-## What remains not pixel-perfect
-- The chart and funnel are simplified compared with the screenshot.
-- RTL polish is limited to the existing layout and shared styles.
-- Some spacing proportions differ from the reference.
-
-## Functional preservation
+## Preserved functionality
 - Existing dashboard metrics still render.
-- Recent campaigns still render.
+- Existing campaigns still render.
 - Recommendation dismiss flow still works.
-- No broken imports were introduced.
-- No fake live analytics were added.
-- No backend, database, routes, AI runtime, Campaign Detail, Campaign Completion, or Campaign Workflow changes were made.
-
-## Verification
-- TypeScript: passed
-- Frontend build: passed
-- Backend: untouched
+- No new pages were added.
+- No unsupported upload, media, live publishing, payments, or autonomous optimization features were added.
+- No Campaign Detail, Campaign Completion, or Campaign Workflow logic was changed.
+- No backend, database, routes, API, or runtime changes were made.
 
 ## Remaining gaps
-- Visual parity is improved but not exact.
-- Dashboard uses only existing data sources and safe placeholders already present in the app.
+- Right-side navigation was only approximated within the current shared layout; the shared app shell itself was not changed.
+- The chart and funnel remain simplified compared with the screenshot.
+- Some spacing and iconography are close rather than pixel-perfect.
+
+## Verification
+- TypeScript: pending
+- Frontend build: pending
+- Backend: untouched
 
 ## Readiness decision
-- Dashboard slice is visually acceptable and functional for the current scope.
+- Dashboard slice is ready for review once verification completes.

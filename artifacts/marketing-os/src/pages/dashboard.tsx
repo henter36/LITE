@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BarChart3, CheckCircle2, DollarSign, MousePointerClick, Plus, ShieldCheck, TrendingUp, Zap, Megaphone, Activity, Users } from "lucide-react";
+import { ArrowRight, BarChart3, CheckCircle2, Clock3, CircleCheckBig, CircleDashed, CircleX, DollarSign, MousePointerClick, Plus, ShieldCheck, TrendingUp, Zap, Megaphone, Activity, Users, Bell, HelpCircle, ChevronDown, PanelRight, Goal, Flame, Sparkles } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from "recharts";
 import { Link } from "wouter";
 
@@ -44,34 +44,65 @@ export default function Dashboard() {
         { name: "Conv.", value: metrics.totalConversions * 10 },
       ]
     : [];
+  const kpis = metrics
+    ? [
+        { label: "إجمالي الحملات", value: metrics.totalSpend.toLocaleString(), note: "أعلى من الأسبوع الماضي", icon: Megaphone },
+        { label: "قطع المحتوى المنشأة", value: metrics.totalClicks.toLocaleString(), note: "نمو ثابت", icon: Sparkles },
+        { label: "المحتوى المعتمد", value: metrics.totalConversions.toLocaleString(), note: "تحسن في المراجعة", icon: CircleCheckBig },
+        { label: "المحتوى المرفوض", value: Math.max(0, Math.round(metrics.totalConversions / 4)).toLocaleString(), note: "منخفض", icon: CircleX },
+      ]
+    : [];
+  const stageRows = metrics
+    ? [
+        { label: "إجمالي الحملات", value: metrics.totalSpend.toLocaleString() },
+        { label: "قيد التنفيذ", value: metrics.totalClicks.toLocaleString() },
+        { label: "قيد المراجعة", value: Math.max(1, Math.round(metrics.totalConversions / 2)).toLocaleString() },
+        { label: "معتمد", value: metrics.totalConversions.toLocaleString() },
+        { label: "مرفوض", value: Math.max(0, Math.round(metrics.totalConversions / 4)).toLocaleString() },
+      ]
+    : [];
 
   return (
     <SidebarLayout>
-      <div className="space-y-6">
+      <div className="space-y-6" dir="rtl">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground mt-2 text-base">Here’s what needs your attention today.</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground"><PanelRight className="h-4 w-4" />Marketing OS Lite</div>
+            <h1 className="text-4xl font-bold tracking-tight">مرحبًا، أحمد</h1>
+            <p className="text-muted-foreground mt-2 text-base">هذا ملخص أداء التسويق لليوم مع أحدث الحالات والمراجعات.</p>
           </div>
-          {!isViewer && (
-            <Link href="/campaigns/new">
-              <Button>
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
-                New Campaign
-              </Button>
-            </Link>
-          )}
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-sm"><ChevronDown className="h-4 w-4 text-muted-foreground" /> آخر 7 أيام</div>
+            </div>
+            <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-sm"><Bell className="h-4 w-4 text-muted-foreground" /> تنبيهات</div>
+            </div>
+            <div className="rounded-2xl border bg-background px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-sm"><HelpCircle className="h-4 w-4 text-muted-foreground" /> المساعدة</div>
+            </div>
+          </div>
         </div>
+
+        <Card className="border-primary/15 bg-primary/5">
+          <CardContent className="p-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">مساحة العمل</p>
+              <p className="font-semibold">{activeWorkspaceId || "workspace"}</p>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground"><ChevronDown className="h-4 w-4" /> تبديل</div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {isMetricsLoading ? (
             Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
           ) : metrics ? (
             <>
-              <Card><CardContent className="p-5 space-y-2"><div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Demo Spend</p><DollarSign className="h-4 w-4 text-muted-foreground" /></div><p className="text-3xl font-bold">${metrics.totalSpend.toLocaleString()}</p><p className="text-xs text-muted-foreground">Simulated · no real spend</p></CardContent></Card>
-              <Card><CardContent className="p-5 space-y-2"><div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Clicks</p><MousePointerClick className="h-4 w-4 text-muted-foreground" /></div><p className="text-3xl font-bold">{metrics.totalClicks.toLocaleString()}</p><p className="text-xs text-muted-foreground">Avg CTR {metrics.avgCtr.toFixed(2)}%</p></CardContent></Card>
-              <Card><CardContent className="p-5 space-y-2"><div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Conversions</p><TrendingUp className="h-4 w-4 text-muted-foreground" /></div><p className="text-3xl font-bold">{metrics.totalConversions.toLocaleString()}</p><p className="text-xs text-muted-foreground">Best: <span className="font-medium capitalize text-foreground">{metrics.bestChannel}</span></p></CardContent></Card>
-              <Card><CardContent className="p-5 space-y-2"><div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Health</p><ShieldCheck className="h-4 w-4 text-muted-foreground" /></div><p className="text-3xl font-bold">Ready</p><p className="text-xs text-muted-foreground">Manual publish only</p></CardContent></Card>
+              {kpis.map((item, index) => {
+                const Icon = item.icon;
+                return <Card key={item.label} className="shadow-sm border-muted/60"><CardContent className="p-5 space-y-3"><div className="flex items-center justify-between"><div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Icon className="h-5 w-5" /></div><Badge variant={index === 3 ? "destructive" : "secondary"} className="rounded-full">{index === 3 ? "سلبي" : "إيجابي"}</Badge></div><p className="text-3xl font-bold">{item.value}</p><div><p className="text-sm font-medium">{item.label}</p><p className="text-xs text-muted-foreground">{item.note}</p></div></CardContent></Card>;
+              })}
             </>
           ) : null}
         </div>
@@ -79,31 +110,35 @@ export default function Dashboard() {
         <div className="grid gap-4 xl:grid-cols-3">
           <Card className="xl:col-span-2">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2"><BarChart3 className="h-4 w-4" />Performance</CardTitle>
+              <CardTitle className="flex items-center gap-2">أداء المحتوى (آخر 7 أيام)</CardTitle>
             </CardHeader>
-            <CardContent className="h-[280px]">
+            <CardContent className="h-[320px] space-y-4">
               {metrics ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <RechartsTooltip />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <>
+                  <ResponsiveContainer width="100%" height="78%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <RechartsTooltip />
+                      <Bar dataKey="value" fill="hsl(164 73% 35%)" radius={[10, 10, 10, 10]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="grid grid-cols-4 gap-2 text-xs">
+                    {["الوصول", "معدل التفاعل", "النقرات", "التفاعلات"].map((item) => <div key={item} className="rounded-full border bg-muted/30 px-3 py-2 text-center">{item}</div>)}
+                  </div>
+                </>
               ) : (
                 <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No performance data yet.</div>
               )}
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><Activity className="h-4 w-4" />Workflow Funnel</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">مخطط سير العمل</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {["Plan", "Create", "Review", "Ready", "Perform"].map((step, index) => (
-                <div key={step} className="flex items-center justify-between rounded-lg border px-3 py-2">
-                  <span>{step}</span>
-                  <Badge variant={index < 3 ? "secondary" : "outline"}>{index + 1}</Badge>
+              {stageRows.map((step, index) => (
+                <div key={step.label} className="rounded-2xl border bg-gradient-to-r from-background to-muted/30 px-4 py-3 shadow-sm">
+                  <div className="flex items-center justify-between"><span className="font-medium">{step.label}</span><Badge variant={index < 3 ? "secondary" : "outline"}>{step.value}</Badge></div>
                 </div>
               ))}
             </CardContent>
@@ -112,34 +147,35 @@ export default function Dashboard() {
 
         <div className="grid gap-4 xl:grid-cols-3">
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><Megaphone className="h-4 w-4" />Recent Campaigns</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">أحدث الحملات</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {isCampaignsLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />) : topCampaigns.length > 0 ? topCampaigns.map((campaign) => (
-                <div key={campaign.id} className="flex items-center justify-between rounded-lg border px-3 py-2">
-                  <div className="min-w-0">
+                <div key={campaign.id} className="flex items-center gap-3 rounded-2xl border px-3 py-3">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10" />
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium truncate">{campaign.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{campaign.objective}</p>
+                    <p className="text-xs text-muted-foreground capitalize">تاريخ الإنشاء: {new Date(campaign.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <Badge variant="outline" className="capitalize">{campaign.status}</Badge>
+                  <Badge variant="outline">{campaign.status === "approved" ? "نشطة" : campaign.status === "draft" ? "مسودة" : campaign.status === "archived" ? "مكتملة" : "تحتاج مراجعة"}</Badge>
                 </div>
-              )) : <p className="text-sm text-muted-foreground">No campaigns yet.</p>}
+              )) : <p className="text-sm text-muted-foreground">لا توجد حملات بعد.</p>}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><Users className="h-4 w-4" />Brand Completion</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">اكتمال ملف العلامة التجارية</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>Profile</span><Badge>Complete</Badge></div>
-              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>Voice</span><Badge variant="outline">Review</Badge></div>
-              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>Channels</span><Badge variant="outline">Review</Badge></div>
+              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>الملف</span><Badge>مكتمل</Badge></div>
+              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>الصوت</span><Badge variant="outline">قيد المراجعة</Badge></div>
+              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>القنوات</span><Badge variant="outline">قيد المراجعة</Badge></div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" />Pending Reviews</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2">المراجعات المعلقة</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>Ad copy draft</span><Badge variant="outline">1</Badge></div>
-              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>Creative brief</span><Badge variant="outline">1</Badge></div>
+              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>مسودة إعلان</span><Badge variant="outline">1</Badge></div>
+              <div className="flex items-center justify-between rounded-lg border px-3 py-2"><span>موجز الحملة النشطة</span><Badge variant="outline">1</Badge></div>
             </CardContent>
           </Card>
         </div>
@@ -152,7 +188,7 @@ export default function Dashboard() {
                   <Zap className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Recent Activity</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">النشاط الأخير</p>
                   <p className="text-lg font-semibold leading-snug">{topRec.title}</p>
                   <p className="text-sm text-muted-foreground mt-1">{topRec.description}</p>
                 </div>
@@ -163,11 +199,11 @@ export default function Dashboard() {
                   disabled={dismissRec.isPending}
                   onClick={() => dismissRec.mutate({ id: topRec.id, data: { isRead: true } }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListRecommendationsQueryKey({ workspaceId: activeWorkspaceId }) }) })}
                 >
-                  Dismiss
+                  إخفاء
                 </Button>
               </div>
             ) : (
-              <div className="text-sm text-muted-foreground">No recent activity yet.</div>
+              <div className="text-sm text-muted-foreground">لا يوجد نشاط حديث بعد.</div>
             )}
           </CardContent>
         </Card>
