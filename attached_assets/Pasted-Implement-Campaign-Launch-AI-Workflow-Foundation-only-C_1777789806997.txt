@@ -1,0 +1,235 @@
+Implement Campaign Launch AI Workflow Foundation only.
+
+Current baseline:
+- Campaign Completion Wiring is implemented and hardened.
+- Manual publish is blocked at UI and handler level.
+- Viewer restrictions are preserved.
+- Backend AI Text Runtime is implemented.
+- Campaign Detail AI Assist is integrated.
+- POST /api/strategy/text-assist is authenticated, role-guarded, and workspace-scoped.
+- OPENAI_API_KEY is server-side only.
+- AI output is draft-only.
+- Do not break this baseline.
+
+Do not implement image generation.
+Do not implement video generation.
+Do not implement upload.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget changes.
+Do not implement autonomous optimization.
+Do not create new standalone pages.
+Do not expose API keys in frontend.
+Do not commit any API key.
+Do not weaken Campaign Completion Wiring.
+Do not weaken AI route auth/role/workspace scoping.
+
+Objective:
+Turn Campaign Detail into a real campaign launch cockpit by adding a controlled AI-assisted workflow:
+Client Intake → Customer Profile → Strategy Brief → Creative Brief → Text Suggestions → Image Prompt Specs → Video Script/Storyboard Specs → Manual Review.
+
+Important:
+This is workflow foundation only.
+Image and video prompt specs are allowed.
+Actual image/video generation is forbidden.
+
+Scope:
+
+1. Client Intake inside existing Campaign Detail
+
+Add a compact AI-assisted intake section/card inside the existing Campaign Detail screen or existing campaign workflow surface.
+
+Collect or summarize:
+- business/product description
+- campaign objective
+- target audience
+- offer/value proposition
+- brand tone
+- selected channels
+- landing URL or tracking link
+- constraints/forbidden claims
+- available creative assets/references
+- missing information
+
+Output:
+Customer Intelligence Profile.
+
+2. Strategy Brief
+
+Generate or display a structured campaign strategy brief using existing campaign context and intake data.
+
+Output fields:
+- objective
+- target audience
+- positioning
+- key message
+- recommended channels
+- content angles
+- CTA direction
+- required assets
+- missing context warnings
+- risks/safety notes
+
+AI output must be draft-only and manually reviewable.
+
+3. Creative Brief
+
+Generate a Creative Brief from the reviewed strategy.
+
+Output fields:
+- core message
+- audience
+- tone
+- text direction
+- visual direction
+- video direction
+- channel adaptations
+- usage-rights reminders
+- prohibited elements
+
+Do not auto-approve the Creative Brief.
+
+4. Text Suggestions
+
+Reuse the existing server-side AI Text Runtime where possible.
+
+Show:
+- hooks
+- ad copy variants
+- captions
+- CTAs
+- improvement notes
+- missing context warnings
+- safety notes
+
+AI suggestions remain draft-only.
+
+5. Image Prompt Specs only
+
+Generate future image prompt/spec text only.
+
+Allowed:
+- image prompt text
+- composition notes
+- style direction
+- product/scene notes
+- channel format notes
+- usage-rights reminders
+
+Forbidden:
+- actual image generation
+- upload
+- creating media files
+
+6. Video Script / Storyboard Specs only
+
+Generate future video planning text only.
+
+Allowed:
+- video concept
+- short script
+- storyboard outline
+- scene list
+- voiceover draft
+- caption draft
+- platform/aspect ratio notes
+
+Forbidden:
+- actual video generation
+- upload
+- creating video files
+
+7. Campaign Detail integration
+
+Keep everything inside existing Campaign Detail.
+
+Campaign Detail should show:
+- client/profile summary status
+- strategy brief status
+- creative brief status
+- text suggestions status
+- image prompt/spec status
+- video script/storyboard status
+- existing completion/readiness panel
+- existing publish checklist
+- missing requirements
+
+Do not create a separate AI workflow page.
+
+8. Governance
+
+AI must not:
+- approve content
+- approve assets
+- mark campaign ready
+- publish
+- modify budget
+- update assets
+- change readiness state
+- bypass manual publish guards
+- bypass role guards
+- bypass workspace scoping
+
+All AI outputs remain draft-only until reviewed by an authorized user.
+
+9. Role restrictions
+
+Viewer cannot:
+- trigger AI generation
+- publish
+- mark ready
+- approve content
+- approve assets
+- update assets
+- alter checklist state
+
+Viewer may only see allowed read-only campaign information according to existing policy.
+
+10. Documentation
+
+Create:
+docs/campaign_launch_ai_workflow_foundation_report.md
+
+Report must include:
+- changed files
+- intake workflow implemented
+- customer profile output
+- strategy brief output
+- creative brief output
+- text suggestions integration
+- image prompt specs
+- video script/storyboard specs
+- server-side AI usage
+- API key safety
+- role restrictions
+- workspace scoping preservation
+- Campaign Completion preservation
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- API server build passes
+- Marketing OS frontend build passes with required PORT/BASE_PATH if needed
+- no API key in frontend code
+- no frontend AI provider call
+- AI outputs are draft-only
+- viewer cannot trigger AI generation
+- manual publish guard still works
+- Campaign Completion panel still works
+- readiness score still works
+- publish checklist still works
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no new standalone pages
+- no broad OpenAPI/generated client changes unless strictly required
+
+Final output:
+- changed files
+- workflow implemented
+- verification results
+- remaining gaps
+- readiness decision
