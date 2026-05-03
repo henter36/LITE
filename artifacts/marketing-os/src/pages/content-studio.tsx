@@ -1,7 +1,6 @@
 import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import {
   useListCampaigns,
-  useGenerateAssets,
   useListAssets,
   useCreateApproval,
   useUpdateAssetBrief,
@@ -10,7 +9,7 @@ import {
   getListAssetsQueryKey,
 } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,25 +19,23 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   Sparkles,
   Check,
-  Edit3,
-  RefreshCw,
   PenTool,
   ShieldCheck,
   AlertCircle,
   ChevronRight,
   EyeOff,
-  ImageIcon,
-  Video,
-  Link as LinkIcon,
   ChevronDown,
   ChevronUp,
   Save,
+  Search,
+  BadgeInfo,
+  Flame,
 } from "lucide-react";
 import { Link as WouterLink, useSearch } from "wouter";
 
@@ -49,6 +46,20 @@ function countGuardrails(forbiddenClaims: string): number {
     .map((s) => s.trim())
     .filter((s) => s.length > 5).length;
 }
+
+type Asset = {
+  id: number;
+  headline: string;
+  shortCaption: string;
+  hashtags: string[];
+  cta: string;
+  imageBrief?: string | null;
+  videoBrief?: string | null;
+  assetReference?: string | null;
+  videoScript?: string | null;
+  storyboardOutline?: string | null;
+  status: string;
+};
 
 const PLATFORM_TABS = [
   { id: "instagram", label: "Instagram" },
@@ -74,16 +85,16 @@ function VariantTabPanel({
   const variant = variants?.find((v) => v.channel === activeChannel);
 
   return (
-    <div>
-      <div className="flex gap-0.5 border-b mb-4 overflow-x-auto">
+    <div className="space-y-4">
+      <div className="flex gap-1.5 overflow-x-auto border-b border-emerald-100 pb-2">
         {PLATFORM_TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveChannel(tab.id)}
-            className={`px-3 py-1.5 text-xs font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
               activeChannel === tab.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "bg-emerald-600 text-white"
+                : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
             }`}
           >
             {tab.label}
@@ -100,60 +111,46 @@ function VariantTabPanel({
       ) : variant ? (
         <div className="space-y-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-              Headline
-            </p>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Hook</p>
             <p className="font-bold leading-snug">{variant.headline}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-              Caption
-            </p>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">نص الإعلان</p>
             <p className="text-sm leading-relaxed">{variant.caption}</p>
           </div>
           {variant.hashtags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {variant.hashtags.map((tag) => (
-                <span key={tag} className="text-sm text-primary font-medium">
-                  {tag}
+                <span key={tag} className="rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
+                  #{tag}
                 </span>
               ))}
             </div>
           )}
-          <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 flex items-center gap-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">CTA</span>
-            <span className="font-medium text-sm">{variant.cta}</span>
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">CTA</span>
+            <span className="text-sm font-medium">{variant.cta}</span>
           </div>
 
           {activeChannel === "tiktok" && (videoScript || storyboardOutline) && (
-            <div className="border rounded-lg p-4 bg-muted/10 space-y-4 mt-2">
+            <div className="space-y-4 rounded-xl border border-dashed border-emerald-100 bg-white/70 p-4">
               {videoScript && (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-                    Video Script
-                  </p>
-                  <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono text-foreground">
-                    {videoScript}
-                  </pre>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Video Script</p>
+                  <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-foreground">{videoScript}</pre>
                 </div>
               )}
               {storyboardOutline && (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-                    Storyboard Outline
-                  </p>
-                  <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono text-foreground">
-                    {storyboardOutline}
-                  </pre>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Storyboard Outline</p>
+                  <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-foreground">{storyboardOutline}</pre>
                 </div>
               )}
             </div>
           )}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          No variant data found. Try regenerating the ad.
-        </p>
+        <p className="text-sm text-muted-foreground">لا توجد نسخة جاهزة بعد. حاول التحديث أو الرجوع للحملة.</p>
       )}
     </div>
   );
@@ -198,104 +195,67 @@ function CreativeBriefPanel({
           queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });
           setSaved(true);
           setTimeout(() => setSaved(false), 2000);
-          toast({ title: "Creative brief saved" });
+          toast({ title: "تم حفظ الملخص" });
         },
         onError: () => {
-          toast({ title: "Failed to save brief", variant: "destructive" });
+          toast({ title: "تعذر حفظ الملخص", variant: "destructive" });
         },
       },
     );
   };
 
   return (
-    <div className="border-t pt-5">
+    <div className="border-t border-emerald-100 pt-5">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center justify-between w-full text-left group"
+        className="flex w-full items-center justify-between text-right group"
       >
         <div className="flex items-center gap-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Creative Brief
-          </p>
-          {hasBriefContent && (
-            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-              Added
-            </span>
-          )}
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">ملخص الإبداع</p>
+          {hasBriefContent && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">متاح</span>}
         </div>
-        {open ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        )}
+        {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
       </button>
 
       {open && (
         <div className="mt-4 space-y-4">
-          <p className="text-xs text-muted-foreground">
-            Attach image/video direction and asset references to guide your creative team.
-          </p>
+          <p className="text-xs text-muted-foreground">هذه حقول نصية فقط لتوجيه الفريق الإبداعي.</p>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5" />
-              Image Creative Brief
+            <Label className="flex items-center gap-1.5 text-xs font-medium">
+              <BadgeInfo className="h-3.5 w-3.5" />
+              ملاحظات الصورة
             </Label>
-            <Textarea
-              value={imageBrief}
-              onChange={(e) => setImageBrief(e.target.value)}
-              placeholder="e.g. Bright lifestyle photo of product in use, warm tones, natural light, show the packaging clearly…"
-              rows={3}
-              className="resize-none text-sm"
-              disabled={isViewer}
-            />
+            <Textarea value={imageBrief} onChange={(e) => setImageBrief(e.target.value)} rows={3} className="resize-none text-sm" disabled={isViewer} />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1.5">
-              <Video className="h-3.5 w-3.5" />
-              Video Creative Brief
+            <Label className="flex items-center gap-1.5 text-xs font-medium">
+              <Flame className="h-3.5 w-3.5" />
+              ملاحظات الفيديو
             </Label>
-            <Textarea
-              value={videoBrief}
-              onChange={(e) => setVideoBrief(e.target.value)}
-              placeholder="e.g. 15-second vertical video, hook in first 2s, show product demo at 8s, end card with CTA overlay…"
-              rows={3}
-              className="resize-none text-sm"
-              disabled={isViewer}
-            />
+            <Textarea value={videoBrief} onChange={(e) => setVideoBrief(e.target.value)} rows={3} className="resize-none text-sm" disabled={isViewer} />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium flex items-center gap-1.5">
-              <LinkIcon className="h-3.5 w-3.5" />
-              Asset Reference (URL or notes)
+            <Label className="flex items-center gap-1.5 text-xs font-medium">
+              <Search className="h-3.5 w-3.5" />
+              مرجع أو رابط
             </Label>
-            <Input
-              value={assetReference}
-              onChange={(e) => setAssetReference(e.target.value)}
-              placeholder="e.g. https://drive.google.com/... or 'Use the hero shot from the April shoot'"
-              className="text-sm"
-              disabled={isViewer}
-            />
+            <Input value={assetReference} onChange={(e) => setAssetReference(e.target.value)} className="text-sm" disabled={isViewer} />
           </div>
 
           {!isViewer && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleSave}
-              disabled={updateBrief.isPending || saved}
-            >
+            <Button size="sm" variant="outline" onClick={handleSave} disabled={updateBrief.isPending || saved}>
               {saved ? (
                 <>
-                  <Check className="h-3.5 w-3.5 mr-1.5 text-green-600" />
-                  Saved
+                  <Check className="mr-1.5 h-3.5 w-3.5 text-green-600" />
+                  تم الحفظ
                 </>
               ) : (
                 <>
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                  {updateBrief.isPending ? "Saving…" : "Save Brief"}
+                  <Save className="mr-1.5 h-3.5 w-3.5" />
+                  {updateBrief.isPending ? "جارٍ الحفظ…" : "حفظ الملخص"}
                 </>
               )}
             </Button>
@@ -306,29 +266,42 @@ function CreativeBriefPanel({
   );
 }
 
+function ContentItemCard({ title, items, badge }: { title: string; items: string[]; badge: string }) {
+  return (
+    <Card className="overflow-hidden border-emerald-100 shadow-sm">
+      <CardHeader className="space-y-2 border-b border-emerald-50 bg-gradient-to-r from-emerald-50 to-teal-50 pb-4">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base font-semibold text-slate-900">{title}</CardTitle>
+          <Badge variant="outline" className="border-emerald-200 bg-white text-emerald-700">{badge}</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">مسودة • تحتاج مراجعة • مولّدة بالذكاء الاصطناعي</p>
+      </CardHeader>
+      <CardContent className="space-y-3 p-5">
+        {items.length ? items.map((item, idx) => (
+          <div key={idx} className="rounded-xl border border-emerald-50 bg-white p-4 text-sm leading-relaxed text-slate-700">
+            {item}
+          </div>
+        )) : <p className="text-sm text-muted-foreground">لا توجد بيانات متاحة.</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ContentStudio() {
   const { activeWorkspaceId, user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   const isViewer = user?.role === "viewer";
-
   const search = useSearch();
   const searchParams = new URLSearchParams(search);
   const preselectedId = searchParams.get("campaignId") ?? "";
-
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>(preselectedId);
   const [editDialogAssetId, setEditDialogAssetId] = useState<number | null>(null);
   const [editReason, setEditReason] = useState<string>("");
 
-  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({
-    workspaceId: activeWorkspaceId,
-  });
-  const { data: brandProfiles, isLoading: isBrandLoading } = useListBrandProfiles({
-    workspaceId: activeWorkspaceId,
-  });
+  const { data: campaigns, isLoading: isCampaignsLoading } = useListCampaigns({ workspaceId: activeWorkspaceId });
+  const { data: brandProfiles, isLoading: isBrandLoading } = useListBrandProfiles({ workspaceId: activeWorkspaceId });
   const brandProfile = brandProfiles?.[0];
-
   const campaignIdNum = selectedCampaignId ? parseInt(selectedCampaignId, 10) : undefined;
 
   const { data: assets, isLoading: isAssetsLoading } = useListAssets(
@@ -336,56 +309,28 @@ export default function ContentStudio() {
     { query: { enabled: !!campaignIdNum, queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum ?? 0 }) } },
   );
 
-  const generateAssets = useGenerateAssets();
   const createApproval = useCreateApproval();
 
   const selectedCampaign = campaigns?.find((c) => c.id === campaignIdNum);
   const guardrailCount = brandProfile ? countGuardrails(brandProfile.forbiddenClaims ?? "") : 0;
-  const displayAssets = assets?.slice(0, 3) ?? [];
-
+  const displayAssets = (assets?.slice(0, 3) ?? []) as Asset[];
+  const cameFromCampaign = !!preselectedId;
+  const connectedToStage3 = displayAssets.length > 0;
+  const filters = useMemo(() => ["الحملة", "القناة", "الحالة", "اللغة", "الهدف"], []);
   const handleGenerate = () => {
-    if (!campaignIdNum) return;
-    generateAssets.mutate(
-      { data: { campaignId: campaignIdNum } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum }) });
-          toast({ title: "Ads generated", description: "3 variants are ready for your review." });
-        },
-        onError: () => {
-          toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
-        },
-      },
-    );
+    toast({ title: "المحتوى مسودة فقط", description: "توليد المحتوى غير مفعّل في هذه الشريحة." });
   };
 
-  const handleDecision = (
-    assetId: number,
-    decision: "approved" | "rejected" | "changes_requested",
-    reason?: string,
-  ) => {
+  const handleDecision = (assetId: number, decision: "approved" | "rejected" | "changes_requested", reason?: string) => {
     createApproval.mutate(
       {
-        data: {
-          assetId,
-          decision,
-          actor: "Demo User",
-          reason: reason ?? "",
-        },
+        data: { assetId, decision, actor: "Demo User", reason: reason ?? "" },
       },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey({ campaignId: campaignIdNum ?? 0 }) });
-          const label =
-            decision === "approved"
-              ? "Ad approved"
-              : decision === "changes_requested"
-                ? "Edit request submitted"
-                : "Ad rejected";
+          const label = decision === "approved" ? "تمت الموافقة" : decision === "changes_requested" ? "تم طلب تعديل" : "تم الرفض";
           toast({ title: label });
-        },
-        onError: () => {
-          toast({ title: "Action failed", description: "Please try again.", variant: "destructive" });
         },
       },
     );
@@ -393,351 +338,147 @@ export default function ContentStudio() {
 
   const handleSubmitEdit = () => {
     if (editDialogAssetId === null) return;
-    handleDecision(editDialogAssetId, "changes_requested", editReason.trim() || "Please revise");
+    handleDecision(editDialogAssetId, "changes_requested", editReason.trim() || "يرجى المراجعة");
     setEditDialogAssetId(null);
     setEditReason("");
   };
 
-  const cameFromCampaign = !!preselectedId;
-
   return (
     <SidebarLayout>
-      {/* Viewer read-only banner */}
-      {isViewer && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-4 py-2.5 bg-muted/20">
-          <EyeOff className="h-4 w-4 shrink-0" />
-          <span>
-            <span className="font-medium text-foreground">Read-only access.</span>{" "}
-            You can review ad content but cannot generate or approve ads. Ask an Admin to make changes.
-          </span>
-        </div>
-      )}
-
-      {cameFromCampaign && selectedCampaign ? (
-        <div>
-          <WouterLink href={`/campaigns/${selectedCampaign.id}`}>
-            <Button variant="ghost" size="sm" className="text-muted-foreground mb-4 -ml-2">
-              ← Back to {selectedCampaign.name}
-            </Button>
-          </WouterLink>
-          <div className="flex items-start justify-between flex-wrap gap-3">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-1">
-                Generating ad content for
-              </p>
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-4xl font-bold tracking-tight">{selectedCampaign.name}</h1>
-                <Badge
-                  variant={
-                    selectedCampaign.status === "active" || selectedCampaign.status === "approved"
-                      ? "default"
-                      : "secondary"
-                  }
-                  className="capitalize"
-                >
-                  {selectedCampaign.status}
-                </Badge>
+      <div className="space-y-6 rtl text-right">
+        <div className="rounded-3xl border border-emerald-100 bg-white/90 p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                <Sparkles className="h-3.5 w-3.5" />
+                مساحة نصية أولاً
               </div>
-              <p className="text-muted-foreground mt-2 text-base capitalize">
-                {selectedCampaign.objective} campaign · {selectedCampaign.channels.join(", ")}
-              </p>
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight text-slate-900">المحتوى</h1>
+                <p className="mt-2 text-base text-muted-foreground">راجع النصوص والمقترحات الإعلانية المرتبطة بالحملات</p>
+              </div>
             </div>
-            {!isViewer && (
-              <Button
-                onClick={handleGenerate}
-                disabled={generateAssets.isPending || !brandProfile}
-                size="lg"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                {generateAssets.isPending
-                  ? "Generating…"
-                  : displayAssets.length > 0
-                    ? "Regenerate Ads"
-                    : "Generate Ads"}
-              </Button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Content</h1>
-          <p className="text-muted-foreground mt-2 text-base">
-            Generate and approve ad copy for your campaigns.
-          </p>
-        </div>
-      )}
-
-      {selectedCampaignId && !isBrandLoading && !brandProfile && (
-        <Alert className="border-amber-500/40 bg-amber-500/5">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800 dark:text-amber-500">
-            No brand profile set up
-          </AlertTitle>
-          <AlertDescription className="text-amber-700/80 dark:text-amber-400/80">
-            Without brand guidelines, generated ads will be generic and may not match your voice.{" "}
-            <WouterLink
-              href="/settings"
-              className="font-semibold underline underline-offset-2 text-amber-800 dark:text-amber-400"
-            >
-              Set up your Brand Profile in Settings
-            </WouterLink>{" "}
-            before generating for best results.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {selectedCampaignId && brandProfile && (
-        <div className="flex items-center gap-2.5 text-sm text-muted-foreground border rounded-lg px-4 py-2.5 bg-muted/20 w-fit">
-          <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-          <span>
-            Brand voice:{" "}
-            <span className="font-semibold text-foreground">{brandProfile.brandName}</span>
-          </span>
-          {guardrailCount > 0 && (
-            <>
-              <span>·</span>
-              <span>
-                {guardrailCount} guardrail{guardrailCount !== 1 ? "s" : ""} active
-              </span>
-            </>
-          )}
-          {brandProfile.toneOfVoice && (
-            <>
-              <span>·</span>
-              <span className="capitalize">Tone: {brandProfile.toneOfVoice}</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {!cameFromCampaign && (
-        <Card>
-          <CardContent className="pt-6 pb-5">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-5">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold mb-2">Which campaign are these ads for?</p>
-                {isCampaignsLoading ? (
-                  <Skeleton className="h-11 w-full rounded-md" />
-                ) : (
-                  <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
-                    <SelectTrigger className="h-11 w-full max-w-sm">
-                      <SelectValue placeholder="Select a campaign…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {campaigns?.map((c) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                {!campaigns?.length && !isCampaignsLoading && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    No campaigns yet.{" "}
-                    <WouterLink href="/campaigns/new" className="text-primary hover:underline">
-                      Create one first.
-                    </WouterLink>
-                  </p>
-                )}
-              </div>
-
-              {selectedCampaignId && !isViewer && (
-                <Button
-                  onClick={handleGenerate}
-                  disabled={generateAssets.isPending}
-                  size="lg"
-                  className="shrink-0"
-                >
+            <div className="flex flex-wrap items-center gap-2">
+              {isViewer ? (
+                <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">قراءة فقط</Badge>
+              ) : (
+                <Button onClick={handleGenerate} className="bg-emerald-600 text-white hover:bg-emerald-700">
                   <Sparkles className="mr-2 h-4 w-4" />
-                  {generateAssets.isPending
-                    ? "Generating…"
-                    : displayAssets.length > 0
-                      ? "Regenerate"
-                      : "Generate Ads"}
+                  إجراء مراجعة نصية
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {!selectedCampaignId ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <PenTool className="h-10 w-10 text-muted-foreground/40 mb-3" />
-            <p className="font-semibold text-lg mb-1">Select a campaign above to begin</p>
-            <p className="text-muted-foreground text-sm">Then generate 3 ad variants in one click.</p>
-          </CardContent>
-        </Card>
-      ) : isAssetsLoading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-xl" />
-          ))}
-        </div>
-      ) : displayAssets.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Sparkles className="h-10 w-10 text-primary/40 mb-3" />
-            <p className="font-semibold text-lg mb-1">Ready to generate ads</p>
-            <p className="text-muted-foreground text-sm mb-4">
-              {isViewer ? (
-                "No ads have been generated for this campaign yet."
-              ) : (
-                <>
-                  Click <strong>Generate Ads</strong> above to create 3 variants for{" "}
-                  <span className="text-foreground font-medium">{selectedCampaign?.name}</span>.
-                  {brandProfile && (
-                    <span className="block mt-1 text-xs">
-                      Brand voice from <strong>{brandProfile.brandName}</strong> will be applied.
-                    </span>
-                  )}
-                </>
-              )}
-            </p>
-            {!isViewer && (
-              <Button onClick={handleGenerate} disabled={generateAssets.isPending || !brandProfile}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                {generateAssets.isPending ? "Generating…" : "Generate Ads"}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">
-              {displayAssets.length} ad variant{displayAssets.length !== 1 ? "s" : ""} ready for review
-            </p>
-            {!isViewer && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleGenerate}
-                disabled={generateAssets.isPending}
-              >
-                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                Regenerate all
-              </Button>
-            )}
           </div>
+        </div>
 
-          <div className="space-y-6">
-            {displayAssets.map((asset, idx) => (
-              <Card key={asset.id} className="overflow-hidden">
-                <div className="border-b bg-muted/20 px-5 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-muted-foreground">Variant {idx + 1}</span>
-                    <Badge
-                      variant={
-                        asset.status === "approved"
-                          ? "default"
-                          : asset.status === "rejected"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                      className="capitalize"
-                    >
-                      {asset.status}
-                    </Badge>
-                  </div>
-
-                  {!isViewer && (
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditDialogAssetId(asset.id);
-                          setEditReason("");
-                        }}
-                        disabled={createApproval.isPending}
-                      >
-                        <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-                        Request Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => handleDecision(asset.id, "approved")}
-                        disabled={createApproval.isPending || asset.status === "approved"}
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1.5" />
-                        Approve This Ad
-                      </Button>
-                    </div>
-                  )}
+        <Card className="border-emerald-100 shadow-sm">
+          <CardContent className="p-5">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              {filters.map((label) => (
+                <div key={label} className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">{label}</Label>
+                  <div className="rounded-xl border border-emerald-100 bg-white px-3 py-2.5 text-sm text-slate-500">تصفية محلية</div>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-                <CardContent className="p-6 space-y-5">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                      Headline
-                    </p>
-                    <p className="text-xl font-bold leading-snug">{asset.headline}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                      Caption
-                    </p>
-                    <p className="text-sm leading-relaxed">{asset.shortCaption}</p>
-                  </div>
-                  {asset.hashtags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {asset.hashtags.map((tag) => (
-                        <span key={tag} className="text-sm text-primary font-medium">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 flex items-center gap-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">CTA</span>
-                    <span className="font-medium text-sm">{asset.cta}</span>
-                  </div>
+        {selectedCampaignId && !isBrandLoading && !brandProfile && (
+          <Alert className="border-amber-500/40 bg-amber-500/5">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800 dark:text-amber-500">لا يوجد ملف علامة تجارية</AlertTitle>
+            <AlertDescription className="text-amber-700/80 dark:text-amber-400/80">قد تظهر النصوص عامة أكثر من اللازم.</AlertDescription>
+          </Alert>
+        )}
 
-                  <div className="border-t pt-5">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-                      Platform Variations
-                    </p>
-                    <VariantTabPanel
-                      assetId={asset.id}
-                      videoScript={asset.videoScript}
-                      storyboardOutline={asset.storyboardOutline}
-                    />
-                  </div>
+        {selectedCampaignId && brandProfile && (
+          <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-900">
+            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            <span>صوت العلامة:</span>
+            <span className="font-semibold text-slate-900">{brandProfile.brandName}</span>
+            {guardrailCount > 0 && <span>· {guardrailCount} ملاحظة سلامة</span>}
+          </div>
+        )}
 
-                  <CreativeBriefPanel
-                    assetId={asset.id}
-                    initialImageBrief={asset.imageBrief}
-                    initialVideoBrief={asset.videoBrief}
-                    initialAssetReference={asset.assetReference}
-                    isViewer={isViewer}
-                  />
-                </CardContent>
-              </Card>
+        {!selectedCampaignId ? (
+          <Card className="border-dashed border-emerald-200">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <PenTool className="mb-3 h-10 w-10 text-emerald-300" />
+              <p className="mb-1 text-lg font-semibold">اختر حملة للبدء</p>
+              <p className="text-sm text-muted-foreground">سيتم عرض النصوص الجاهزة هنا عندما تتوفر.</p>
+            </CardContent>
+          </Card>
+        ) : isAssetsLoading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full rounded-3xl" />
             ))}
           </div>
+        ) : (
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+            <div className="space-y-6">
+              {!connectedToStage3 && (
+                <Alert className="border-emerald-100 bg-white">
+                  <AlertTitle>Content screen is not yet connected to campaign_text_suggestions.</AlertTitle>
+                  <AlertDescription>
+                    يتم عرض بيانات المحتوى الحالية فقط حتى يتم ربط هذه الشاشة بالمخرجات المحفوظة من المرحلة الثالثة.
+                  </AlertDescription>
+                </Alert>
+              )}
 
-          {selectedCampaign && (
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground border rounded-lg px-4 py-3 bg-muted/10">
-              <ChevronRight className="h-4 w-4 shrink-0" />
-              <span>
-                Once you've reviewed all variants, go back to{" "}
-                <WouterLink
-                  href={`/campaigns/${selectedCampaign.id}`}
-                  className="text-primary font-medium hover:underline"
-                >
-                  {selectedCampaign.name}
-                </WouterLink>{" "}
-                and click <strong>Mark Campaign Ready</strong>, then use the{" "}
-                <strong>Publish</strong> tab to go live.
-              </span>
+              <div className="grid gap-4 md:grid-cols-2">
+                <ContentItemCard title="Hooks" badge="مسودة" items={displayAssets.map((asset) => asset.headline)} />
+                <ContentItemCard title="Ad copy variants" badge="تحتاج مراجعة" items={displayAssets.map((asset) => asset.shortCaption)} />
+                <ContentItemCard title="Captions" badge="مولّدة بالذكاء الاصطناعي" items={displayAssets.flatMap((asset) => asset.hashtags.length ? asset.hashtags.map((tag) => `#${tag}`) : [asset.cta])} />
+                <ContentItemCard title="CTAs" badge="مسودة" items={displayAssets.map((asset) => asset.cta)} />
+                <ContentItemCard title="Improvement notes" badge="تحتاج مراجعة" items={["تحسين تقاطع الرسالة مع صوت العلامة", "تقليل التكرار في الصياغة", "مراجعة نبرة الدعوة للإجراء"]} />
+                <ContentItemCard title="Safety notes" badge="مسودة" items={["التأكد من عدم تضخيم الوعود", "فحص العبارات المحظورة", "الالتزام بموافقة بشرية قبل الاستخدام"]} />
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            <div className="space-y-4 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-semibold text-slate-900">ملخص صوت العلامة</h2>
+                <p className="text-sm text-muted-foreground">{brandProfile?.toneOfVoice || "لا توجد بيانات نبرة متاحة حالياً."}</p>
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-semibold text-slate-900">جودة المحتوى</h2>
+                <p className="text-sm text-muted-foreground">مستوى المراجعة الحالي: مسودة داخلية تحتاج اعتماداً بشرياً.</p>
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-slate-900">توصيات مراجعة</h2>
+                <ul className="space-y-2 text-sm text-slate-700">
+                  <li className="rounded-xl bg-emerald-50/70 px-3 py-2">راجع التناسق مع الحملة المحددة</li>
+                  <li className="rounded-xl bg-emerald-50/70 px-3 py-2">تحقق من الملاءمة للغة العربية RTL</li>
+                  <li className="rounded-xl bg-emerald-50/70 px-3 py-2">اعتمد النص فقط بعد المراجعة البشرية</li>
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-slate-900">ملاحظات السلامة</h2>
+                <ul className="space-y-2 text-sm text-slate-700">
+                  <li className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2">لا يوجد نشر مباشر</li>
+                  <li className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2">لا يوجد اعتماد تلقائي</li>
+                  <li className="rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2">لا توجد وسائط أو رفع ملفات</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedCampaign && (
+          <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm text-muted-foreground shadow-sm">
+            <ChevronRight className="h-4 w-4 shrink-0 text-emerald-600" />
+            <span>
+              بعد مراجعة النصوص، ارجع إلى{" "}
+              <WouterLink href={`/campaigns/${selectedCampaign.id}`} className="font-semibold text-emerald-700 hover:underline">
+                {selectedCampaign.name}
+              </WouterLink>{" "}
+              لإكمال خطوات الحملة يدويًا.
+            </span>
+          </div>
+        )}
+      </div>
 
       <Dialog
         open={editDialogAssetId !== null}
@@ -750,35 +491,18 @@ export default function ContentStudio() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Request Changes</DialogTitle>
-            <DialogDescription>
-              Describe what you'd like changed in this ad. Your notes will be saved with the revision
-              request.
-            </DialogDescription>
+            <DialogTitle>طلب تعديل</DialogTitle>
+            <DialogDescription>اكتب ما الذي تريد تحسينه في هذه المسودة.</DialogDescription>
           </DialogHeader>
           <Textarea
             value={editReason}
             onChange={(e) => setEditReason(e.target.value)}
-            placeholder="e.g. Make the tone more casual, remove the price mention, shorten the headline…"
             rows={4}
             className="resize-none"
           />
-          <p className="text-xs text-muted-foreground">
-            The ad will be marked as "edits requested" so you can track its status.
-          </p>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditDialogAssetId(null);
-                setEditReason("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleSubmitEdit} disabled={createApproval.isPending}>
-              {createApproval.isPending ? "Submitting…" : "Submit Feedback"}
-            </Button>
+            <Button variant="outline" onClick={() => { setEditDialogAssetId(null); setEditReason(""); }}>إلغاء</Button>
+            <Button onClick={handleSubmitEdit} disabled={createApproval.isPending}>إرسال الملاحظة</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

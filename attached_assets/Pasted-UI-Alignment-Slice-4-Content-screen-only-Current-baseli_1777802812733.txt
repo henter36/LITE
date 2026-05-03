@@ -1,0 +1,147 @@
+UI Alignment Slice 4: Content screen only.
+
+Current baseline:
+- End-to-end runtime acceptance passed for the AI workflow.
+- Brand Strategy foundation exists.
+- Campaign Stage 2 uses Brand Strategy context.
+- Stage 3 text suggestions persist and reload.
+- Drizzle drift remains a blocking production gap and must not be ignored.
+- Do not modify database or migrations in this slice.
+
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not touch Dashboard.
+Do not touch Brand.
+Do not touch Campaign Detail.
+Do not touch Campaign Completion logic.
+Do not touch Campaign Workflow logic.
+Do not touch Review.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not change OpenAPI or generated client.
+
+Allowed files only:
+- existing Content screen/page file(s)
+- docs/ui_alignment_content_slice_report.md
+
+Objective:
+Align the existing Content screen to the Arabic RTL premium design direction and connect it visually to the real persisted campaign text suggestions where already available, without changing backend behavior.
+
+Scope:
+Content screen UI only.
+
+Required Content screen direction:
+- Arabic RTL-first
+- same light right-side shell
+- green/teal identity
+- soft white cards
+- premium spacing
+- text-first content workspace
+- no media generation
+- no upload
+- no live publishing
+
+Required structure:
+
+1. Header
+- Arabic title: "المحتوى"
+- subtitle: "راجع النصوص والمقترحات الإعلانية المرتبطة بالحملات"
+- clear action area, but no unsupported generation behavior
+
+2. Filters
+Add or align existing filters visually:
+- الحملة
+- القناة
+- الحالة
+- اللغة
+- الهدف
+
+Use existing data/state only.
+Do not add backend filters unless already supported.
+
+3. Content cards
+Show text content variants in Arabic-first cards:
+- hooks
+- ad copy variants
+- captions
+- CTAs
+- improvement notes
+- safety notes
+
+If persisted Stage 3 suggestions are already available to this page through existing state/API, display them.
+If not available without backend changes, show existing content data and document the gap:
+"Content screen is not yet connected to campaign_text_suggestions."
+
+4. Draft-only governance
+Clearly label AI-generated text as:
+- "مسودة"
+- "تحتاج مراجعة"
+- "مولّدة بالذكاء الاصطناعي"
+
+Do not mark anything approved automatically.
+
+5. Side panel
+Add or polish a side panel:
+- ملخص صوت العلامة
+- جودة المحتوى
+- توصيات مراجعة
+- ملاحظات السلامة
+
+Use existing data where available.
+Do not call AI in this slice.
+
+6. Unsupported features
+Do not implement:
+- image generation
+- video generation
+- upload
+- live publishing
+- auto approval
+
+7. Visual consistency
+Match Dashboard/Brand/Campaign direction:
+- emerald/teal accents
+- soft cards
+- RTL layout
+- Arabic labels
+- no purple dominance
+- no English UI labels except stored data values
+
+Documentation:
+Create:
+docs/ui_alignment_content_slice_report.md
+
+Report must include:
+- changed files
+- Content visual alignment summary
+- whether content is connected to persisted Stage 3 suggestions or not
+- preserved behavior
+- unsupported features deferred
+- Drizzle drift noted as production blocker
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no Dashboard/Brand/Campaign changes
+- no new pages
+- no upload/media/live publishing
+- no Campaign Completion regression
+
+Final output:
+- changed files
+- Content alignment completed
+- Stage 3 content connection status
+- verification results
+- remaining gaps
+- readiness decision
