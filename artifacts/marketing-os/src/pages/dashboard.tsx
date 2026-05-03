@@ -112,7 +112,7 @@ export default function Dashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">أداء المحتوى (آخر 7 أيام)</CardTitle>
             </CardHeader>
-            <CardContent className="h-[320px] space-y-4">
+            <CardContent className="h-[360px] space-y-4">
               {metrics ? (
                 <>
                   <ResponsiveContainer width="100%" height="78%">

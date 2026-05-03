@@ -1,0 +1,79 @@
+Perform post-shell Dashboard visual QA only.
+
+Do not modify backend.
+Do not modify database.
+Do not modify routes.
+Do not modify AI runtime.
+Do not modify Campaign Detail.
+Do not modify Campaign Completion logic.
+Do not modify Campaign Workflow logic.
+Do not start Brand/Content/Review alignment.
+Do not add pages.
+Do not implement upload/media/live publishing.
+
+Objective:
+Review the Dashboard after the new RTL/light right-side shell alignment and determine whether it is visually acceptable against the provided Arabic reference dashboard.
+
+Tasks:
+
+1. Capture or inspect current Dashboard
+Open the Dashboard after shell alignment.
+Provide a screenshot if possible.
+If screenshot capture is not available, state that clearly and provide a precise visual inspection.
+
+2. Compare against the reference
+Check:
+- right-side light navigation
+- Marketing OS Lite branding
+- Arabic RTL layout
+- top header spacing
+- workspace selector
+- KPI cards
+- performance card
+- workflow funnel
+- recent campaigns
+- activity card
+- brand completion
+- pending reviews
+- green/teal identity
+- typography
+- spacing
+- shadows and card softness
+
+3. Minimal fixes only
+If there are obvious small visual issues, fix only:
+- sidebar-layout.tsx
+- dashboard.tsx
+- dashboard slice report
+- shell alignment report
+
+Do not touch other pages.
+
+4. Documentation
+Update:
+docs/ui_shell_alignment_report.md
+docs/ui_alignment_dashboard_slice_report.md
+
+Add:
+- post-shell Dashboard visual QA findings
+- what now matches the reference better
+- what remains different
+- whether another Dashboard polish slice is required
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- frontend build passes with:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no new pages
+- no upload/media/live publishing
+
+Final output:
+- changed files
+- screenshot/visual evidence status
+- Dashboard visual QA result
+- remaining visual gaps
+- verification results
+- readiness decision

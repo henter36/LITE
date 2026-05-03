@@ -36,6 +36,7 @@
 - Right-side navigation was only approximated within the current shared layout; the shared app shell itself was not changed.
 - The chart and funnel remain simplified compared with the screenshot.
 - Some spacing and iconography are close rather than pixel-perfect.
+- The dashboard chart card was slightly expanded for better visual balance after shell alignment.
 
 ## Verification
 - TypeScript: passed

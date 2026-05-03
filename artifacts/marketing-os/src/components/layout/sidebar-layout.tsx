@@ -25,7 +25,6 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
   { title: "لوحة التحكم", url: "/", icon: LayoutDashboard },
@@ -90,9 +89,9 @@ export function AppSidebar() {
       <SidebarFooter className="border-t bg-white p-4 space-y-3">
         {user && (
           <div className="flex items-center gap-3 rounded-2xl border bg-muted/20 px-3 py-3">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-emerald-500/10 text-emerald-700">{user.name?.slice(0, 1) || "U"}</AvatarFallback>
-            </Avatar>
+            <div className="h-9 w-9 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center shrink-0">
+              <User className="h-4 w-4" />
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{user.name}</p>
               <p className="text-xs text-muted-foreground truncate capitalize">{user.role ?? "member"}</p>
