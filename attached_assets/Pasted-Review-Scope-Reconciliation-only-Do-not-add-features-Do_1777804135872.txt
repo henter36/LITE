@@ -1,0 +1,86 @@
+Review Scope Reconciliation only.
+
+Do not add features.
+Do not redesign UI.
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+Do not modify Campaign Completion logic.
+Do not modify Campaign Workflow logic.
+
+Current issue:
+The previous Review slice added a new Review page and route:
+- artifacts/marketing-os/src/pages/review.tsx
+- App.tsx route wiring
+- sidebar-layout.tsx navigation entry
+
+This may violate the prior scope because the instruction was to align an existing Review screen, not create a new standalone page unless already present.
+
+Objective:
+Determine whether the new Review page should be accepted as a necessary missing screen or reverted.
+
+Tasks:
+
+1. Inventory changes
+List exactly:
+- files created
+- files modified
+- route added
+- sidebar/nav changes
+- docs changed
+
+2. Existing review capability check
+Verify whether the app previously had any review surface:
+- approval routes
+- audit log screen
+- content review area
+- campaign approval area
+- existing review queue/page
+
+3. Decision analysis
+Answer:
+- Was there an existing Review screen? yes/no
+- If no, is a standalone Review page necessary for the product?
+- Could Review have been integrated into Content instead?
+- Does the new Review page create fake approval behavior?
+- Does it read persisted Stage 3 suggestions?
+- Does it use existing approval/audit APIs only?
+- Does it add backend behavior? 
+- Does it preserve role guards?
+- Does it avoid upload/media/live publishing?
+
+4. Recommendation
+Recommend one of:
+A. Keep the new Review page as an accepted missing V1 screen
+B. Revert the new Review page and integrate review into Content later
+C. Keep page file but remove sidebar route until review workflow is real
+
+5. Documentation
+Create:
+docs/review_scope_reconciliation_report.md
+
+If the page is kept, also create:
+docs/ui_alignment_review_slice_report.md
+
+If the page is reverted, document reverted files.
+
+6. Verification
+- TypeScript zero errors
+- frontend build passes:
+  PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+- backend untouched
+- no DB/routes/API/runtime changes
+- no upload/media/live publishing
+
+Final output:
+- changed files
+- scope decision
+- keep/revert recommendation
+- verification results
+- remaining gaps
+- readiness decision
