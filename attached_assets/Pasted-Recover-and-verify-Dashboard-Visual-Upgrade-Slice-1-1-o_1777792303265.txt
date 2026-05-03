@@ -1,0 +1,94 @@
+Recover and verify Dashboard Visual Upgrade Slice 1.1 only.
+
+The previous agent run failed while editing:
+artifacts/marketing-os/src/pages/dashboard.tsx
+
+Do not start any new UI slice.
+Do not touch Brand.
+Do not touch Campaign.
+Do not touch Content.
+Do not touch Review.
+Do not touch Campaign Detail.
+Do not touch backend.
+Do not touch database.
+Do not touch routes.
+Do not touch AI runtime.
+Do not change Campaign Completion logic.
+Do not change Campaign Workflow logic.
+Do not add pages.
+Do not implement upload.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement live publishing.
+
+Objective:
+Recover the interrupted Dashboard Arabic/RTL visual upgrade and return the app to a clean, buildable, reviewable state.
+
+Tasks:
+
+1. Inspect current state
+Check:
+- artifacts/marketing-os/src/pages/dashboard.tsx
+- docs/ui_alignment_dashboard_slice_report.md
+
+Determine whether the failed run left:
+- incomplete JSX
+- missing imports
+- TypeScript errors
+- broken layout
+- unfinished report text
+- partial visual rewrite
+
+2. Fix only dashboard-related issues
+If there are errors, fix only:
+- artifacts/marketing-os/src/pages/dashboard.tsx
+- docs/ui_alignment_dashboard_slice_report.md
+
+Do not edit any other screen or backend file.
+
+3. Preserve the intended Dashboard Slice 1.1 direction
+Dashboard should remain:
+- Arabic-first
+- RTL
+- green/teal identity
+- light clean background
+- premium rounded cards
+- closer to the provided Arabic dashboard reference
+- using existing safe dashboard data/actions only
+
+Do not add fake live analytics.
+Do not add unsupported backend behavior.
+
+4. Verify build/typecheck
+Run:
+PORT=3000 BASE_PATH=/ pnpm --filter @workspace/marketing-os run build
+
+Also confirm TypeScript has zero errors.
+
+If the build fails, fix only dashboard-related issues.
+
+5. Update the report
+Update:
+docs/ui_alignment_dashboard_slice_report.md
+
+Include:
+- whether the failed run was recovered
+- changed files
+- what visual upgrades were completed
+- what still differs from the reference
+- confirmation backend/db/routes/AI runtime were untouched
+- build/typecheck result
+- remaining gaps
+- readiness decision
+
+6. Final output
+Return:
+- changed files
+- whether recovery was needed
+- build/typecheck result
+- visual upgrade status
+- remaining gaps
+- readiness decision
+
+Readiness rule:
+Do not proceed to any other screen until Dashboard Slice 1.1 is clean, buildable, and visually reviewable.
