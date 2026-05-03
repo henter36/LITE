@@ -3,7 +3,7 @@ import { db } from "@workspace/db";
 import { auditLogsTable, strategyIntakesTable, strategyDiagnosesTable, campaignsTable } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import { requireAuth, getMemberRole, hasMinRole, actor } from "../middleware/auth";
-import { getAIProvider, MockAIProvider } from "../lib/ai-provider";
+import { getAIProvider, getAITextAssistProvider, MockAIProvider } from "../lib/ai-provider";
 
 const router = Router();
 
@@ -146,6 +146,84 @@ router.post("/strategy/diagnosis", requireAuth, async (req, res): Promise<void> 
   }).returning();
   await db.insert(auditLogsTable).values({ workspaceId: Number(workspaceId), action: "strategy_diagnosis_created", entityType: "strategy_diagnosis", entityId: created.id, actor: actor(req), details: `Strategy diagnosis created for workspace ${workspaceId}` });
   res.status(201).json(created);
+});
+
+router.post("/strategy/text-assist", requireAuth, async (req, res): Promise<void> => {
+  const { workspaceId, campaignId } = req.body ?? {};
+  if (!workspaceId || !campaignId) {
+    res.status(400).json({ error: "workspaceId and campaignId are required" });
+    return;
+  }
+
+  const role = await getMemberRole(req.session.userId!, Number(workspaceId));
+  if (!role) {
+    res.status(403).json({ error: "Access denied" });
+    return;
+  }
+  if (!hasMinRole(role, "editor")) {
+    res.status(403).json({ error: "Requires editor role or above" });
+    return;
+  }
+
+  const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, Number(campaignId)));
+  if (!campaign || campaign.workspaceId !== Number(workspaceId)) {
+    res.status(404).json({ error: "Campaign not found" });
+    return;
+  }
+
+  const completionContext = {
+    hasApprovedAd: false,
+    isReady: campaign.status === "approved" || campaign.status === "active",
+    hasApprovedCreativeAsset: false,
+    hasUsageRightsNotes: false,
+    hasTrackingLink: Boolean(campaign.landingUrl),
+    hasSelectedChannels: (campaign.channels?.length ?? 0) > 0,
+  };
+
+  const brandContext = {
+    brandName: campaign.name,
+    toneOfVoice: "clear",
+    targetAudience: campaign.audience,
+    forbiddenClaims: "",
+    preferredChannels: JSON.parse(campaign.channels || "[]"),
+    visualNotes: "",
+  };
+
+  const { provider, keyMissing } = getAITextAssistProvider();
+  if (keyMissing) {
+    res.status(503).json({
+      error: "AI text generation is unavailable until OPENAI_API_KEY is configured",
+      code: "AI_TEXT_UNAVAILABLE",
+      output: {
+        hooks: [],
+        adCopyVariants: [],
+        captions: [],
+        ctas: [],
+        improvementNotes: [],
+        missingContextWarnings: ["OPENAI_API_KEY is missing."],
+        safetyNotes: ["Draft-only runtime unavailable."],
+      },
+    });
+    return;
+  }
+
+  const result = await provider.generateText({
+    campaign: {
+      id: campaign.id,
+      name: campaign.name,
+      objective: campaign.objective,
+      productService: campaign.productService,
+      audience: campaign.audience,
+      geography: campaign.geography,
+      selectedChannels: JSON.parse(campaign.channels || "[]"),
+      strategySummary: `${campaign.objective} • ${campaign.audience} • ${campaign.productService}`,
+      completionContext,
+    },
+    brand: brandContext,
+    existingDrafts: {},
+  });
+
+  res.json(result);
 });
 
 router.get("/strategy/diagnosis/latest", requireAuth, async (req, res): Promise<void> => {

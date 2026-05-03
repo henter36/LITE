@@ -50,8 +50,50 @@ export interface GenerationResult {
   metadata: GenerationMetadata;
 }
 
+export interface TextAssistInput {
+  campaign: CampaignBrief & {
+    id: number;
+    selectedChannels: string[];
+    strategySummary?: string;
+    completionContext?: {
+      hasApprovedAd: boolean;
+      isReady: boolean;
+      hasApprovedCreativeAsset: boolean;
+      hasUsageRightsNotes: boolean;
+      hasTrackingLink: boolean;
+      hasSelectedChannels: boolean;
+    };
+  };
+  brand?: BrandContext;
+  existingDrafts?: {
+    hooks?: string[];
+    adCopyVariants?: string[];
+    captions?: string[];
+    ctas?: string[];
+  };
+}
+
+export interface TextAssistOutput {
+  hooks: string[];
+  adCopyVariants: string[];
+  captions: string[];
+  ctas: string[];
+  improvementNotes: string[];
+  missingContextWarnings: string[];
+  safetyNotes: string[];
+}
+
+export interface TextAssistResult {
+  output: TextAssistOutput;
+  metadata: GenerationMetadata;
+}
+
 export interface AIProvider {
   generate(input: GenerationInput): Promise<GenerationResult>;
+}
+
+export interface AITextAssistProvider {
+  generateText(input: TextAssistInput): Promise<TextAssistResult>;
 }
 
 // ---------------------------------------------------------------------------
@@ -124,6 +166,19 @@ function applyGuardrailsToOutput(output: GenerationOutput, forbiddenClaims?: str
     hashtags: output.hashtags.map(filter),
     videoScript: filter(output.videoScript),
     storyboardOutline: filter(output.storyboardOutline),
+  };
+}
+
+function applyGuardrailsToTextAssistOutput(output: TextAssistOutput, forbiddenClaims?: string): TextAssistOutput {
+  const filter = (t: string) => applyAllGuardrails(t, forbiddenClaims);
+  return {
+    hooks: output.hooks.map(filter),
+    adCopyVariants: output.adCopyVariants.map(filter),
+    captions: output.captions.map(filter),
+    ctas: output.ctas.map(filter),
+    improvementNotes: output.improvementNotes.map(filter),
+    missingContextWarnings: output.missingContextWarnings.map(filter),
+    safetyNotes: output.safetyNotes.map(filter),
   };
 }
 
@@ -304,6 +359,127 @@ export class OpenAIProvider implements AIProvider {
   }
 }
 
+function parseTextAssistResponse(raw: string): TextAssistOutput {
+  const parsed = JSON.parse(raw.trim());
+  const list = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
+  return {
+    hooks: list(parsed.hooks),
+    adCopyVariants: list(parsed.adCopyVariants),
+    captions: list(parsed.captions),
+    ctas: list(parsed.ctas),
+    improvementNotes: list(parsed.improvementNotes),
+    missingContextWarnings: list(parsed.missingContextWarnings),
+    safetyNotes: list(parsed.safetyNotes),
+  };
+}
+
+export class OpenAITextAssistProvider implements AITextAssistProvider {
+  private client: OpenAI;
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({ apiKey });
+  }
+
+  async generateText(input: TextAssistInput): Promise<TextAssistResult> {
+    const { campaign, brand, existingDrafts } = input;
+    const response = await this.client.chat.completions.create({
+      model: OPENAI_MODEL,
+      response_format: { type: "json_object" },
+      temperature: 0.4,
+      max_tokens: 1000,
+      messages: [
+        {
+          role: "system",
+          content: `You are a safe marketing copy assistant. Return ONLY valid JSON with keys hooks, adCopyVariants, captions, ctas, improvementNotes, missingContextWarnings, and safetyNotes. Draft only. Never approve, publish, or change readiness.`,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            campaign,
+            brand,
+            existingDrafts,
+          }),
+        },
+      ],
+    });
+    const raw = response.choices[0]?.message?.content ?? "{}";
+    const output = applyGuardrailsToTextAssistOutput(parseTextAssistResponse(raw), brand?.forbiddenClaims);
+    return {
+      output,
+      metadata: {
+        provider: "openai",
+        model: response.model,
+        promptVersion: PROMPT_VERSION,
+        fallbackUsed: false,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  }
+}
+
+export class MockAITextAssistProvider implements AITextAssistProvider {
+  async generateText(input: TextAssistInput): Promise<TextAssistResult> {
+    const { campaign, brand, existingDrafts } = input;
+    const tone = brand?.toneOfVoice?.trim() || "clear";
+    const channels = campaign.selectedChannels.length > 0 ? campaign.selectedChannels.join(", ") : "selected channels";
+    const summary = campaign.strategySummary || `${campaign.objective} for ${campaign.audience}`;
+    const hooks = [
+      `${campaign.name}: ${campaign.objective} made clearer`,
+      `A smarter way to reach ${campaign.audience}`,
+      `${campaign.productService} that supports ${campaign.objective}`,
+    ];
+    const adCopyVariants = [
+      `Help ${campaign.audience} achieve ${campaign.objective} with ${campaign.productService}.`,
+      `Built for ${campaign.audience} across ${channels}.`,
+      `Use ${campaign.productService} to strengthen ${summary}.`,
+    ];
+    const captions = [
+      `Draft only: ${campaign.productService} for ${campaign.audience}.`,
+      `Tone: ${tone}. Keep the message focused and review before use.`,
+    ];
+    const ctas = ["Learn More", "Get Started", "View Details"];
+    const improvementNotes = [
+      campaign.completionContext?.hasApprovedCreativeAsset
+        ? "Creative asset/reference is available."
+        : "Add an approved creative asset/reference before manual publish.",
+      campaign.completionContext?.hasTrackingLink
+        ? "Tracking is in place."
+        : "Add a tracking link or landing URL.",
+      existingDrafts?.adCopyVariants?.length ? "Refine existing draft copy rather than replacing it." : "No draft copy found; start with a single clear angle.",
+    ];
+    const missingContextWarnings = [
+      campaign.completionContext?.hasApprovedAd ? "" : "No approved ad exists yet.",
+      campaign.completionContext?.isReady ? "" : "Campaign is not marked ready.",
+    ].filter(Boolean);
+    const safetyNotes = [
+      "Draft only.",
+      "Do not approve or publish from AI output.",
+      "Manual review required.",
+    ];
+    return {
+      output: applyGuardrailsToTextAssistOutput(
+        {
+          hooks,
+          adCopyVariants,
+          captions,
+          ctas,
+          improvementNotes,
+          missingContextWarnings,
+          safetyNotes,
+        },
+        brand?.forbiddenClaims,
+      ),
+      metadata: {
+        provider: "mock",
+        model: "mock-text-v1",
+        promptVersion: PROMPT_VERSION,
+        fallbackUsed: false,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Factory — reads env, selects provider, handles missing key gracefully
 // ---------------------------------------------------------------------------
@@ -321,4 +497,19 @@ export function getAIProvider(): { provider: AIProvider; selectedProvider: "mock
   }
 
   return { provider: new MockAIProvider(), selectedProvider: "mock", keyMissing: false };
+}
+
+export function getAITextAssistProvider(): { provider: AITextAssistProvider; selectedProvider: "mock" | "openai"; keyMissing: boolean } {
+  const requested = (process.env.AI_PROVIDER ?? "mock").toLowerCase();
+
+  if (requested === "openai") {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      logger.warn("AI_PROVIDER=openai but OPENAI_API_KEY is not set — falling back to mock text provider");
+      return { provider: new MockAITextAssistProvider(), selectedProvider: "mock", keyMissing: true };
+    }
+    return { provider: new OpenAITextAssistProvider(apiKey), selectedProvider: "openai", keyMissing: false };
+  }
+
+  return { provider: new MockAITextAssistProvider(), selectedProvider: "mock", keyMissing: false };
 }

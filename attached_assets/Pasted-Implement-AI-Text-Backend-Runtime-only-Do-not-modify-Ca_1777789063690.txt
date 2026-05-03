@@ -1,0 +1,106 @@
+Implement AI Text Backend Runtime only.
+
+Do not modify Campaign Detail UI yet.
+Do not implement UI polish yet.
+Do not implement image generation.
+Do not implement video generation.
+Do not implement upload.
+Do not implement live publishing.
+Do not implement payments.
+Do not implement budget changes.
+Do not implement autonomous optimization.
+Do not create new standalone pages.
+Do not expose API keys in frontend code.
+Do not commit any API key.
+Do not change OpenAPI or generated client unless strictly unavoidable.
+
+Objective:
+Add safe server-side AI text generation plumbing that can later be used by Campaign Detail.
+
+Use Replit Secrets / environment variables.
+
+Required secret:
+OPENAI_API_KEY
+
+Requirements:
+
+1. Server-side AI service
+Create or reuse an existing backend/service layer for AI text generation.
+
+The API key must be loaded only from:
+process.env.OPENAI_API_KEY
+
+Never expose the key in frontend code.
+Never call the AI provider directly from browser/client code.
+Never hardcode the key.
+
+2. Safe missing-key behavior
+If OPENAI_API_KEY is missing:
+- do not crash the app
+- return a safe structured error
+- make it clear that AI text generation is unavailable until the secret is configured
+
+3. AI output schema
+Return structured JSON only:
+
+{
+  "hooks": string[],
+  "adCopyVariants": string[],
+  "captions": string[],
+  "ctas": string[],
+  "improvementNotes": string[],
+  "missingContextWarnings": string[],
+  "safetyNotes": string[]
+}
+
+4. Governance
+AI output must be draft-only.
+AI must not approve content.
+AI must not mark campaign ready.
+AI must not publish.
+AI must not modify budget.
+AI must not update assets.
+AI must not change readiness state.
+AI must not bypass manual publish guards.
+
+5. Minimal test/demo path
+Add the smallest safe internal function or route/action consistent with the existing architecture.
+Do not create a new standalone page.
+Do not add broad API surface.
+
+6. Documentation
+Create:
+
+docs/ai_text_backend_runtime_report.md
+
+The report must include:
+- changed files
+- where the AI service lives
+- how OPENAI_API_KEY is loaded
+- proof the key is server-side only
+- missing-key behavior
+- output schema
+- governance constraints
+- verification results
+- remaining gaps
+- readiness decision
+
+Verification:
+- TypeScript zero errors
+- app builds
+- no API key in frontend code
+- no API key committed
+- safe failure when OPENAI_API_KEY is missing
+- no image generation
+- no video generation
+- no upload
+- no live publishing
+- no new standalone pages
+- Campaign Completion Wiring unchanged
+
+Final output:
+- changed files
+- AI backend runtime implemented
+- verification results
+- remaining gaps
+- readiness decision
